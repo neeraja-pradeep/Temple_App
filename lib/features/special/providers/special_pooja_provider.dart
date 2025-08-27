@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/special_pooja_model.dart';
 import '../data/special_pooja_repository.dart';
 import '../data/weekly_pooja_repository.dart';
+import '../data/special_prayer_repository.dart';
 
 final specialPoojaRepositoryProvider = Provider<SpecialPoojaRepository>((ref) {
   return SpecialPoojaRepository();
@@ -21,4 +22,15 @@ final weeklyPoojaRepositoryProvider = Provider<WeeklyPoojaRepository>((ref) {
 final weeklyPoojasProvider = FutureProvider<List<SpecialPooja>>((ref) async {
   final repo = ref.watch(weeklyPoojaRepositoryProvider);
   return repo.fetchWeeklyPoojas();
+});
+
+final specialPrayerRepositoryProvider = Provider<SpecialPrayerRepository>((
+  ref,
+) {
+  return SpecialPrayerRepository();
+});
+
+final specialPrayersProvider = FutureProvider<List<SpecialPooja>>((ref) async {
+  final repo = ref.watch(specialPrayerRepositoryProvider);
+  return repo.fetchSpecialPrayers();
 });

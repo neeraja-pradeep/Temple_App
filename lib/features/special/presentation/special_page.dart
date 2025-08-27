@@ -71,65 +71,71 @@ class SpecialPage extends ConsumerWidget {
                                 left: 16.w,
                                 top: 16.h,
                                 right: 16.w,
+                                bottom: 16.h,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      pooja.name,
-                                      style: TextStyle(
-                                        fontSize: 20.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                        shadows: [
-                                          Shadow(
-                                            color: Colors.black.withOpacity(
-                                              0.5,
-                                            ),
-                                            blurRadius: 6.r,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(height: 4.h),
-                                    Text(
-                                      pooja.categoryName,
-                                      style: TextStyle(
-                                        fontSize: 16.sp,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w500,
-                                        shadows: [
-                                          Shadow(
-                                            color: Colors.black.withOpacity(
-                                              0.4,
-                                            ),
-                                            blurRadius: 4.r,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(height: 4.h),
-                                    if (pooja.captionsDesc.isNotEmpty) ...[
-                                      SizedBox(height: 4.h),
-                                      Text(
-                                        pooja.captionsDesc,
-                                        style: TextStyle(
-                                          fontSize: 13.sp,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w400,
-                                          shadows: [
-                                            Shadow(
-                                              color: Colors.black.withOpacity(
-                                                0.3,
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          pooja.name,
+                                          style: TextStyle(
+                                            fontSize: 20.sp,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                            shadows: [
+                                              Shadow(
+                                                color: Colors.black.withOpacity(
+                                                  0.5,
+                                                ),
+                                                blurRadius: 6.r,
                                               ),
-                                              blurRadius: 3.r,
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                    SizedBox(height: 4.h),
+                                        SizedBox(height: 4.h),
+                                        Text(
+                                          pooja.categoryName,
+                                          style: TextStyle(
+                                            fontSize: 16.sp,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w500,
+                                            shadows: [
+                                              Shadow(
+                                                color: Colors.black.withOpacity(
+                                                  0.4,
+                                                ),
+                                                blurRadius: 4.r,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        SizedBox(height: 4.h),
+                                        if (pooja.captionsDesc.isNotEmpty) ...[
+                                          SizedBox(height: 4.h),
+                                          Text(
+                                            pooja.captionsDesc,
+                                            style: TextStyle(
+                                              fontSize: 13.sp,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w400,
+                                              shadows: [
+                                                Shadow(
+                                                  color: Colors.black
+                                                      .withOpacity(0.3),
+                                                  blurRadius: 3.r,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
                                     if (date.isNotEmpty) ...[
-                                      SizedBox(height: 4.h),
                                       Text(
                                         date,
                                         style: TextStyle(
@@ -180,12 +186,12 @@ class SpecialPage extends ConsumerWidget {
 
               // 2. Today's Prayers Section
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 16.w),
+                padding: EdgeInsets.only(top: 16.h, left: 16.w, right: 16.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Today's Prayers",
+                      "ഇന്നത്തെ പൂജകൾ",
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
@@ -322,23 +328,154 @@ class SpecialPage extends ConsumerWidget {
 
               // 3. Today's Special Section
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 16.w),
+                padding: EdgeInsets.only(top: 16.h, left: 16.w, right: 16.w),
+
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Today's Special",
+                      "പ്രത്യേക പൂജകൾ",
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 8.h),
-                    // TODO: Add your special list or widget here
-                    Container(
-                      height: 100.h,
-                      color: Colors.grey[300],
-                      child: Center(child: Text('Special list goes here')),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final asyncSpecialPrayers = ref.watch(
+                          specialPrayersProvider,
+                        );
+                        return asyncSpecialPrayers.when(
+                          data: (prayers) {
+                            if (prayers.isEmpty) {
+                              return const Center(
+                                child: Text('No special prayers available.'),
+                              );
+                            }
+                            return GridView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    mainAxisSpacing: 16.h,
+                                    crossAxisSpacing: 16.w,
+                                    childAspectRatio:
+                                        0.53, // Decrease aspect ratio for taller cards
+                                  ),
+                              itemCount: prayers.length,
+                              itemBuilder: (context, index) {
+                                final pooja = prayers[index];
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.10),
+                                        blurRadius: 16.r,
+                                        offset: Offset(0, 6.h),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(
+                                          12.r,
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: Image.network(
+                                            pooja.mediaUrl,
+                                            width: double.infinity,
+                                            height: 120.h,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (
+                                                  context,
+                                                  error,
+                                                  stackTrace,
+                                                ) => Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey[200],
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12.r,
+                                                        ),
+                                                  ),
+                                                  width: double.infinity,
+                                                  height: 120.h,
+                                                  child: const Icon(
+                                                    Icons.broken_image,
+                                                  ),
+                                                ),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: EdgeInsets.all(8.w),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    pooja.name,
+                                                    style: TextStyle(
+                                                      fontSize: 15.sp,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                    textAlign: TextAlign.left,
+                                                  ),
+                                                  SizedBox(height: 4.h),
+                                                  Text(
+                                                    pooja.categoryName,
+                                                    style: TextStyle(
+                                                      fontSize: 13.sp,
+                                                      color: Colors.grey[700],
+                                                    ),
+                                                    textAlign: TextAlign.left,
+                                                  ),
+                                                ],
+                                              ),
+                                              Text(
+                                                '₹${pooja.price}',
+                                                style: TextStyle(
+                                                  fontSize: 14.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                                textAlign: TextAlign.left,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          loading: () => SizedBox(
+                            height: 200.h,
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                          error: (e, st) => SizedBox(
+                            height: 200.h,
+                            child: Center(child: Text('Error: $e')),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
