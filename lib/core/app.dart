@@ -44,7 +44,13 @@ class _MainNavScreenState extends State<MainNavScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset('assets/background.png', fit: BoxFit.cover),
+          Image.asset(
+            'assets/background.png',
+            fit: BoxFit.cover,
+            height: double.infinity,
+            width: double.infinity,
+            alignment: Alignment.topCenter,
+          ),
           _pages[_selectedIndex],
         ],
       ),
