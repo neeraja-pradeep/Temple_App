@@ -1,16 +1,33 @@
+import 'package:hive/hive.dart';
+part 'special_pooja_model.g.dart';
+
+@HiveType(typeId: 0)
 class SpecialPooja {
+  @HiveField(0)
   final int id;
+  @HiveField(1)
   final String name;
+  @HiveField(2)
   final int category;
+  @HiveField(3)
   final String categoryName;
+  @HiveField(4)
   final String price;
+  @HiveField(5)
   final bool status;
+  @HiveField(6)
   final String bannerDesc;
+  @HiveField(7)
   final String cardDesc;
+  @HiveField(8)
   final String captionsDesc;
+  @HiveField(9)
   final bool specialPooja;
+  @HiveField(10)
   final List<SpecialPoojaDate> specialPoojaDates;
+  @HiveField(11)
   final String mediaUrl;
+  @HiveField(12)
   final String bannerUrl;
 
   SpecialPooja({
@@ -52,18 +69,31 @@ class SpecialPooja {
   }
 }
 
+@HiveType(typeId: 1)
 class SpecialPoojaDate {
+  @HiveField(0)
   final int id;
+  @HiveField(1)
   final int pooja;
+  @HiveField(2)
   final String poojaName;
+  @HiveField(3)
   final String date;
+  @HiveField(4)
   final String malayalamDate;
+  @HiveField(5)
   final String? time;
+  @HiveField(6)
   final String price;
+  @HiveField(7)
   final bool status;
+  @HiveField(8)
   final bool banner;
+  @HiveField(9)
   final String createdAt;
+  @HiveField(10)
   final String modifiedAt;
+  @HiveField(11)
   final int linkedOrdersCount;
 
   SpecialPoojaDate({

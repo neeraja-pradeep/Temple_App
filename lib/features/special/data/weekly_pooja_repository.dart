@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'special_pooja_model.dart';
+import 'package:hive/hive.dart';
 
 class WeeklyPoojaRepository {
   static const String _endpoint =
@@ -14,5 +15,11 @@ class WeeklyPoojaRepository {
     } else {
       throw Exception('Failed to load weekly poojas');
     }
+  }
+
+  Future<void> saveWeeklyPoojasToCache(List<SpecialPooja> poojas) async {
+    final box = await Hive.openBox<SpecialPooja>('weeklyPoojas');
+    await box.clear();
+    await box.addAll(poojas);
   }
 }

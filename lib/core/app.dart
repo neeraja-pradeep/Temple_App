@@ -26,8 +26,8 @@ class _MainNavScreenState extends State<MainNavScreen> {
   final List<String> _labels = [
     'പ്രത്യകം', // Special
     'പൂജ', // Pooja
-    'ഹോം', // Home
-    'ഷോപ്പ്', // Shop
+    'ദർശനം', // Home
+    'വിപണി', // Shop
     'സംഗീതം', // Music
   ];
   final List<String> _icons = [
@@ -147,6 +147,7 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Temple App',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),

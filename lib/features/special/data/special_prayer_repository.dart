@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'special_pooja_model.dart';
+import 'package:hive/hive.dart';
 
 class SpecialPrayerRepository {
   static const String _endpoint =
@@ -14,5 +15,11 @@ class SpecialPrayerRepository {
     } else {
       throw Exception('Failed to load special prayers');
     }
+  }
+
+  Future<void> saveSpecialPrayersToCache(List<SpecialPooja> prayers) async {
+    final box = await Hive.openBox<SpecialPooja>('specialPrayers');
+    await box.clear();
+    await box.addAll(prayers);
   }
 }
