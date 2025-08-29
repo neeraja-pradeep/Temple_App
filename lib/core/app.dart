@@ -109,15 +109,15 @@ class _MainNavScreenState extends State<MainNavScreen> {
                               Image.asset(
                                 _icons[index],
                                 width: 28.w,
-                                height: 28.w,
+                                height: 28.h,
                                 color: AppColors.selected,
                               ),
                               SizedBox(height: 2.h),
                               Text(
                                 _labels[index],
                                 style: TextStyle(
-                                  fontSize: 13.sp,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w700,
                                   color: AppColors.selected,
                                 ),
                               ),

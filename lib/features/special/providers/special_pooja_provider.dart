@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/special_pooja_model.dart';
+import '../data/models/special_pooja_model.dart';
 import '../data/special_pooja_repository.dart';
 import '../data/weekly_pooja_repository.dart';
 import '../data/special_prayer_repository.dart';
