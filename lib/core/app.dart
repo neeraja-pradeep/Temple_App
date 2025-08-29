@@ -126,8 +126,8 @@ class _MainNavScreenState extends State<MainNavScreen> {
                         )
                       : Image.asset(
                           _icons[index],
-                          width: 24.w,
-                          height: 24.w,
+                          height: 26.h,
+                          width: 26.w,
                           color: AppColors.unselected,
                         ),
                 ],

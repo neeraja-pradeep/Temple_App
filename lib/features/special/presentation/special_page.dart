@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple/core/app_colors.dart';
+import 'package:temple/widgets/weekly_pooja_skeleton.dart';
+import 'package:temple/widgets/special_page_skeleton.dart';
 import '../providers/special_pooja_provider.dart';
 import '../data/special_pooja_model.dart';
 
@@ -43,7 +45,7 @@ class SpecialPage extends ConsumerWidget {
                     pageController,
                     currentPage,
                   ),
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const SpecialPageSkeleton(),
             error: (e, st) =>
                 const Center(child: Text('No special poojas available.')),
           );
@@ -58,7 +60,7 @@ class SpecialPage extends ConsumerWidget {
           currentPage,
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const SpecialPageSkeleton(),
       error: (e, st) {
         return cachedPoojas.when(
           data: (cache) => cache.isEmpty
@@ -125,7 +127,10 @@ class SpecialPage extends ConsumerWidget {
                         height: 142.h,
                         margin: EdgeInsets.only(
                           top: 0.h,
-                          bottom: 12.h, // Keep bottom margin for shadow
+                          bottom: 12.h,
+                          left: 8,
+                          right: 8,
+                          // Keep bottom margin for shadow
                         ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8.r),
@@ -337,7 +342,9 @@ class SpecialPage extends ConsumerWidget {
               padding: EdgeInsets.symmetric(vertical: 0.h, horizontal: 16.w),
 
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   SizedBox(height: 24.h),
                   Text(
@@ -512,12 +519,14 @@ class SpecialPage extends ConsumerWidget {
         crossAxisCount: 2,
         mainAxisSpacing: 16.h,
         crossAxisSpacing: 16.w,
-        childAspectRatio: 0.53,
+        mainAxisExtent: 200.h,
       ),
       itemCount: prayers.length,
       itemBuilder: (context, index) {
         final pooja = prayers[index];
         return Container(
+          width: 163.w,
+          height: 200.h,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12.r),
@@ -529,72 +538,74 @@ class SpecialPage extends ConsumerWidget {
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12.r),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.r),
                   child: Image.network(
                     pooja.mediaUrl,
-                    width: double.infinity,
-                    height: 120.h,
+                    width: 146.w,
+                    height: 80.h,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12.r),
+                        borderRadius: BorderRadius.circular(8.r),
                       ),
-                      width: double.infinity,
-                      height: 120.h,
+                      width: 146.w,
+                      height: 80.h,
                       child: const Icon(Icons.broken_image),
                     ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.all(8.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            pooja.name,
-                            style: TextStyle(
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 8.w, right: 8.w, top: 8.h),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              pooja.name,
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.left,
                             ),
-                            textAlign: TextAlign.left,
-                          ),
-                          SizedBox(height: 4.h),
-                          Text(
-                            pooja.categoryName,
-                            style: TextStyle(
-                              fontSize: 13.sp,
-                              color: Colors.grey[700],
+                            // SizedBox(height: 4.h),
+                            Text(
+                              pooja.categoryName,
+                              style: TextStyle(
+                                fontFamily: 'NotoSansMalayalam',
+                                fontSize: 12.sp,
+                                color: Colors.grey[700],
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.left,
                             ),
-                            textAlign: TextAlign.left,
-                          ),
-                        ],
-                      ),
-                      Text(
-                        '₹${pooja.price}',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
+                          ],
                         ),
-                        textAlign: TextAlign.left,
-                      ),
-                    ],
+                        Text(
+                          '₹${pooja.price}',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.left,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
