@@ -6,6 +6,7 @@ import 'package:temple/widgets/weekly_pooja_skeleton.dart';
 import 'package:temple/widgets/special_page_skeleton.dart';
 import '../providers/special_pooja_provider.dart';
 import '../data/special_pooja_model.dart';
+import '../../booking/presentation/booking_page.dart';
 
 // Provider for managing selected card across both sections
 final selectedCardProvider = StateProvider<SpecialPooja?>((ref) => null);
@@ -494,8 +495,14 @@ class SpecialPage extends ConsumerWidget {
                   height: 40.h,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Handle booking logic here
-                      print('Booking: ${selectedCard!.id}');
+                      // Navigate to booking page
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              BookingPage(poojaId: selectedCard!.id, userId: 1),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.selected,

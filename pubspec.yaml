@@ -72,6 +72,8 @@ flutter:
     - assets/bottomNavBar/bn3.png
     - assets/bottomNavBar/bn4.png
     - assets/bottomNavBar/bn5.png
+    - assets/backIcon.png
+    - assets/calendar.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
