@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:convert';
 import 'package:temple/core/app_colors.dart';
+import 'package:temple/widgets/custom_calendar_picker.dart';
 import '../providers/booking_provider.dart';
 import '../providers/user_list_provider.dart';
 import '../data/booking_pooja_model.dart';
@@ -196,7 +197,7 @@ class BookingPage extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(12.r),
                           ),
                           child: Padding(
-                            padding: EdgeInsets.all(12.w),
+                            padding: EdgeInsets.all(0.w),
                             child: CustomCalendarPicker(
                               enabledDates: enabledDates,
                               selectedDate: selectedDate,
@@ -1889,182 +1890,4 @@ String _formatDate(String dateString) {
   }
 }
 
-class CustomCalendarPicker extends StatefulWidget {
-  final List<String> enabledDates;
-  final String? selectedDate;
-  final void Function(String) onDateSelected;
-
-  const CustomCalendarPicker({
-    Key? key,
-    required this.enabledDates,
-    required this.onDateSelected,
-    this.selectedDate,
-  }) : super(key: key);
-
-  @override
-  State<CustomCalendarPicker> createState() => _CustomCalendarPickerState();
-}
-
-class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
-  late DateTime _displayedMonth;
-
-  @override
-  void initState() {
-    super.initState();
-    // Default to first enabled date's month, or today
-    if (widget.enabledDates.isNotEmpty) {
-      _displayedMonth = DateTime.parse(widget.enabledDates.first);
-      _displayedMonth = DateTime(_displayedMonth.year, _displayedMonth.month);
-    } else {
-      final now = DateTime.now();
-      _displayedMonth = DateTime(now.year, now.month);
-    }
-  }
-
-  void _goToPreviousMonth() {
-    setState(() {
-      _displayedMonth = DateTime(
-        _displayedMonth.year,
-        _displayedMonth.month - 1,
-      );
-    });
-  }
-
-  void _goToNextMonth() {
-    setState(() {
-      _displayedMonth = DateTime(
-        _displayedMonth.year,
-        _displayedMonth.month + 1,
-      );
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final enabledDateSet = widget.enabledDates.toSet();
-    final selected = widget.selectedDate;
-    final daysInMonth = DateUtils.getDaysInMonth(
-      _displayedMonth.year,
-      _displayedMonth.month,
-    );
-    final firstDayOfWeek =
-        DateTime(_displayedMonth.year, _displayedMonth.month, 1).weekday % 7;
-    final days = List.generate(daysInMonth, (i) => i + 1);
-    final monthName = _monthName(_displayedMonth.month);
-
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-              icon: Icon(Icons.chevron_left),
-              onPressed: _goToPreviousMonth,
-            ),
-            Text(
-              '$monthName ${_displayedMonth.year}',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp),
-            ),
-            IconButton(
-              icon: Icon(Icons.chevron_right),
-              onPressed: _goToNextMonth,
-            ),
-          ],
-        ),
-        SizedBox(height: 8.h),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-              .map(
-                (d) => Expanded(
-                  child: Center(
-                    child: Text(
-                      d,
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-              )
-              .toList(),
-        ),
-        SizedBox(height: 8.h),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            mainAxisSpacing: 4.h,
-            crossAxisSpacing: 4.w,
-            childAspectRatio: 1,
-          ),
-          itemCount: daysInMonth + firstDayOfWeek,
-          itemBuilder: (context, i) {
-            if (i < firstDayOfWeek) {
-              return SizedBox.shrink();
-            }
-            final day = days[i - firstDayOfWeek];
-            final date = DateTime(
-              _displayedMonth.year,
-              _displayedMonth.month,
-              day,
-            );
-            final dateStr = date.toIso8601String().substring(0, 10);
-            final isEnabled = enabledDateSet.contains(dateStr);
-            final isSelected = selected == dateStr;
-            return GestureDetector(
-              onTap: isEnabled
-                  ? () {
-                      widget.onDateSelected(dateStr);
-                    }
-                  : null,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.selected
-                      : isEnabled
-                      ? Colors.white
-                      : Colors.grey[200],
-                  borderRadius: BorderRadius.circular(6.r),
-                  border: isSelected
-                      ? Border.all(color: AppColors.selected, width: 2)
-                      : null,
-                ),
-                child: Center(
-                  child: Text(
-                    '$day',
-                    style: TextStyle(
-                      color: isEnabled
-                          ? (isSelected ? Colors.white : Colors.black)
-                          : Colors.grey,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  String _monthName(int month) {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return months[month - 1];
-  }
-}
+// CustomCalendarPicker moved to its own file: lib/widgets/custom_calendar_picker.dart
