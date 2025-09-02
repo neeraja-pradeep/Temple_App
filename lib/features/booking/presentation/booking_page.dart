@@ -8,6 +8,12 @@ import '../providers/user_list_provider.dart';
 import '../data/booking_pooja_model.dart';
 import '../data/user_list_model.dart';
 
+final isParticipatingPhysicallyProvider = StateProvider<bool>((ref) => false);
+final isAgentCodeProvider = StateProvider<bool>((ref) => false);
+final agentCodeProvider = StateProvider<String>((ref) => '');
+final showCalendarProvider = StateProvider<bool>((ref) => false);
+final selectedCalendarDateProvider = StateProvider<String?>((ref) => null);
+
 class BookingPage extends ConsumerWidget {
   final int poojaId;
   final int userId;
@@ -76,206 +82,289 @@ class BookingPage extends ConsumerWidget {
   }
 
   Widget _buildBookingContent(BuildContext context, BookingPooja pooja) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // Background Image
-        Image.asset(
-          'assets/background.png',
-          fit: BoxFit.cover,
-          height: double.infinity,
-          width: double.infinity,
-          alignment: Alignment.topCenter,
-        ),
-        // Content
-        SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(height: 64.h),
-              // Banner Image
-
-              // Pooja Details Card
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8.r,
-                      offset: Offset(0, 4.h),
+    return Consumer(
+      builder: (context, ref, _) {
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            // Background Image
+            Image.asset(
+              'assets/background.png',
+              fit: BoxFit.cover,
+              height: double.infinity,
+              width: double.infinity,
+              alignment: Alignment.topCenter,
+            ),
+            // Content
+            SingleChildScrollView(
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(height: 64.h),
+                  // Banner Image
+                  // Pooja Details Card
+                  Container(
+                    padding: EdgeInsets.all(16.w),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8.r,
+                          offset: Offset(0, 4.h),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    // Pooja Name with Calendar Icon
-                    Row(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(
-                          child: Text(
-                            pooja.name,
+                        // Pooja Name with Calendar Icon
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                pooja.name,
+                                style: TextStyle(
+                                  fontFamily: 'NotoSansMalayalam',
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.selected,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                final show = ref.read(showCalendarProvider);
+                                ref.read(showCalendarProvider.notifier).state =
+                                    !show;
+                              },
+                              child: Image.asset(
+                                'assets/calendar.png',
+                                width: 20.w,
+                                height: 20.h,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8.h),
+                        // Malayalam Date
+                        if (pooja.specialPoojaDates.isNotEmpty) ...[
+                          Text(
+                            pooja.specialPoojaDates.first.malayalamDate,
                             style: TextStyle(
                               fontFamily: 'NotoSansMalayalam',
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          // English Date
+                          Text(
+                            _formatDate(pooja.specialPoojaDates.first.date),
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                        ],
+                      ],
+                    ),
+                  ),
+                  // Show calendar card below the first card if toggled
+                  Builder(
+                    builder: (context) {
+                      final showCalendar = ref.watch(showCalendarProvider);
+                      if (!showCalendar) return SizedBox.shrink();
+                      final enabledDates = pooja.specialPoojaDates
+                          .map((d) => d.date)
+                          .toList();
+                      final selectedDate = ref.watch(
+                        selectedCalendarDateProvider,
+                      );
+                      return Padding(
+                        padding: EdgeInsets.only(top: 12.h, bottom: 12.h),
+                        child: Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(12.w),
+                            child: CustomCalendarPicker(
+                              enabledDates: enabledDates,
+                              selectedDate: selectedDate,
+                              onDateSelected: (date) {
+                                ref
+                                        .read(
+                                          selectedCalendarDateProvider.notifier,
+                                        )
+                                        .state =
+                                    date;
+                                ref.read(showCalendarProvider.notifier).state =
+                                    false;
+                              },
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 24.h),
+                  // Pooja For Whom Section
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final userListsAsync = ref.watch(userListsProvider);
+                      return userListsAsync.when(
+                        data: (userLists) =>
+                            _buildPoojaForWhomSection(context, ref, userLists),
+                        loading: () => Container(
+                          padding: EdgeInsets.all(16.w),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8.r,
+                                offset: Offset(0, 4.h),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: CircularProgressIndicator(
                               color: AppColors.selected,
                             ),
                           ),
                         ),
-                        Image.asset(
-                          'assets/calendar.png',
-                          width: 20.w,
-                          height: 20.h,
+                        error: (error, stack) => Container(
+                          padding: EdgeInsets.all(16.w),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8.r,
+                                offset: Offset(0, 4.h),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            'Error loading users: $error',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 100.h), // Add extra space for bottom button
+                ],
+              ),
+            ),
+            // Fixed Book Now Button at bottom
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final showCalendar = ref.watch(showCalendarProvider);
+                  final selectedUsers = ref.watch(
+                    selectedUsersProvider(userId),
+                  );
+                  // Ensure price is numeric
+                  print(pooja.price);
+                  final double basePrice = double.tryParse(pooja.price) ?? 0.0;
+                  final int userCount = selectedUsers.isNotEmpty
+                      ? selectedUsers.length
+                      : 1;
+                  final double totalPrice = basePrice * userCount;
+                  print(totalPrice);
+                  return Container(
+                    padding: EdgeInsets.all(16.w),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      boxShadow: [
+                        // BoxShadow(
+                        //   color: Colors.black.withOpacity(0.1),
+                        //   blurRadius: 16.r,
+                        //   offset: Offset(0, 0.h),
+                        //   spreadRadius: 1.r,
+                        // ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (!showCalendar) ...[
+                          Text(
+                            'ആകെതുക: ₹${totalPrice.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                              fontFamily: 'NotoSansMalayalam',
+                            ),
+                          ),
+                          SizedBox(height: 12.h),
+                          Text(
+                            'നോസ്ത്രുഡ് എക്സെപ്റ്റെർ ഡ്യൂയിസ് മാഗ്നാ ക്വിസ് എനിം എനിം എസ്റ്റ് ഉല്ലാംകോ പ്രൊഇഡന്റ് ഉട്ട് നിസി ഉല്ലാംകോ മിനിം',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          SizedBox(height: 12.h),
+                        ],
+                        SizedBox(
+                          width: double.infinity,
+                          height: 40.h,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // TODO: Implement actual booking logic
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Booking functionality coming soon!',
+                                  ),
+                                  backgroundColor: AppColors.selected,
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.selected,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                            ),
+                            child: Text(
+                              'പൂജ ബുക്ക് ചെയ്യുക',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
-
-                    SizedBox(height: 8.h),
-
-                    // Malayalam Date
-                    if (pooja.specialPoojaDates.isNotEmpty) ...[
-                      Text(
-                        pooja.specialPoojaDates.first.malayalamDate,
-                        style: TextStyle(
-                          fontFamily: 'NotoSansMalayalam',
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 4.h),
-                      // English Date
-                      Text(
-                        _formatDate(pooja.specialPoojaDates.first.date),
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      SizedBox(height: 8.h),
-                    ],
-
-                    // Category
-
-                    // Price
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 24.h),
-
-              // Pooja For Whom Section
-              Consumer(
-                builder: (context, ref, child) {
-                  final userListsAsync = ref.watch(userListsProvider);
-
-                  return userListsAsync.when(
-                    data: (userLists) =>
-                        _buildPoojaForWhomSection(context, ref, userLists),
-                    loading: () => Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8.r,
-                            offset: Offset(0, 4.h),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.selected,
-                        ),
-                      ),
-                    ),
-                    error: (error, stack) => Container(
-                      padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8.r,
-                            offset: Offset(0, 4.h),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        'Error loading users: $error',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
                   );
                 },
               ),
-
-              SizedBox(height: 100.h), // Add extra space for bottom button
-            ],
-          ),
-        ),
-        // Fixed Book Now Button at bottom
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 16.r,
-                  offset: Offset(0, 0.h),
-                  spreadRadius: 1.r,
-                ),
-              ],
             ),
-            child: SizedBox(
-              width: double.infinity,
-              height: 48.h,
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Implement actual booking logic
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Booking functionality coming soon!'),
-                      backgroundColor: AppColors.selected,
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.selected,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                ),
-                child: Text(
-                  'പൂജ ബുക്ക് ചെയ്യുക',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -498,18 +587,53 @@ class BookingPage extends ConsumerWidget {
   }
 
   Widget _buildAdditionalOptions(BuildContext context, WidgetRef ref) {
+    final isParticipatingPhysically = ref.watch(
+      isParticipatingPhysicallyProvider,
+    );
+    final isAgentCode = ref.watch(isAgentCodeProvider);
+    final agentCode = ref.watch(agentCodeProvider);
+
+    Widget customCheckbox({
+      required bool value,
+      required VoidCallback? onTap,
+      bool disabled = false,
+      Color? color,
+    }) {
+      final borderColor = color ?? (value ? AppColors.selected : Colors.grey);
+      final iconColor = color ?? (value ? AppColors.selected : Colors.grey);
+      return GestureDetector(
+        onTap: disabled ? null : onTap,
+        child: Container(
+          width: 20.w,
+          height: 20.h,
+          decoration: BoxDecoration(
+            border: Border.all(color: borderColor, width: 2.w),
+            borderRadius: BorderRadius.circular(4.r),
+          ),
+          child: value
+              ? Icon(Icons.check, size: 14.sp, color: iconColor)
+              : null,
+        ),
+      );
+    }
+
     return Column(
       children: [
         // Participating physically
         Row(
           children: [
-            Container(
-              width: 20.w,
-              height: 20.h,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey, width: 2.w),
-                borderRadius: BorderRadius.circular(4.r),
-              ),
+            customCheckbox(
+              value: isAgentCode ? true : isParticipatingPhysically,
+              onTap: isAgentCode
+                  ? null
+                  : () {
+                      ref
+                              .read(isParticipatingPhysicallyProvider.notifier)
+                              .state =
+                          !isParticipatingPhysically;
+                    },
+              disabled: isAgentCode,
+              color: isAgentCode ? Colors.grey : null,
             ),
             SizedBox(width: 12.w),
             Text(
@@ -519,17 +643,80 @@ class BookingPage extends ConsumerWidget {
           ],
         ),
         SizedBox(height: 12.h),
-
         // Agent code
         Row(
           children: [
-            Container(
-              width: 20.w,
-              height: 20.h,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey, width: 2.w),
-                borderRadius: BorderRadius.circular(4.r),
-              ),
+            customCheckbox(
+              value: isAgentCode,
+              onTap: () async {
+                final newValue = !isAgentCode;
+                ref.read(isAgentCodeProvider.notifier).state = newValue;
+                if (newValue) {
+                  // Auto-check and disable the first checkbox
+                  ref.read(isParticipatingPhysicallyProvider.notifier).state =
+                      true;
+                  // Show bottom sheet for agent code input
+                  await showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(20.r),
+                      ),
+                    ),
+                    builder: (context) {
+                      String tempAgentCode = agentCode;
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context).viewInsets.bottom,
+                          left: 16.w,
+                          right: 16.w,
+                          top: 24.h,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'ഏജന്റ് കോഡ്',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 16.h),
+                            TextField(
+                              onChanged: (value) => tempAgentCode = value,
+                              decoration: InputDecoration(hintText: 'Code'),
+                              controller: TextEditingController(
+                                text: agentCode,
+                              ),
+                            ),
+                            SizedBox(height: 16.h),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: Text('Close'),
+                                ),
+                                SizedBox(width: 8.w),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    ref.read(agentCodeProvider.notifier).state =
+                                        tempAgentCode;
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text('Save'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                }
+              },
             ),
             SizedBox(width: 12.w),
             Text(
@@ -1143,7 +1330,7 @@ class BookingPage extends ConsumerWidget {
                         ),
                       ),
                       child: Text(
-                        'അപ്ഡേറ്റ്',
+                        'സേവ്',
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w600,
@@ -1699,5 +1886,185 @@ String _formatDate(String dateString) {
   } catch (e) {
     // Return original string if parsing fails
     return dateString;
+  }
+}
+
+class CustomCalendarPicker extends StatefulWidget {
+  final List<String> enabledDates;
+  final String? selectedDate;
+  final void Function(String) onDateSelected;
+
+  const CustomCalendarPicker({
+    Key? key,
+    required this.enabledDates,
+    required this.onDateSelected,
+    this.selectedDate,
+  }) : super(key: key);
+
+  @override
+  State<CustomCalendarPicker> createState() => _CustomCalendarPickerState();
+}
+
+class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
+  late DateTime _displayedMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    // Default to first enabled date's month, or today
+    if (widget.enabledDates.isNotEmpty) {
+      _displayedMonth = DateTime.parse(widget.enabledDates.first);
+      _displayedMonth = DateTime(_displayedMonth.year, _displayedMonth.month);
+    } else {
+      final now = DateTime.now();
+      _displayedMonth = DateTime(now.year, now.month);
+    }
+  }
+
+  void _goToPreviousMonth() {
+    setState(() {
+      _displayedMonth = DateTime(
+        _displayedMonth.year,
+        _displayedMonth.month - 1,
+      );
+    });
+  }
+
+  void _goToNextMonth() {
+    setState(() {
+      _displayedMonth = DateTime(
+        _displayedMonth.year,
+        _displayedMonth.month + 1,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final enabledDateSet = widget.enabledDates.toSet();
+    final selected = widget.selectedDate;
+    final daysInMonth = DateUtils.getDaysInMonth(
+      _displayedMonth.year,
+      _displayedMonth.month,
+    );
+    final firstDayOfWeek =
+        DateTime(_displayedMonth.year, _displayedMonth.month, 1).weekday % 7;
+    final days = List.generate(daysInMonth, (i) => i + 1);
+    final monthName = _monthName(_displayedMonth.month);
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: Icon(Icons.chevron_left),
+              onPressed: _goToPreviousMonth,
+            ),
+            Text(
+              '$monthName ${_displayedMonth.year}',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp),
+            ),
+            IconButton(
+              icon: Icon(Icons.chevron_right),
+              onPressed: _goToNextMonth,
+            ),
+          ],
+        ),
+        SizedBox(height: 8.h),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+              .map(
+                (d) => Expanded(
+                  child: Center(
+                    child: Text(
+                      d,
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+        SizedBox(height: 8.h),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 7,
+            mainAxisSpacing: 4.h,
+            crossAxisSpacing: 4.w,
+            childAspectRatio: 1,
+          ),
+          itemCount: daysInMonth + firstDayOfWeek,
+          itemBuilder: (context, i) {
+            if (i < firstDayOfWeek) {
+              return SizedBox.shrink();
+            }
+            final day = days[i - firstDayOfWeek];
+            final date = DateTime(
+              _displayedMonth.year,
+              _displayedMonth.month,
+              day,
+            );
+            final dateStr = date.toIso8601String().substring(0, 10);
+            final isEnabled = enabledDateSet.contains(dateStr);
+            final isSelected = selected == dateStr;
+            return GestureDetector(
+              onTap: isEnabled
+                  ? () {
+                      widget.onDateSelected(dateStr);
+                    }
+                  : null,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.selected
+                      : isEnabled
+                      ? Colors.white
+                      : Colors.grey[200],
+                  borderRadius: BorderRadius.circular(6.r),
+                  border: isSelected
+                      ? Border.all(color: AppColors.selected, width: 2)
+                      : null,
+                ),
+                child: Center(
+                  child: Text(
+                    '$day',
+                    style: TextStyle(
+                      color: isEnabled
+                          ? (isSelected ? Colors.white : Colors.black)
+                          : Colors.grey,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  String _monthName(int month) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return months[month - 1];
   }
 }
