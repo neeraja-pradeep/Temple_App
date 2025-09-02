@@ -8,6 +8,8 @@ import '../providers/booking_provider.dart';
 import '../providers/user_list_provider.dart';
 import '../data/booking_pooja_model.dart';
 import '../data/user_list_model.dart';
+import '../data/booking_repository.dart';
+import '../../pooja/presentation/pooja_summary_page.dart';
 
 final isParticipatingPhysicallyProvider = StateProvider<bool>((ref) => false);
 final isAgentCodeProvider = StateProvider<bool>((ref) => false);
@@ -25,57 +27,62 @@ class BookingPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bookingPoojaAsync = ref.watch(bookingPoojaProvider(poojaId));
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leadingWidth: 64.w, // give extra space for left padding
-        leading: Padding(
-          padding: EdgeInsets.only(left: 16.w), // shift container inward
-          child: Container(
-            width: 40.w,
-            height: 40.h,
-            decoration: BoxDecoration(
-              color: Color.fromRGBO(251, 239, 217, 1),
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: Center(
-              child: IconButton(
-                icon: Image.asset(
-                  'assets/backIcon.png',
-                  width: 20.w,
-                  height: 20.h,
+    return SafeArea(
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leadingWidth: 64.w, // give extra space for left padding
+          leading: Padding(
+            padding: EdgeInsets.only(left: 16.w), // shift container inward
+            child: Container(
+              width: 40.w,
+              height: 40.h,
+              decoration: BoxDecoration(
+                color: Color.fromRGBO(251, 239, 217, 1),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Center(
+                child: IconButton(
+                  icon: Image.asset(
+                    'assets/backIcon.png',
+                    width: 20.w,
+                    height: 20.h,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
                 ),
-                onPressed: () => Navigator.pop(context),
-                padding: EdgeInsets.zero,
-                constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
               ),
             ),
           ),
         ),
-      ),
 
-      body: bookingPoojaAsync.when(
-        data: (pooja) => _buildBookingContent(context, pooja),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64.sp, color: Colors.red),
-              SizedBox(height: 16.h),
-              Text(
-                'Failed to load pooja details',
-                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                error.toString(),
-                style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
-                textAlign: TextAlign.center,
-              ),
-            ],
+        body: bookingPoojaAsync.when(
+          data: (pooja) => _buildBookingContent(context, pooja),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stackTrace) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64.sp, color: Colors.red),
+                SizedBox(height: 16.h),
+                Text(
+                  'Failed to load pooja details',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  error.toString(),
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -83,6 +90,16 @@ class BookingPage extends ConsumerWidget {
   }
 
   Widget _buildBookingContent(BuildContext context, BookingPooja pooja) {
+    // Debug logging for pooja type
+    print('🏛️ Pooja Details:');
+    print('   ID: ${pooja.id}');
+    print('   Name: ${pooja.name}');
+    print('   Special Pooja: ${pooja.specialPooja}');
+    print('   Special Pooja Dates Count: ${pooja.specialPoojaDates.length}');
+    if (pooja.specialPoojaDates.isNotEmpty) {
+      print('   First Special Date: ${pooja.specialPoojaDates.first.date}');
+    }
+
     return Consumer(
       builder: (context, ref, _) {
         return Stack(
@@ -152,8 +169,10 @@ class BookingPage extends ConsumerWidget {
                           ],
                         ),
                         SizedBox(height: 8.h),
-                        // Malayalam Date
-                        if (pooja.specialPoojaDates.isNotEmpty) ...[
+                        // Date Information
+                        if (pooja.specialPooja &&
+                            pooja.specialPoojaDates.isNotEmpty) ...[
+                          // Special Pooja - Show first available date
                           Text(
                             pooja.specialPoojaDates.first.malayalamDate,
                             style: TextStyle(
@@ -164,10 +183,21 @@ class BookingPage extends ConsumerWidget {
                             ),
                           ),
                           SizedBox(height: 4.h),
-                          // English Date
                           Text(
                             _formatDate(pooja.specialPoojaDates.first.date),
                             style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                        ] else if (!pooja.specialPooja) ...[
+                          // Regular Pooja - Show instruction to select date
+                          Text(
+                            'തീയതി തിരഞ്ഞെടുക്കാൻ കലണ്ടർ ക്ലിക്ക് ചെയ്യുക',
+                            style: TextStyle(
+                              fontFamily: 'NotoSansMalayalam',
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w400,
                               color: Colors.grey[600],
@@ -184,9 +214,28 @@ class BookingPage extends ConsumerWidget {
                     builder: (context) {
                       final showCalendar = ref.watch(showCalendarProvider);
                       if (!showCalendar) return SizedBox.shrink();
-                      final enabledDates = pooja.specialPoojaDates
-                          .map((d) => d.date)
-                          .toList();
+
+                      List<String> enabledDates;
+                      if (pooja.specialPooja) {
+                        // For special pooja, use the predefined dates
+                        enabledDates = pooja.specialPoojaDates
+                            .map((d) => d.date)
+                            .toList();
+                        print(
+                          '🎯 Special Pooja - Available dates: $enabledDates',
+                        );
+                      } else {
+                        // For regular pooja, generate dates for the next 30 days
+                        final now = DateTime.now();
+                        enabledDates = List.generate(30, (index) {
+                          final date = now.add(Duration(days: index + 1));
+                          return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+                        });
+                        print(
+                          '📅 Regular Pooja - Generated dates: ${enabledDates.take(5)}... (${enabledDates.length} total)',
+                        );
+                      }
+
                       final selectedDate = ref.watch(
                         selectedCalendarDateProvider,
                       );
@@ -323,16 +372,247 @@ class BookingPage extends ConsumerWidget {
                           width: double.infinity,
                           height: 40.h,
                           child: ElevatedButton(
-                            onPressed: () {
-                              // TODO: Implement actual booking logic
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Booking functionality coming soon!',
-                                  ),
-                                  backgroundColor: AppColors.selected,
-                                ),
+                            onPressed: () async {
+                              // Check if this is a special pooja
+                              final isSpecialPooja = pooja.specialPooja;
+                              String? selectedDate;
+                              int? specialPoojaDateId;
+
+                              if (isSpecialPooja) {
+                                // For special pooja, we need to get the selected special pooja date ID
+                                final selectedDateStr = ref.read(
+                                  selectedCalendarDateProvider,
+                                );
+                                if (selectedDateStr == null) {
+                                  final errorMsg =
+                                      'Please select a date for the special pooja';
+                                  print('❌ Validation Error: $errorMsg');
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(errorMsg),
+                                      backgroundColor: Colors.orange,
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                // Find the corresponding special pooja date ID
+                                try {
+                                  final selectedSpecialDate = pooja
+                                      .specialPoojaDates
+                                      .firstWhere(
+                                        (date) => date.date == selectedDateStr,
+                                        orElse: () => throw Exception(
+                                          'Selected date not found in special pooja dates',
+                                        ),
+                                      );
+                                  specialPoojaDateId = selectedSpecialDate.id;
+                                  print(
+                                    '🎯 Special Pooja - Date: $selectedDateStr, ID: $specialPoojaDateId',
+                                  );
+                                } catch (e) {
+                                  final errorMsg =
+                                      'Failed to find special pooja date: $e';
+                                  print(
+                                    '❌ Special Pooja Date Error: $errorMsg',
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(errorMsg),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  return;
+                                }
+                              } else {
+                                // For regular pooja, we need a selected date
+                                selectedDate = ref.read(
+                                  selectedCalendarDateProvider,
+                                );
+                                if (selectedDate == null) {
+                                  final errorMsg =
+                                      'Please select a date for the pooja';
+                                  print('❌ Validation Error: $errorMsg');
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(errorMsg),
+                                      backgroundColor: Colors.orange,
+                                    ),
+                                  );
+                                  return;
+                                }
+                                print(
+                                  '📅 Regular Pooja - Selected Date: $selectedDate',
+                                );
+                              }
+
+                              // Get selected users
+                              final selectedUsers = ref.read(
+                                selectedUsersProvider(userId),
                               );
+                              if (selectedUsers.isEmpty) {
+                                final errorMsg =
+                                    'Please select at least one person for the pooja';
+                                print('❌ Validation Error: $errorMsg');
+                                print(
+                                  '   Available users: ${ref.read(userListsProvider).value?.length ?? 0}',
+                                );
+                                print(
+                                  '   Selected users count: ${selectedUsers.length}',
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(errorMsg),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              // Get agent code and participation status
+                              final agentCode = ref.read(agentCodeProvider);
+                              final isParticipatingPhysically = ref.read(
+                                isParticipatingPhysicallyProvider,
+                              );
+
+                              try {
+                                // Show loading indicator
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) => const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+
+                                // Log API call parameters
+                                print('🚀 Making API call with parameters:');
+                                print('   Pooja ID: ${pooja.id}');
+                                print('   Pooja Name: ${pooja.name}');
+                                print('   Is Special Pooja: $isSpecialPooja');
+                                print('   Selected Date: $selectedDate');
+                                print(
+                                  '   Special Pooja Date ID: $specialPoojaDateId',
+                                );
+                                print(
+                                  '   User List IDs: ${selectedUsers.map((user) => user.id).toList()}',
+                                );
+                                print(
+                                  '   Status (Physical Participation): $isParticipatingPhysically',
+                                );
+                                print(
+                                  '   Agent Code: ${agentCode.isNotEmpty ? agentCode : "Not provided"}',
+                                );
+
+                                // Make API call using simple provider
+                                final Map<String, dynamic> apiParams = {
+                                  'poojaId': pooja.id.toString(),
+                                  'selectedDate': isSpecialPooja
+                                      ? null
+                                      : selectedDate,
+                                  'specialPoojaDateId': isSpecialPooja
+                                      ? specialPoojaDateId
+                                      : null,
+                                  'userListIds': selectedUsers
+                                      .map((user) => user.id)
+                                      .toList(),
+                                  'status': isParticipatingPhysically,
+                                  'agentCode': agentCode.isNotEmpty
+                                      ? agentCode
+                                      : null,
+                                };
+
+                                final response = await ref.read(
+                                  simpleBookPoojaProvider(apiParams).future,
+                                );
+
+                                // Hide loading indicator
+                                Navigator.pop(context);
+
+                                // Check if booking was successful (either by success field or status code)
+                                final isSuccessful =
+                                    response.success ||
+                                    response.statusCode >= 200 &&
+                                        response.statusCode < 300;
+
+                                print('🔍 Response Analysis:');
+                                print(
+                                  '   HTTP Status Code: ${response.statusCode}',
+                                );
+                                print(
+                                  '   Response Success Field: ${response.success}',
+                                );
+                                print('   Calculated Success: $isSuccessful');
+                                print(
+                                  '   Response Message: ${response.message}',
+                                );
+                                print('   Response Data: ${response.data}');
+
+                                if (isSuccessful) {
+                                  print('✅ Booking successful!');
+                                  print(
+                                    '   Status Code: ${response.statusCode}',
+                                  );
+                                  print('   Message: ${response.message}');
+                                  print('   Data: ${response.data}');
+
+                                  // Navigate to pooja summary page
+                                  // For special pooja, use the selected date string; for regular pooja, use selectedDate
+                                  final dateForSummary = isSpecialPooja
+                                      ? ref.read(selectedCalendarDateProvider)!
+                                      : selectedDate!;
+
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const PoojaSummaryPage(),
+                                    ),
+                                  );
+                                } else {
+                                  // Show error message
+                                  final errorMsg =
+                                      'Booking failed: ${response.message}';
+                                  print('❌ API Response Error: $errorMsg');
+                                  print(
+                                    '   Status Code: ${response.statusCode}',
+                                  );
+                                  print(
+                                    '   Success Field: ${response.success}',
+                                  );
+                                  print('   Message: ${response.message}');
+                                  print('   Data: ${response.data}');
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(errorMsg),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                // Hide loading indicator
+                                Navigator.pop(context);
+
+                                // Show error message
+                                final errorMsg =
+                                    'Booking failed: ${e.toString()}';
+                                print('❌ Exception Error: $errorMsg');
+                                print('   Error type: ${e.runtimeType}');
+                                print('   Error details: $e');
+                                if (e is Exception) {
+                                  print(
+                                    '   Exception message: ${e.toString()}',
+                                  );
+                                }
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(errorMsg),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.selected,
