@@ -67,7 +67,14 @@ class _CustomCalendarPickerState extends State<CustomCalendarPicker> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(8.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8.r,
+            offset: Offset(0, 4.h),
+          ),
+        ],
       ),
       child: Column(
         children: [

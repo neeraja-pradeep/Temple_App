@@ -178,6 +178,7 @@ class BookingPage extends ConsumerWidget {
                       ],
                     ),
                   ),
+                  SizedBox(height: 12.h),
                   // Show calendar card below the first card if toggled
                   Builder(
                     builder: (context) {
@@ -189,35 +190,27 @@ class BookingPage extends ConsumerWidget {
                       final selectedDate = ref.watch(
                         selectedCalendarDateProvider,
                       );
-                      return Padding(
-                        padding: EdgeInsets.only(top: 12.h, bottom: 12.h),
-                        child: Card(
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(0.w),
-                            child: CustomCalendarPicker(
-                              enabledDates: enabledDates,
-                              selectedDate: selectedDate,
-                              onDateSelected: (date) {
-                                ref
-                                        .read(
-                                          selectedCalendarDateProvider.notifier,
-                                        )
-                                        .state =
-                                    date;
-                                ref.read(showCalendarProvider.notifier).state =
-                                    false;
-                              },
-                            ),
-                          ),
+                      return Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: CustomCalendarPicker(
+                          enabledDates: enabledDates,
+                          selectedDate: selectedDate,
+                          onDateSelected: (date) {
+                            ref
+                                    .read(selectedCalendarDateProvider.notifier)
+                                    .state =
+                                date;
+                            ref.read(showCalendarProvider.notifier).state =
+                                false;
+                          },
                         ),
                       );
                     },
                   ),
-                  SizedBox(height: 24.h),
+                  SizedBox(height: 12.h),
                   // Pooja For Whom Section
                   Consumer(
                     builder: (context, ref, child) {
@@ -420,7 +413,7 @@ class BookingPage extends ConsumerWidget {
                           (selectedUser) => selectedUser.id == user.id,
                         ),
                       ),
-                      SizedBox(height: 12.h),
+                      SizedBox(height: 8.h),
                     ],
                   ),
                 )
@@ -471,7 +464,7 @@ class BookingPage extends ConsumerWidget {
           },
           child: Container(
             width: 20.w,
-            height: 20.h,
+            height: 20.w,
             decoration: BoxDecoration(
               border: Border.all(
                 color: isSelected ? AppColors.selected : Colors.grey,
@@ -540,7 +533,7 @@ class BookingPage extends ConsumerWidget {
         // Plus icon container
         Container(
           width: 20.w,
-          height: 20.h,
+          height: 20.w,
           decoration: BoxDecoration(
             border: Border.all(color: AppColors.selected, width: 2.w),
             borderRadius: BorderRadius.circular(4.r),
@@ -606,7 +599,7 @@ class BookingPage extends ConsumerWidget {
         onTap: disabled ? null : onTap,
         child: Container(
           width: 20.w,
-          height: 20.h,
+          height: 20.w,
           decoration: BoxDecoration(
             border: Border.all(color: borderColor, width: 2.w),
             borderRadius: BorderRadius.circular(4.r),
@@ -744,7 +737,8 @@ class BookingPage extends ConsumerWidget {
           final selectedUsers = ref.watch(selectedUsersProvider(userId));
 
           return Container(
-            height: MediaQuery.of(context).size.height * 0.7,
+            height: 370.h,
+            // height: MediaQuery.of(context).size.height * 0.7,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
@@ -755,33 +749,51 @@ class BookingPage extends ConsumerWidget {
             child: Column(
               children: [
                 // Handle bar
-                Container(
-                  margin: EdgeInsets.only(top: 12.h),
-                  width: 40.w,
-                  height: 4.h,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2.r),
-                  ),
-                ),
 
-                // Title
+                // Header with title and close button
                 Padding(
-                  padding: EdgeInsets.all(20.w),
-                  child: Text(
-                    'Select Person for Pooja',
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                  padding: EdgeInsets.only(top: 20.w, left: 32.w, right: 32.w),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'വ്യക്തിവിവരം',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.selected,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 24.w,
+                          height: 24.w,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: AppColors.selected,
+                              width: 2.w,
+                            ),
+                            borderRadius: BorderRadius.circular(6.r),
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            size: 16.sp,
+                            color: AppColors.selected,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-
+                SizedBox(height: 20.h),
                 // Users list
                 Expanded(
                   child: ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    padding: EdgeInsets.symmetric(horizontal: 0.w),
                     itemCount: userLists.length,
                     itemBuilder: (context, index) {
                       final user = userLists[index];
@@ -792,68 +804,62 @@ class BookingPage extends ConsumerWidget {
                           ? user.attributes.first.nakshatramName
                           : '';
 
-                      return GestureDetector(
-                        onTap: () {
-                          final currentSelectedUsers = List<UserList>.from(
-                            selectedUsers,
-                          );
-                          final currentVisibleUsers = ref.read(
-                            visibleUsersProvider(userId),
-                          );
-                          final updatedVisibleUsers = List<UserList>.from(
-                            currentVisibleUsers,
-                          );
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: 12.h,
+                          left: 32.w,
+                          right: 20.w,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Checkbox
+                            GestureDetector(
+                              onTap: () {
+                                final currentSelectedUsers =
+                                    List<UserList>.from(selectedUsers);
+                                final currentVisibleUsers = ref.read(
+                                  visibleUsersProvider(userId),
+                                );
+                                final updatedVisibleUsers = List<UserList>.from(
+                                  currentVisibleUsers,
+                                );
 
-                          if (isSelected) {
-                            // Remove from selection
-                            currentSelectedUsers.removeWhere(
-                              (selectedUser) => selectedUser.id == user.id,
-                            );
-                            // Also remove from visible list
-                            updatedVisibleUsers.removeWhere(
-                              (visibleUser) => visibleUser.id == user.id,
-                            );
-                          } else {
-                            // Add to selection
-                            currentSelectedUsers.add(user);
-                            // Also add to visible list if not already there
-                            if (!updatedVisibleUsers.any(
-                              (visibleUser) => visibleUser.id == user.id,
-                            )) {
-                              updatedVisibleUsers.add(user);
-                            }
-                          }
+                                if (isSelected) {
+                                  currentSelectedUsers.removeWhere(
+                                    (selectedUser) =>
+                                        selectedUser.id == user.id,
+                                  );
+                                  updatedVisibleUsers.removeWhere(
+                                    (visibleUser) => visibleUser.id == user.id,
+                                  );
+                                } else {
+                                  currentSelectedUsers.add(user);
+                                  if (!updatedVisibleUsers.any(
+                                    (visibleUser) => visibleUser.id == user.id,
+                                  )) {
+                                    updatedVisibleUsers.add(user);
+                                  }
+                                }
 
-                          ref
-                                  .read(selectedUsersProvider(userId).notifier)
-                                  .state =
-                              currentSelectedUsers;
-                          ref
-                                  .read(visibleUsersProvider(userId).notifier)
-                                  .state =
-                              updatedVisibleUsers;
-                        },
-                        child: Container(
-                          margin: EdgeInsets.only(bottom: 12.h),
-                          padding: EdgeInsets.all(16.w),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: isSelected
-                                  ? AppColors.selected
-                                  : Colors.grey[300]!,
-                              width: isSelected ? 2.w : 1.w,
-                            ),
-                            borderRadius: BorderRadius.circular(8.r),
-                            color: isSelected
-                                ? AppColors.selected.withOpacity(0.1)
-                                : Colors.white,
-                          ),
-                          child: Row(
-                            children: [
-                              // Checkbox
-                              Container(
+                                ref
+                                        .read(
+                                          selectedUsersProvider(
+                                            userId,
+                                          ).notifier,
+                                        )
+                                        .state =
+                                    currentSelectedUsers;
+                                ref
+                                        .read(
+                                          visibleUsersProvider(userId).notifier,
+                                        )
+                                        .state =
+                                    updatedVisibleUsers;
+                              },
+                              child: Container(
                                 width: 20.w,
-                                height: 20.h,
+                                height: 20.w,
                                 decoration: BoxDecoration(
                                   border: Border.all(
                                     color: isSelected
@@ -874,52 +880,101 @@ class BookingPage extends ConsumerWidget {
                                       )
                                     : null,
                               ),
-                              SizedBox(width: 16.w),
+                            ),
+                            SizedBox(width: 16.w),
 
-                              // User details
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
+                            // User details (no outer container styling)
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    user.name,
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  if (nakshatramName.isNotEmpty) ...[
+                                    SizedBox(height: 4.h),
                                     Text(
-                                      user.name,
+                                      nakshatramName,
                                       style: TextStyle(
-                                        fontSize: 14.sp,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black,
+                                        fontSize: 12.sp,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w400,
                                       ),
                                     ),
-                                    if (nakshatramName.isNotEmpty) ...[
-                                      SizedBox(height: 4.h),
-                                      Text(
-                                        nakshatramName,
-                                        style: TextStyle(
-                                          fontSize: 12.sp,
-                                          color: Colors.grey[600],
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                    ],
                                   ],
+                                ],
+                              ),
+                            ),
+
+                            // Edit button
+                            TextButton(
+                              onPressed: () {
+                                _showEditUserBottomSheet(context, ref, user);
+                              },
+                              child: Text(
+                                'എഡിറ്റ്',
+                                style: TextStyle(
+                                  color: AppColors.selected,
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       );
                     },
                   ),
                 ),
 
-                // Save button
+                // Add new row
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: TextButton.icon(
+                      onPressed: () => _showAddNewUserBottomSheet(context, ref),
+                      icon: Container(
+                        width: 20.w,
+                        height: 20.w,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: AppColors.selected,
+                            width: 2.w,
+                          ),
+                          borderRadius: BorderRadius.circular(4.r),
+                        ),
+                        child: Icon(
+                          Icons.add,
+                          size: 14.sp,
+                          color: AppColors.selected,
+                        ),
+                      ),
+                      label: Text(
+                        'മറ്റൊരു പേര് ചേർക്കുക',
+                        style: TextStyle(
+                          color: AppColors.selected,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Continue button
                 Padding(
                   padding: EdgeInsets.all(20.w),
                   child: SizedBox(
                     width: double.infinity,
-                    height: 48.h,
+                    height: 40.h,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Save the selected users and update visible users
                         if (selectedUsers.isNotEmpty) {
                           ref
                                   .read(selectedUsersProvider(userId).notifier)
@@ -940,7 +995,7 @@ class BookingPage extends ConsumerWidget {
                         ),
                       ),
                       child: Text(
-                        'Save',
+                        'തുടരുക',
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w600,
@@ -1396,7 +1451,7 @@ class BookingPage extends ConsumerWidget {
               selectedNakshatram != originalNakshatram;
 
           return Container(
-            height: MediaQuery.of(context).size.height * 0.8,
+            height: MediaQuery.of(context).size.height * 0.6,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
@@ -1407,15 +1462,6 @@ class BookingPage extends ConsumerWidget {
             child: Column(
               children: [
                 // Handle bar
-                Container(
-                  margin: EdgeInsets.only(top: 12.h),
-                  width: 40.w,
-                  height: 4.h,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2.r),
-                  ),
-                ),
 
                 // Header with title and close button
                 Padding(
@@ -1427,8 +1473,8 @@ class BookingPage extends ConsumerWidget {
                         child: Text(
                           'വ്യക്തിവിവരം',
                           style: TextStyle(
-                            fontSize: 18.sp,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w700,
                             color: AppColors.selected,
                           ),
                           textAlign: TextAlign.center,
@@ -1437,8 +1483,8 @@ class BookingPage extends ConsumerWidget {
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: Container(
-                          width: 32.w,
-                          height: 32.h,
+                          width: 24.w,
+                          height: 24.w,
                           decoration: BoxDecoration(
                             border: Border.all(
                               color: AppColors.selected,
@@ -1469,45 +1515,58 @@ class BookingPage extends ConsumerWidget {
                           'പേര്',
                           style: TextStyle(
                             fontSize: 14.sp,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w400,
                             color: Colors.black,
                           ),
                         ),
                         SizedBox(height: 8.h),
-                        TextField(
-                          controller: nameController,
-                          onChanged: (value) {
-                            setState(() {
-                              // Trigger rebuild to check for changes
-                            });
-                          },
-                          decoration: InputDecoration(
-                            hintText: 'Person name filled',
-                            hintStyle: TextStyle(color: Colors.grey[400]),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.r),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                        SizedBox(
+                          height: 40.h,
+                          child: TextField(
+                            controller: nameController,
+                            onChanged: (value) {
+                              setState(() {
+                                // Trigger rebuild to check for changes
+                              });
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Person name filled',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12.w,
+                                vertical: 10.h,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                                borderSide: BorderSide(
+                                  color: AppColors.selected,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
                             ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.r),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.r),
-                              borderSide: BorderSide(color: AppColors.selected),
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
                           ),
                         ),
-                        SizedBox(height: 20.h),
+                        SizedBox(height: 16.h),
 
                         // Nakshatram field
                         Text(
                           'നക്ഷത്രം',
                           style: TextStyle(
                             fontSize: 14.sp,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w400,
                             color: Colors.black,
                           ),
                         ),
@@ -1523,10 +1582,8 @@ class BookingPage extends ConsumerWidget {
                           },
                           child: Container(
                             width: double.infinity,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 12.w,
-                              vertical: 16.h,
-                            ),
+                            height: 40.h,
+                            padding: EdgeInsets.symmetric(horizontal: 12.w),
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.grey[300]!),
                               borderRadius: BorderRadius.circular(8.r),
@@ -1563,49 +1620,56 @@ class BookingPage extends ConsumerWidget {
                                     'Date of birth/Age',
                                     style: TextStyle(
                                       fontSize: 14.sp,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w400,
                                       color: Colors.black,
                                     ),
                                   ),
                                   SizedBox(height: 8.h),
-                                  TextField(
-                                    controller: dobController,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        // Trigger rebuild to check for changes
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText: 'ddmmyy/XX yrs',
-                                      hintStyle: TextStyle(
-                                        color: Colors.grey[400],
+                                  SizedBox(
+                                    height: 40.h,
+                                    child: TextField(
+                                      controller: dobController,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          // Trigger rebuild to check for changes
+                                        });
+                                      },
+                                      decoration: InputDecoration(
+                                        hintText: 'ddmmyy/XX yrs',
+                                        hintStyle: TextStyle(
+                                          color: Colors.grey[400],
+                                        ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 12.w,
+                                          vertical: 10.h,
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: AppColors.selected,
+                                          ),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.white,
                                       ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          8.r,
-                                        ),
-                                        borderSide: BorderSide(
-                                          color: Colors.grey[300]!,
-                                        ),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          8.r,
-                                        ),
-                                        borderSide: BorderSide(
-                                          color: Colors.grey[300]!,
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          8.r,
-                                        ),
-                                        borderSide: BorderSide(
-                                          color: AppColors.selected,
-                                        ),
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.white,
                                     ),
                                   ),
                                 ],
@@ -1621,49 +1685,56 @@ class BookingPage extends ConsumerWidget {
                                     'Time',
                                     style: TextStyle(
                                       fontSize: 14.sp,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w400,
                                       color: Colors.black,
                                     ),
                                   ),
                                   SizedBox(height: 8.h),
-                                  TextField(
-                                    controller: timeController,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        // Trigger rebuild to check for changes
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText: '00:00 AM',
-                                      hintStyle: TextStyle(
-                                        color: Colors.grey[400],
+                                  SizedBox(
+                                    height: 40.h,
+                                    child: TextField(
+                                      controller: timeController,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          // Trigger rebuild to check for changes
+                                        });
+                                      },
+                                      decoration: InputDecoration(
+                                        hintText: '00:00 AM',
+                                        hintStyle: TextStyle(
+                                          color: Colors.grey[400],
+                                        ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 12.w,
+                                          vertical: 10.h,
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: AppColors.selected,
+                                          ),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.white,
                                       ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          8.r,
-                                        ),
-                                        borderSide: BorderSide(
-                                          color: Colors.grey[300]!,
-                                        ),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          8.r,
-                                        ),
-                                        borderSide: BorderSide(
-                                          color: Colors.grey[300]!,
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          8.r,
-                                        ),
-                                        borderSide: BorderSide(
-                                          color: AppColors.selected,
-                                        ),
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.white,
                                     ),
                                   ),
                                 ],
@@ -1671,7 +1742,6 @@ class BookingPage extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        SizedBox(height: 40.h),
                       ],
                     ),
                   ),
@@ -1685,7 +1755,7 @@ class BookingPage extends ConsumerWidget {
                       // Update button
                       SizedBox(
                         width: double.infinity,
-                        height: 48.h,
+                        height: 40.h,
                         child: ElevatedButton(
                           onPressed: hasChanges
                               ? () async {
@@ -1827,7 +1897,7 @@ class BookingPage extends ConsumerWidget {
                           child: Text(
                             'അപ്ഡേറ്റ്',
                             style: TextStyle(
-                              fontSize: 16.sp,
+                              fontSize: 14.sp,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
