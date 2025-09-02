@@ -1016,405 +1016,456 @@ class BookingPage extends ConsumerWidget {
     final nameController = TextEditingController();
     final dobController = TextEditingController();
     final timeController = TextEditingController();
-    int? selectedNakshatram = 2;
+    int? selectedNakshatram = 1;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.8,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20.r),
-            topRight: Radius.circular(20.r),
-          ),
-        ),
-        child: Column(
-          children: [
-            // Handle bar
-            Container(
-              margin: EdgeInsets.only(top: 12.h),
-              width: 40.w,
-              height: 4.h,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2.r),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.6,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20.r),
+                topRight: Radius.circular(20.r),
               ),
             ),
-
-            // Header with title and close button
-            Padding(
-              padding: EdgeInsets.all(20.w),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      'വ്യക്തിവിവരം',
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.selected,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 32.w,
-                      height: 32.h,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: AppColors.selected,
-                          width: 2.w,
-                        ),
-                        borderRadius: BorderRadius.circular(4.r),
-                      ),
-                      child: Icon(
-                        Icons.close,
-                        size: 16.sp,
-                        color: AppColors.selected,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Form fields
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Name field
-                    Text(
-                      'പേര്',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    TextField(
-                      controller: nameController,
-                      decoration: InputDecoration(
-                        hintText: 'Person name filled',
-                        hintStyle: TextStyle(color: Colors.grey[400]),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                          borderSide: BorderSide(color: AppColors.selected),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                    ),
-                    SizedBox(height: 20.h),
-
-                    // Nakshatram field
-                    Text(
-                      'നക്ഷത്രം',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 16.h,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
-                        borderRadius: BorderRadius.circular(8.r),
-                        color: Colors.white,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'selected Nakshatram',
-                            style: TextStyle(color: Colors.grey[400]),
+            child: Column(
+              children: [
+                // Header with title and close button
+                Padding(
+                  padding: EdgeInsets.all(20.w),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'വ്യക്തിവിവരം',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.selected,
                           ),
-                          Icon(Icons.keyboard_arrow_down, color: Colors.black),
-                        ],
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 20.h),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 24.w,
+                          height: 24.w,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: AppColors.selected,
+                              width: 2.w,
+                            ),
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            size: 16.sp,
+                            color: AppColors.selected,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-                    // Date of birth and Time row
-                    Row(
+                // Form fields
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Date of birth field
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Date of birth/Age',
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              SizedBox(height: 8.h),
-                              TextField(
-                                controller: dobController,
-                                decoration: InputDecoration(
-                                  hintText: 'ddmmyy/XX yrs',
-                                  hintStyle: TextStyle(color: Colors.grey[400]),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.r),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey[300]!,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.r),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey[300]!,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.r),
-                                    borderSide: BorderSide(
-                                      color: AppColors.selected,
-                                    ),
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                ),
-                              ),
-                            ],
+                        // Name field
+                        Text(
+                          'പേര്',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.black,
                           ),
                         ),
-                        SizedBox(width: 16.w),
-                        // Time field
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Time',
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w600,
+                        SizedBox(height: 8.h),
+                        SizedBox(
+                          height: 40.h,
+                          child: TextField(
+                            controller: nameController,
+                            decoration: InputDecoration(
+                              hintText: 'Person name filled',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12.w,
+                                vertical: 10.h,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                                borderSide: BorderSide(
+                                  color: Colors.grey[300]!,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.r),
+                                borderSide: BorderSide(
+                                  color: AppColors.selected,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+
+                        // Nakshatram field
+                        Text(
+                          'നക്ഷത്രം',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        GestureDetector(
+                          onTap: () {
+                            // TODO: Show nakshatram selection dialog
+                            setState(() {
+                              selectedNakshatram = selectedNakshatram == 1
+                                  ? 2
+                                  : 1;
+                            });
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            height: 40.h,
+                            padding: EdgeInsets.symmetric(horizontal: 12.w),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey[300]!),
+                              borderRadius: BorderRadius.circular(8.r),
+                              color: Colors.white,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  selectedNakshatram != null
+                                      ? 'Nakshatram $selectedNakshatram'
+                                      : 'selected Nakshatram',
+                                  style: TextStyle(color: Colors.grey[400]),
+                                ),
+                                Icon(
+                                  Icons.keyboard_arrow_down,
                                   color: Colors.black,
                                 ),
-                              ),
-                              SizedBox(height: 8.h),
-                              TextField(
-                                controller: timeController,
-                                decoration: InputDecoration(
-                                  hintText: '00:00 AM',
-                                  hintStyle: TextStyle(color: Colors.grey[400]),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.r),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey[300]!,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.r),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey[300]!,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.r),
-                                    borderSide: BorderSide(
-                                      color: AppColors.selected,
-                                    ),
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                        ),
+                        SizedBox(height: 20.h),
+
+                        // Date of birth and Time row
+                        Row(
+                          children: [
+                            // Date of birth field
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Date of birth/Age',
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  SizedBox(
+                                    height: 40.h,
+                                    child: TextField(
+                                      controller: dobController,
+                                      decoration: InputDecoration(
+                                        hintText: 'ddmmyy/XX yrs',
+                                        hintStyle: TextStyle(
+                                          color: Colors.grey[400],
+                                        ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 12.w,
+                                          vertical: 10.h,
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: AppColors.selected,
+                                          ),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(width: 16.w),
+                            // Time field
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Time',
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  SizedBox(
+                                    height: 40.h,
+                                    child: TextField(
+                                      controller: timeController,
+                                      decoration: InputDecoration(
+                                        hintText: '00:00 AM',
+                                        hintStyle: TextStyle(
+                                          color: Colors.grey[400],
+                                        ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 12.w,
+                                          vertical: 10.h,
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[300]!,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: AppColors.selected,
+                                          ),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    SizedBox(height: 40.h),
-                  ],
+                  ),
                 ),
-              ),
-            ),
 
-            // Action buttons
-            Padding(
-              padding: EdgeInsets.all(20.w),
-              child: Column(
-                children: [
-                  // Update button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48.h,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (nameController.text.isNotEmpty) {
-                          try {
-                            final userData = {
-                              'name': nameController.text,
-                              'DOB': dobController.text,
-                              'time': timeController.text,
-                              'attributes': [
-                                {'nakshatram': selectedNakshatram ?? 1},
-                              ],
-                            };
+                // Action buttons
+                Padding(
+                  padding: EdgeInsets.all(20.w),
+                  child: Column(
+                    children: [
+                      // Save button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 40.h,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (nameController.text.isNotEmpty) {
+                              try {
+                                final userData = {
+                                  'name': nameController.text,
+                                  'DOB': dobController.text,
+                                  'time': timeController.text,
+                                  'attributes': [
+                                    {'nakshatram': selectedNakshatram ?? 1},
+                                  ],
+                                };
 
-                            // Print API call details
-                            print('🌐 API Call - POST /api/user/user-lists');
-                            print(
-                              '📤 Request Payload: ${json.encode(userData)}',
-                            );
+                                print(
+                                  '🌐 API Call - POST /api/user/user-lists',
+                                );
+                                print(
+                                  '📤 Request Payload: ${json.encode(userData)}',
+                                );
 
-                            final newUser = await ref.read(
-                              addNewUserProvider(userData).future,
-                            );
+                                final newUser = await ref.read(
+                                  addNewUserProvider(userData).future,
+                                );
 
-                            // Print successful response
-                            print('✅ API Response - User added successfully');
-                            print(
-                              '📥 Response Data: ${json.encode(newUser.toJson())}',
-                            );
+                                print(
+                                  '✅ API Response - User added successfully',
+                                );
+                                print(
+                                  '📥 Response Data: ${json.encode(newUser.toJson())}',
+                                );
 
-                            // Add to visible and selected users
-                            final currentVisibleUsers = ref.read(
-                              visibleUsersProvider(userId),
-                            );
-                            final currentSelectedUsers = ref.read(
-                              selectedUsersProvider(userId),
-                            );
+                                final currentVisibleUsers = ref.read(
+                                  visibleUsersProvider(userId),
+                                );
+                                final currentSelectedUsers = ref.read(
+                                  selectedUsersProvider(userId),
+                                );
 
-                            final updatedVisibleUsers = List<UserList>.from(
-                              currentVisibleUsers,
-                            )..add(newUser);
-                            final updatedSelectedUsers = List<UserList>.from(
-                              currentSelectedUsers,
-                            )..add(newUser);
+                                final updatedVisibleUsers = List<UserList>.from(
+                                  currentVisibleUsers,
+                                )..add(newUser);
+                                final updatedSelectedUsers =
+                                    List<UserList>.from(currentSelectedUsers)
+                                      ..add(newUser);
 
-                            ref
-                                    .read(visibleUsersProvider(userId).notifier)
-                                    .state =
-                                updatedVisibleUsers;
-                            ref
-                                    .read(
-                                      selectedUsersProvider(userId).notifier,
-                                    )
-                                    .state =
-                                updatedSelectedUsers;
+                                ref
+                                        .read(
+                                          visibleUsersProvider(userId).notifier,
+                                        )
+                                        .state =
+                                    updatedVisibleUsers;
+                                ref
+                                        .read(
+                                          selectedUsersProvider(
+                                            userId,
+                                          ).notifier,
+                                        )
+                                        .state =
+                                    updatedSelectedUsers;
 
-                            Navigator.pop(context);
+                                Navigator.pop(context);
 
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('✅ User added successfully!'),
-                                backgroundColor: Colors.green,
-                                duration: Duration(seconds: 3),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.r),
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('✅ User added successfully!'),
+                                    backgroundColor: Colors.green,
+                                    duration: Duration(seconds: 3),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                    ),
+                                  ),
+                                );
+                              } catch (e) {
+                                print('❌ API Error - Failed to add user');
+                                print('🚨 Error Message: $e');
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '❌ Failed to add user: ${e.toString()}',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                    duration: Duration(seconds: 4),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                    ),
+                                    action: SnackBarAction(
+                                      label: 'Dismiss',
+                                      textColor: Colors.white,
+                                      onPressed: () {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).hideCurrentSnackBar();
+                                      },
+                                    ),
+                                  ),
+                                );
+                              }
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('⚠️ Please enter a name'),
+                                  backgroundColor: Colors.orange,
+                                  duration: Duration(seconds: 2),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.r),
+                                  ),
                                 ),
-                              ),
-                            );
-                          } catch (e) {
-                            // Print error details
-                            print('❌ API Error - Failed to add user');
-                            print('🚨 Error Message: $e');
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  '❌ Failed to add user: ${e.toString()}',
-                                ),
-                                backgroundColor: Colors.red,
-                                duration: Duration(seconds: 4),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.r),
-                                ),
-                                action: SnackBarAction(
-                                  label: 'Dismiss',
-                                  textColor: Colors.white,
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(
-                                      context,
-                                    ).hideCurrentSnackBar();
-                                  },
-                                ),
-                              ),
-                            );
-                          }
-                        } else {
-                          // Show validation error
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('⚠️ Please enter a name'),
-                              backgroundColor: Colors.orange,
-                              duration: Duration(seconds: 2),
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.selected,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.r),
                             ),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.selected,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
+                          ),
+                          child: Text(
+                            'സേവ്',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
-                      child: Text(
-                        'സേവ്',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 12.h),
+                      SizedBox(height: 12.h),
 
-                  // Delete button
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      'ഡിലീറ്റ്',
-                      style: TextStyle(
-                        color: AppColors.selected,
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
+                      // Cancel button
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          'റദ്ദാക്കുക',
+                          style: TextStyle(
+                            color: AppColors.selected,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
