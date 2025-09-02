@@ -9,12 +9,12 @@ class PoojaRepository {
   final String baseUrl = 'http://templerun.click/api';
 
   
-  final String poojaCategoryBox = 'pooja_category_box';
-  final String poojaBox = 'pooja_box';
-  final String malayalamDateBox = 'malayalam_date_box';
+  final String poojaCategoryBox = 'poojaCategoryBox';
+  final String poojaBox = 'poojaBox';
+  final String malayalamDateBox = 'malayalamDateBox';
 
   Future<List<PoojaCategory>> fetchPoojaCategories() async {
-    final box = await Hive.openBox<List>('pooja_category_box');
+    final box = await Hive.openBox<List>('poojaCategoryBox');
     if (box.isNotEmpty) {
       final cached = box.get('categories');
       if (cached != null) return List<PoojaCategory>.from(cached);
@@ -41,7 +41,7 @@ class PoojaRepository {
 
 
   Future<List<Pooja>> fetchPoojasByCategory(int categoryId) async {
-    final box = await Hive.openBox<List>('pooja_box');
+    final box = await Hive.openBox<List>('poojaBox');
 
     final cached = box.get('poojas_$categoryId');
     if (cached != null) return List<Pooja>.from(cached);
@@ -64,7 +64,7 @@ class PoojaRepository {
   }
 
   Future<MalayalamDateModel> fetchMalayalamDate(String date) async {
-    final box = await Hive.openBox<MalayalamDateModel>('malayalam_date_box');
+    final box = await Hive.openBox<MalayalamDateModel>('malayalamDateBox');
 
     final cached = box.get(date);
     if (cached != null) return cached;

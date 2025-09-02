@@ -62,24 +62,33 @@ class MalayalamDateNotifier extends StateNotifier<AsyncValue<MalayalamDateModel>
   }
 
   Future<void> fetchDate(String date) async {
-    state = const AsyncValue.loading();
-    final box = await Hive.openBox<MalayalamDateModel>(malayalamDateBox);
+  state = const AsyncValue.loading();
 
-    try {
-      final repo = ref.read(repositoryProvider);
-      final result = await repo.fetchMalayalamDate(date);
-      await box.put(date, result);
-      state = AsyncValue.data(result);
-    } catch (_) {
-      final cached = box.get(date);
-      if (cached != null) {
-        state = AsyncValue.data(cached);
-      } else {
-        state = AsyncValue.error('Failed to fetch Malayalam date and no cache found',
-        StackTrace.current);
-      }
+  final box = await Hive.openBox<MalayalamDateModel>(malayalamDateBox);
+  final cached = box.get(date);
+  if (cached != null) {
+    state = AsyncValue.data(cached);
+  }
+
+  try {
+    final repo = ref.read(repositoryProvider);
+    final result = await repo.fetchMalayalamDate(date);
+
+    await box.put(date, result);
+
+    state = AsyncValue.data(result);
+  } catch (_) {
+    if (cached != null) {
+      state = AsyncValue.data(cached);
+    } else {
+      state = AsyncValue.error(
+        'Failed to fetch Malayalam date and no cache found',
+        StackTrace.current,
+      );
     }
   }
+}
+
 }
 
 final malayalamDateProvider =

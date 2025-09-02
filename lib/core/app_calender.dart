@@ -36,7 +36,7 @@ class _MalayalamCalendarState extends ConsumerState<MalayalamCalendar> {
       _focusedDate = focusedDay;
     });
 
-    final dateStr = _focusedDate.toIso8601String().split("T").first;
+    final dateStr = selectedDay.toIso8601String().split("T").first;
     ref.read(malayalamDateProvider.notifier).fetchDate(dateStr);
   }
 
