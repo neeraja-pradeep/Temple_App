@@ -7,6 +7,7 @@ import 'package:temple/widgets/special_page_skeleton.dart';
 import '../providers/special_pooja_provider.dart';
 import '../data/special_pooja_model.dart';
 import '../../booking/presentation/booking_page.dart';
+import 'dart:async';
 
 // Provider for managing selected card across both sections
 final selectedCardProvider = StateProvider<SpecialPooja?>((ref) => null);
@@ -17,8 +18,60 @@ final selectedSpecialPoojaProvider = StateProvider<SpecialPooja?>(
   (ref) => null,
 );
 
-class SpecialPage extends ConsumerWidget {
+class SpecialPage extends ConsumerStatefulWidget {
   const SpecialPage({super.key});
+
+  @override
+  ConsumerState<SpecialPage> createState() => _SpecialPageState();
+}
+
+class _SpecialPageState extends ConsumerState<SpecialPage> {
+  late final PageController _pageController;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    final currentPage = ref.read(specialBannerPageProvider);
+    _pageController = PageController(
+      viewportFraction: 1.0, // Only one banner fully visible
+      initialPage: currentPage,
+    );
+    _startAutoScroll();
+  }
+
+  void _startAutoScroll() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      final poojas = ref
+          .read(specialPoojasProvider)
+          .maybeWhen(data: (poojas) => poojas, orElse: () => []);
+      if (poojas.isEmpty) return;
+      final nextPage = (_pageController.page?.round() ?? 0) + 1;
+      if (nextPage < poojas.length) {
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+        );
+        ref.read(specialBannerPageProvider.notifier).state = nextPage;
+      } else {
+        _pageController.animateToPage(
+          0,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOut,
+        );
+        ref.read(specialBannerPageProvider.notifier).state = 0;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   Future<void> _onRefresh(WidgetRef ref) async {
     ref.invalidate(specialPoojasProvider);
@@ -27,7 +80,7 @@ class SpecialPage extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final asyncPoojas = ref.watch(specialPoojasProvider);
     final cachedPoojas = ref.watch(specialPoojasCacheProvider);
     final asyncWeeklyPoojas = ref.watch(weeklyPoojasProvider);
@@ -35,10 +88,12 @@ class SpecialPage extends ConsumerWidget {
     final asyncSpecialPrayers = ref.watch(specialPrayersProvider);
     final cachedSpecialPrayers = ref.watch(specialPrayersCacheProvider);
     final currentPage = ref.watch(specialBannerPageProvider);
-    final pageController = PageController(
-      viewportFraction: 0.9,
-      initialPage: currentPage,
-    );
+
+    // If the number of poojas changes, restart the timer
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _timer?.cancel();
+      _startAutoScroll();
+    });
 
     return asyncPoojas.when(
       data: (poojas) {
@@ -52,7 +107,7 @@ class SpecialPage extends ConsumerWidget {
                     cache,
                     cachedWeeklyPoojas,
                     cachedSpecialPrayers,
-                    pageController,
+                    _pageController,
                     currentPage,
                   ),
             loading: () => const SpecialPageSkeleton(),
@@ -66,7 +121,7 @@ class SpecialPage extends ConsumerWidget {
           poojas,
           asyncWeeklyPoojas,
           asyncSpecialPrayers,
-          pageController,
+          _pageController,
           currentPage,
         );
       },
@@ -81,7 +136,7 @@ class SpecialPage extends ConsumerWidget {
                   cache,
                   cachedWeeklyPoojas,
                   cachedSpecialPrayers,
-                  pageController,
+                  _pageController,
                   currentPage,
                 ),
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -123,10 +178,11 @@ class SpecialPage extends ConsumerWidget {
                       height: 142.h,
                       child: PageView.builder(
                         itemCount: poojas.length,
-                        controller: PageController(
-                          viewportFraction: 1.0,
-                          initialPage: currentPage,
-                        ),
+                        // controller: PageController(
+                        //   viewportFraction: 1.0,
+                        //   initialPage: currentPage,
+                        // ),
+                        controller: pageController,
                         onPageChanged: (i) =>
                             ref.read(specialBannerPageProvider.notifier).state =
                                 i,
@@ -141,14 +197,13 @@ class SpecialPage extends ConsumerWidget {
                                           .malayalamDate)
                               : '';
                           return Container(
-                            width: 343.w,
+                            // width: 343.w,
                             height: 142.h,
                             margin: EdgeInsets.only(
                               top: 0.h,
                               bottom: 12.h,
-                              left: 8,
-                              right: 8,
-                              // Keep bottom margin for shadow
+                              left: 8.w,
+                              right: 8.w,
                             ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8.r),
@@ -381,9 +436,10 @@ class SpecialPage extends ConsumerWidget {
 
                 // 3. Today's Special Section
                 Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 0.h,
-                    horizontal: 16.w,
+                  padding: EdgeInsets.only(
+                    bottom: 16.h,
+                    left: 16.w,
+                    right: 16.w,
                   ),
 
                   child: Column(
