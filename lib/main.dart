@@ -11,16 +11,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:temple/hive_setup.dart';
 import 'core/app.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart';
-import 'features/special/data/special_pooja_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
-  Hive.registerAdapter(SpecialPoojaAdapter());
-  Hive.registerAdapter(SpecialPoojaDateAdapter());
+  await initHive();
   runApp(const ProviderScope(child: MyApp()));
 }
 
