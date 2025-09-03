@@ -10,12 +10,9 @@ import '../providers/user_list_provider.dart';
 import '../data/booking_pooja_model.dart';
 import '../data/user_list_model.dart';
 import '../data/booking_repository.dart';
+import '../providers/booking_page_providers.dart';
 
-final isParticipatingPhysicallyProvider = StateProvider<bool>((ref) => false);
-final isAgentCodeProvider = StateProvider<bool>((ref) => false);
-final agentCodeProvider = StateProvider<String>((ref) => '');
-final showCalendarProvider = StateProvider<bool>((ref) => false);
-final selectedCalendarDateProvider = StateProvider<String?>((ref) => null);
+// Import providers from separate file to avoid circular imports
 
 class BookingPage extends ConsumerWidget {
   final int poojaId;

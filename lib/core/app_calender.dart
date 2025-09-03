@@ -7,8 +7,9 @@ import 'package:temple/features/pooja/providers/pooja_providers.dart';
 
 class MalayalamCalendar extends ConsumerStatefulWidget {
   final DateTime? initialDate;
+  final Function(String)? onDateSelected;
 
-  const MalayalamCalendar({super.key, this.initialDate});
+  const MalayalamCalendar({super.key, this.initialDate, this.onDateSelected});
 
   @override
   ConsumerState<MalayalamCalendar> createState() => _MalayalamCalendarState();
@@ -21,7 +22,8 @@ class _MalayalamCalendarState extends ConsumerState<MalayalamCalendar> {
   @override
   void initState() {
     super.initState();
-    _focusedDate = widget.initialDate ?? DateTime.now().add(const Duration(days: 1));
+    _focusedDate =
+        widget.initialDate ?? DateTime.now().add(const Duration(days: 1));
     _selectedDay = _focusedDate;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -38,12 +40,17 @@ class _MalayalamCalendarState extends ConsumerState<MalayalamCalendar> {
 
     final dateStr = selectedDay.toIso8601String().split("T").first;
     ref.read(malayalamDateProvider.notifier).fetchDate(dateStr);
+
+    // Call the callback if provided
+    if (widget.onDateSelected != null) {
+      widget.onDateSelected!(dateStr);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final malayalamDateAsync = ref.watch(malayalamDateProvider);
-    
+
     return Column(
       children: [
         Padding(
@@ -70,7 +77,7 @@ class _MalayalamCalendarState extends ConsumerState<MalayalamCalendar> {
           width: 343.w,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10.r),
-            color: Colors.white
+            color: Colors.white,
           ),
           child: TableCalendar(
             rowHeight: 28.h,
@@ -85,13 +92,29 @@ class _MalayalamCalendarState extends ConsumerState<MalayalamCalendar> {
               headerPadding: EdgeInsets.symmetric(vertical: 4),
               titleTextFormatter: (date, locale) {
                 const months = [
-                  'January', 'February', 'March', 'April', 'May', 'June',
-                  'July', 'August', 'September', 'October', 'November', 'December'
+                  'January',
+                  'February',
+                  'March',
+                  'April',
+                  'May',
+                  'June',
+                  'July',
+                  'August',
+                  'September',
+                  'October',
+                  'November',
+                  'December',
                 ];
                 return months[date.month - 1];
               },
-              leftChevronIcon: Icon(Icons.chevron_left, color: AppColors.selected),
-              rightChevronIcon: Icon(Icons.chevron_right, color: AppColors.selected),
+              leftChevronIcon: Icon(
+                Icons.chevron_left,
+                color: AppColors.selected,
+              ),
+              rightChevronIcon: Icon(
+                Icons.chevron_right,
+                color: AppColors.selected,
+              ),
               titleTextStyle: TextStyle(
                 color: Colors.black,
                 fontSize: 18.sp,
@@ -108,21 +131,48 @@ class _MalayalamCalendarState extends ConsumerState<MalayalamCalendar> {
               },
             ),
             calendarStyle: CalendarStyle(
-              cellMargin: const EdgeInsets.only(top: 6, left: 6 , right: 6),
+              cellMargin: const EdgeInsets.only(top: 6, left: 6, right: 6),
               selectedDecoration: BoxDecoration(
                 color: AppColors.selected,
                 shape: BoxShape.rectangle,
                 borderRadius: BorderRadius.circular(8),
               ),
-              markerDecoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(8),),
-              rangeEndDecoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(8),),
-              holidayDecoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(8),),
-              withinRangeDecoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(8),),
-              defaultDecoration:BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(8),),
-              todayDecoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(8),),
-              weekendDecoration:BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(8),),
-              disabledDecoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(8),),
-              outsideDecoration:  BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(8),),
+              markerDecoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              rangeEndDecoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              holidayDecoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              withinRangeDecoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              defaultDecoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              todayDecoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              weekendDecoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              disabledDecoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              outsideDecoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           ),
         ),
