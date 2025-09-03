@@ -8,63 +8,54 @@ import '../models/pooja_category_model.dart';
 class PoojaRepository {
   final String baseUrl = 'http://templerun.click/api';
 
-  
   final String poojaCategoryBox = 'poojaCategoryBox';
   final String poojaBox = 'poojaBox';
   final String malayalamDateBox = 'malayalamDateBox';
 
   Future<List<PoojaCategory>> fetchPoojaCategories() async {
-    final box = await Hive.openBox<List>('poojaCategoryBox');
-    if (box.isNotEmpty) {
-      final cached = box.get('categories');
-      if (cached != null) return List<PoojaCategory>.from(cached);
-    }
+    final box = await Hive.openBox<PoojaCategory>(poojaCategoryBox);
+
     final url = Uri.parse('$baseUrl/booking/poojacategory/');
     final response = await http.get(url);
+
     if (response.statusCode == 200) {
-      final Map<String, dynamic> decoded = jsonDecode(response.body);
-      final List<dynamic> data = decoded['results'];
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final data = decoded['results'] as List<dynamic>;
       final categories = data.map((e) => PoojaCategory.fromJson(e)).toList();
 
       await box.clear();
-      await box.put('categories', categories);
-
+      for (var category in categories) {
+        await box.put(category.id, category);
+      }
       return categories;
     } else {
-      if (box.isNotEmpty) {
-        final cached = box.get('categories');
-        if (cached != null) return List<PoojaCategory>.from(cached);
-      }
-      throw Exception('Failed to load categories');
+      return box.values.toList();
     }
   }
 
-
   Future<List<Pooja>> fetchPoojasByCategory(int categoryId) async {
-    final box = await Hive.openBox<List>('poojaBox');
+    final box = await Hive.openBox<List<Pooja>>(poojaBox);
 
     final cached = box.get('poojas_$categoryId');
-    if (cached != null) return List<Pooja>.from(cached);
+    if (cached != null) return cached;
 
     final url = Uri.parse('$baseUrl/booking/poojas/?pooja_category_id=$categoryId');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body); 
+      final List<dynamic> data = jsonDecode(response.body);
       final poojas = data.map((e) => Pooja.fromJson(e)).toList();
 
-     
       await box.put('poojas_$categoryId', poojas);
-
       return poojas;
     } else {
-      if (cached != null) return List<Pooja>.from(cached);
+      if (cached != null) return cached;
       throw Exception('Failed to load poojas');
     }
   }
 
   Future<MalayalamDateModel> fetchMalayalamDate(String date) async {
-    final box = await Hive.openBox<MalayalamDateModel>('malayalamDateBox');
+    final box = await Hive.openBox<MalayalamDateModel>(malayalamDateBox);
 
     final cached = box.get(date);
     if (cached != null) return cached;
@@ -74,11 +65,10 @@ class PoojaRepository {
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body); 
+      final List<dynamic> data = json.decode(response.body);
       final malDate = MalayalamDateModel.fromJson(data.first);
 
       await box.put(date, malDate);
-
       return malDate;
     } else {
       if (cached != null) return cached;
@@ -86,3 +76,4 @@ class PoojaRepository {
     }
   }
 }
+
