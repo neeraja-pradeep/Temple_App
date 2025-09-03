@@ -714,6 +714,7 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
     AsyncValue<List<SpecialPooja>>? cachedSpecialPrayers,
   ) {
     return GridView.builder(
+      padding: EdgeInsets.only(top: 14),
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
