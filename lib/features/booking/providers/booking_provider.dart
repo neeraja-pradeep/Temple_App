@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/booking_repository.dart';
 import '../data/booking_pooja_model.dart';
 import '../data/cart_model.dart';
+import '../data/checkout_model.dart';
 
 // Provider for adding to cart
 final addToCartProvider =
@@ -84,4 +85,10 @@ final bookingPoojaProvider = FutureProvider.family<BookingPooja, int>((
 final cartProvider = FutureProvider<CartResponse>((ref) async {
   final repository = ref.read(bookingRepositoryProvider);
   return await repository.getCart();
+});
+
+// Provider for checkout
+final checkoutProvider = FutureProvider<CheckoutResponse>((ref) async {
+  final repository = ref.read(bookingRepositoryProvider);
+  return await repository.checkout();
 });

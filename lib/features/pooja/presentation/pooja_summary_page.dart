@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple/core/app_colors.dart';
 import '../../booking/data/cart_model.dart';
 import '../../booking/providers/booking_provider.dart';
+import '../../booking/data/checkout_model.dart';
+import 'pooja_confirmed_page.dart';
 
 class PoojaSummaryPage extends ConsumerWidget {
   const PoojaSummaryPage({super.key});
@@ -13,26 +15,32 @@ class PoojaSummaryPage extends ConsumerWidget {
     return SafeArea(
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5DC), // Light brown background
+        extendBodyBehindAppBar: true,
         appBar: AppBar(
-          backgroundColor: const Color(0xFF424242), // Dark grey header
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          title: const Text(
-            'Pooja summary',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          leading: Container(
-            margin: EdgeInsets.only(left: 16.w),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5E6B3), // Light beige
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black87),
-              onPressed: () => Navigator.pop(context),
+          leadingWidth: 64.w, // give extra space for left padding
+          leading: Padding(
+            padding: EdgeInsets.only(left: 16.w), // shift container inward
+            child: Container(
+              width: 40.w,
+              height: 40.h,
+              decoration: BoxDecoration(
+                color: Color.fromRGBO(251, 239, 217, 1),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Center(
+                child: IconButton(
+                  icon: Image.asset(
+                    'assets/backIcon.png',
+                    width: 20.w,
+                    height: 20.h,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
+                ),
+              ),
             ),
           ),
         ),
@@ -47,96 +55,131 @@ class PoojaSummaryPage extends ConsumerWidget {
                 }
 
                 final cartItem = cartResponse.cart.first;
-                return SingleChildScrollView(
-                  padding: EdgeInsets.all(16.w),
-                  child: Column(
-                    children: [
-                      // Main white card
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16.r),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8.r,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.all(20.w),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Title
-                              Center(
-                                child: Text(
-                                  'പൂജാ വിശദാംശങ്ങൾ',
-                                  style: TextStyle(
-                                    fontSize: 20.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Background Image
+                    Image.asset(
+                      'assets/background.png',
+                      fit: BoxFit.cover,
+                      height: double.infinity,
+                      width: double.infinity,
+                      alignment: Alignment.topCenter,
+                    ),
+
+                    // Content
+                    SingleChildScrollView(
+                      padding: EdgeInsets.all(16.w),
+                      child: Column(
+                        children: [
+                          SizedBox(height: 64.h), // Add top spacing for app bar
+                          // Main white card
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16.r),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8.r,
+                                  offset: const Offset(0, 4),
                                 ),
+                              ],
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(20.w),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Title
+                                  Center(
+                                    child: Text(
+                                      'പൂജാ വിശദാംശങ്ങൾ',
+                                      style: TextStyle(
+                                        fontSize: 20.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: 24.h),
+
+                                  // Pooja Details
+                                  _buildPoojaDetails(cartItem),
+                                  SizedBox(height: 24.h),
+
+                                  // Participants
+                                  _buildParticipants(cartItem),
+                                  SizedBox(height: 24.h),
+
+                                  // Options/Status
+                                  _buildOptionsStatus(cartItem),
+                                  SizedBox(height: 24.h),
+
+                                  // Total Amount
+                                  _buildTotalAmount(cartItem),
+                                  SizedBox(height: 24.h),
+
+                                  // Payment Instructions
+                                  _buildPaymentInstructions(cartItem),
+                                ],
                               ),
-                              SizedBox(height: 24.h),
+                            ),
+                          ),
+                          // Add bottom padding to prevent content from being hidden behind the fixed button
+                          SizedBox(height: 100.h),
+                        ],
+                      ),
+                    ),
 
-                              // Pooja Details
-                              _buildPoojaDetails(cartItem),
-                              SizedBox(height: 24.h),
-
-                              // Participants
-                              _buildParticipants(cartItem),
-                              SizedBox(height: 24.h),
-
-                              // Options/Status
-                              _buildOptionsStatus(cartItem),
-                              SizedBox(height: 24.h),
-
-                              // Total Amount
-                              _buildTotalAmount(cartItem),
-                              SizedBox(height: 24.h),
-
-                              // Payment Instructions
-                              _buildPaymentInstructions(cartItem),
-                            ],
+                    // Fixed Book Button at bottom
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        padding: EdgeInsets.all(16.w),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent, // Match background color
+                          // boxShadow: [
+                          //   BoxShadow(
+                          //     color: Colors.black.withOpacity(0.1),
+                          //     blurRadius: 8.r,
+                          //     offset: const Offset(0, 2),
+                          //   ),
+                          // ],
+                        ),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 40.h,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              // Handle checkout process
+                              await _handleCheckout(context, ref);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(
+                                0xFF8C001A,
+                              ), // Dark red
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: Text(
+                              'ചെക്കൗട്ട്',
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                      SizedBox(height: 24.h),
-
-                      // Book Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50.h,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // Handle booking action
-                            print('Book button pressed');
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(
-                              0xFF8C001A,
-                            ), // Dark red
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
-                            elevation: 2,
-                          ),
-                          child: Text(
-                            'ബുക്ക്',
-                            style: TextStyle(
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -435,6 +478,86 @@ class PoojaSummaryPage extends ConsumerWidget {
       return '$month $day, $year';
     } catch (e) {
       return dateString;
+    }
+  }
+
+  Future<void> _handleCheckout(BuildContext context, WidgetRef ref) async {
+    try {
+      // Check if cart has items
+      final cartResponse = await ref.read(cartProvider.future);
+      if (cartResponse.cart.isEmpty) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content: const Text(
+                'Cart must contain poojas in order to checkout.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+        return;
+      }
+
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(child: CircularProgressIndicator());
+        },
+      );
+
+      // Call checkout API
+      final checkoutResponse = await ref.read(checkoutProvider.future);
+
+      // Hide loading indicator
+      Navigator.of(context).pop();
+
+      // Get cart data to pass to confirmed page
+      final cartData = await ref.read(cartProvider.future);
+      final cartItem = cartData.cart.first;
+
+      // Navigate to pooja confirmed page
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => PoojaConfirmedPage(
+            checkoutResponse: checkoutResponse,
+            cartItem: cartItem,
+          ),
+        ),
+      );
+    } catch (e) {
+      // Hide loading indicator
+      Navigator.of(context).pop();
+
+      // Show error dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to checkout: ${e.toString()}'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'booking_pooja_model.dart';
 import 'cart_model.dart';
+import 'checkout_model.dart';
 
 // Booking cart response model
 class BookingCartResponse {
@@ -140,6 +141,32 @@ class BookingRepository {
     } catch (e) {
       print('❌ API Error: $e');
       throw Exception('Failed to get cart: $e');
+    }
+  }
+
+  Future<CheckoutResponse> checkout() async {
+    try {
+      print('🌐 API Call - POST $baseUrl/booking/checkout/');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/booking/checkout/'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('📥 Response Status: ${response.statusCode}');
+      print('📥 Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final jsonData = json.decode(response.body);
+        return CheckoutResponse.fromJson(jsonData);
+      } else {
+        throw Exception(
+          'Failed to checkout: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      print('❌ API Error: $e');
+      throw Exception('Failed to checkout: $e');
     }
   }
 }
