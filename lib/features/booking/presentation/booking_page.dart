@@ -3,13 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:convert';
 import 'package:temple/core/app_colors.dart';
+import 'package:temple/features/booking/presentation/pooja_summary_page.dart';
 import 'package:temple/widgets/custom_calendar_picker.dart';
 import '../providers/booking_provider.dart';
 import '../providers/user_list_provider.dart';
 import '../data/booking_pooja_model.dart';
 import '../data/user_list_model.dart';
 import '../data/booking_repository.dart';
-import '../../pooja/presentation/pooja_summary_page.dart';
 
 final isParticipatingPhysicallyProvider = StateProvider<bool>((ref) => false);
 final isAgentCodeProvider = StateProvider<bool>((ref) => false);
@@ -33,9 +33,14 @@ class BookingPage extends ConsumerWidget {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leadingWidth: 64.w, // give extra space for left padding
+          toolbarHeight: 60.h,
+          leadingWidth: 64.w,
+          // give extra space for left padding
           leading: Padding(
-            padding: EdgeInsets.only(left: 16.w), // shift container inward
+            padding: EdgeInsets.only(
+              left: 16.w,
+              top: 16.h,
+            ), // shift container inward
             child: Container(
               width: 40.w,
               height: 40.h,
@@ -522,6 +527,10 @@ class BookingPage extends ConsumerWidget {
                                       : null,
                                 };
 
+                                // Print raw request body
+                                print('📤 Raw Request Body:');
+                                print(apiParams);
+
                                 final response = await ref.read(
                                   simpleBookPoojaProvider(apiParams).future,
                                 );
@@ -897,7 +906,7 @@ class BookingPage extends ConsumerWidget {
         Row(
           children: [
             customCheckbox(
-              value: isAgentCode ? true : isParticipatingPhysically,
+              value: isParticipatingPhysically,
               onTap: isAgentCode
                   ? null
                   : () {
@@ -930,65 +939,12 @@ class BookingPage extends ConsumerWidget {
                   ref.read(isParticipatingPhysicallyProvider.notifier).state =
                       true;
                   // Show bottom sheet for agent code input
-                  await showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(20.r),
-                      ),
-                    ),
-                    builder: (context) {
-                      String tempAgentCode = agentCode;
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom: MediaQuery.of(context).viewInsets.bottom,
-                          left: 16.w,
-                          right: 16.w,
-                          top: 24.h,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'ഏജന്റ് കോഡ്',
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 16.h),
-                            TextField(
-                              onChanged: (value) => tempAgentCode = value,
-                              decoration: InputDecoration(hintText: 'Code'),
-                              controller: TextEditingController(
-                                text: agentCode,
-                              ),
-                            ),
-                            SizedBox(height: 16.h),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  child: Text('Close'),
-                                ),
-                                SizedBox(width: 8.w),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    ref.read(agentCodeProvider.notifier).state =
-                                        tempAgentCode;
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text('Save'),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
+                  _showAgentCodeSheet(context, ref, agentCode);
+                } else {
+                  // Clear agent code when unchecked
+                  ref.read(agentCodeProvider.notifier).state = '';
+                  // Keep physical participation as user had it before
+                  // Don't change isParticipatingPhysically here
                 }
               },
             ),
@@ -2258,6 +2214,118 @@ class BookingPage extends ConsumerWidget {
           );
         },
       ),
+    );
+  }
+
+  void _showAgentCodeSheet(
+    BuildContext context,
+    WidgetRef ref,
+    String currentAgentCode,
+  ) {
+    final TextEditingController controller = TextEditingController(
+      text: currentAgentCode,
+    );
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16.r),
+          topRight: Radius.circular(16.r),
+        ),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16.w,
+            right: 16.w,
+            bottom:
+                MediaQuery.of(ctx).viewInsets.bottom +
+                MediaQuery.of(ctx).padding.bottom +
+                16.h,
+            top: 16.h,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'ഏജന്റ് കോഡ്',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => Navigator.pop(ctx),
+                    child: Container(
+                      width: 28.w,
+                      height: 28.w,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F1F1),
+                        borderRadius: BorderRadius.circular(14.r),
+                      ),
+                      child: const Icon(Icons.close, size: 18),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.h),
+              TextField(
+                controller: controller,
+                decoration: InputDecoration(
+                  hintText: 'Code XYZA',
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+              ),
+              SizedBox(height: 12.h),
+              Text(
+                'ഏജന്റ് കോഡ് ഉപയോഗിക്കുന്നതുപക്ഷത്തിൽ, തീർത്ഥാടന നടത്തിപ്പ് മുൻപ് കൗണ്ടറിൽ പണമടയ്ക്കണം. ഓൺലൈനായി പണമടയ്ക്കേണ്ടതില്ല.',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.grey[600],
+                ),
+              ),
+              SizedBox(height: 16.h),
+              SizedBox(
+                width: double.infinity,
+                height: 40.h,
+                child: ElevatedButton(
+                  onPressed: () {
+                    ref.read(agentCodeProvider.notifier).state =
+                        controller.text;
+                    Navigator.pop(ctx);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8C001A),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                  child: Text(
+                    'സ്ഥിരീകരിക്കുക',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

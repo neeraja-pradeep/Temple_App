@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple/core/app_colors.dart';
+import 'package:temple/features/booking/presentation/pooja_confirmed_page.dart';
 import '../../booking/data/cart_model.dart';
 import '../../booking/providers/booking_provider.dart';
 import '../../booking/data/checkout_model.dart';
-import 'pooja_confirmed_page.dart';
 
 class PoojaSummaryPage extends ConsumerWidget {
   const PoojaSummaryPage({super.key});
@@ -17,11 +17,15 @@ class PoojaSummaryPage extends ConsumerWidget {
         backgroundColor: const Color(0xFFF5F5DC), // Light brown background
         extendBodyBehindAppBar: true,
         appBar: AppBar(
+          toolbarHeight: 60.h, // Increase toolbar height for top spacing
           backgroundColor: Colors.transparent,
           elevation: 0,
           leadingWidth: 64.w, // give extra space for left padding
           leading: Padding(
-            padding: EdgeInsets.only(left: 16.w), // shift container inward
+            padding: EdgeInsets.only(
+              left: 16.w,
+              top: 16.h,
+            ), // shift container inward
             child: Container(
               width: 40.w,
               height: 40.h,
@@ -50,6 +54,10 @@ class PoojaSummaryPage extends ConsumerWidget {
 
             return cartAsync.when(
               data: (cartResponse) {
+                // Print raw cart API response
+                print('🛒 Raw Cart API Response:');
+                print(cartResponse);
+
                 if (cartResponse.cart.isEmpty) {
                   return const Center(child: Text('No items in cart'));
                 }
@@ -88,7 +96,12 @@ class PoojaSummaryPage extends ConsumerWidget {
                               ],
                             ),
                             child: Padding(
-                              padding: EdgeInsets.all(20.w),
+                              padding: EdgeInsets.only(
+                                left: 21.w,
+                                right: 21.w,
+                                top: 17.h,
+                                bottom: 17.h,
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -97,29 +110,28 @@ class PoojaSummaryPage extends ConsumerWidget {
                                     child: Text(
                                       'പൂജാ വിശദാംശങ്ങൾ',
                                       style: TextStyle(
-                                        fontSize: 20.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.black,
                                       ),
                                     ),
                                   ),
-                                  SizedBox(height: 24.h),
+                                  SizedBox(height: 32.h),
 
                                   // Pooja Details
                                   _buildPoojaDetails(cartItem),
-                                  SizedBox(height: 24.h),
+                                  SizedBox(height: 32.h),
 
                                   // Participants
                                   _buildParticipants(cartItem),
-                                  SizedBox(height: 24.h),
+                                  SizedBox(height: 32.h),
 
                                   // Options/Status
-                                  _buildOptionsStatus(cartItem),
-                                  SizedBox(height: 24.h),
+                                  _buildOptionsStatus(context, cartItem),
+                                  SizedBox(height: 32.h),
 
                                   // Total Amount
                                   _buildTotalAmount(cartItem),
-                                  SizedBox(height: 24.h),
 
                                   // Payment Instructions
                                   _buildPaymentInstructions(cartItem),
@@ -128,7 +140,7 @@ class PoojaSummaryPage extends ConsumerWidget {
                             ),
                           ),
                           // Add bottom padding to prevent content from being hidden behind the fixed button
-                          SizedBox(height: 100.h),
+                          // SizedBox(height: 100.h),
                         ],
                       ),
                     ),
@@ -169,9 +181,9 @@ class PoojaSummaryPage extends ConsumerWidget {
                               elevation: 2,
                             ),
                             child: Text(
-                              'ചെക്കൗട്ട്',
+                              'ബുക്ക്',
                               style: TextStyle(
-                                fontSize: 18.sp,
+                                fontSize: 14.sp,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -223,9 +235,9 @@ class PoojaSummaryPage extends ConsumerWidget {
         Text(
           cartItem.poojaDetails.name,
           style: TextStyle(
-            fontSize: 18.sp,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF8C001A), // Dark red
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w700,
+            color: AppColors.selected, // Dark red
           ),
         ),
         SizedBox(height: 8.h),
@@ -235,8 +247,8 @@ class PoojaSummaryPage extends ConsumerWidget {
           cartItem.poojaDetails.categoryName,
           style: TextStyle(
             fontSize: 16.sp,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF8C001A), // Dark red
+            fontWeight: FontWeight.w700,
+            color: AppColors.selected, // Dark red
           ),
         ),
         SizedBox(height: 8.h),
@@ -247,19 +259,19 @@ class PoojaSummaryPage extends ConsumerWidget {
           Text(
             cartItem.specialPoojaDateDetails!.malayalamDate,
             style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w400,
+              color: Colors.black,
             ),
           ),
-          SizedBox(height: 4.h),
+          SizedBox(height: 8.h),
 
           // Date in English
           Text(
             _formatDate(cartItem.specialPoojaDateDetails!.date),
             style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w500,
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w400,
               color: Colors.grey[600],
             ),
           ),
@@ -268,9 +280,9 @@ class PoojaSummaryPage extends ConsumerWidget {
           Text(
             _formatDate(cartItem.selectedDate!),
             style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w400,
+              color: Colors.black,
             ),
           ),
         ],
@@ -307,7 +319,7 @@ class PoojaSummaryPage extends ConsumerWidget {
           Text(
             name,
             style: TextStyle(
-              fontSize: 14.sp,
+              fontSize: 12.sp,
               fontWeight: FontWeight.w600,
               color: Colors.black87,
             ),
@@ -317,7 +329,7 @@ class PoojaSummaryPage extends ConsumerWidget {
             nakshatram,
             style: TextStyle(
               fontSize: 12.sp,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
               color: Colors.grey[600],
             ),
           ),
@@ -326,7 +338,7 @@ class PoojaSummaryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildOptionsStatus(CartItem cartItem) {
+  Widget _buildOptionsStatus(BuildContext context, CartItem cartItem) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -340,7 +352,7 @@ class PoojaSummaryPage extends ConsumerWidget {
         // ),
         // SizedBox(height: 12.h),
 
-        // Physical participation checkbox
+        // Physical participation checkbox (read-only)
         Row(
           children: [
             Container(
@@ -361,16 +373,16 @@ class PoojaSummaryPage extends ConsumerWidget {
             Text(
               'ഭൗതികമായി പങ്കെടുക്കുന്നു',
               style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
               ),
             ),
           ],
         ),
         SizedBox(height: 12.h),
 
-        // Agent code checkbox
+        // Agent code (read-only)
         Row(
           children: [
             Container(
@@ -389,11 +401,11 @@ class PoojaSummaryPage extends ConsumerWidget {
             ),
             SizedBox(width: 12.w),
             Text(
-              'ഏജന്റ് കോഡ് applied',
+              cartItem.agent != null ? 'ഏജന്റ് കോഡ് applied' : 'ഏജന്റ് കോഡ്',
               style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
               ),
             ),
           ],
@@ -404,22 +416,23 @@ class PoojaSummaryPage extends ConsumerWidget {
 
   Widget _buildTotalAmount(CartItem cartItem) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
           'ആകെതുക :',
           style: TextStyle(
-            fontSize: 18.sp,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF8C001A), // Dark red
+            fontSize: 20.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.black, // Dark red
           ),
         ),
+        SizedBox(width: 8.w),
         Text(
           '₹${cartItem.effectivePrice}',
           style: TextStyle(
             fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF8C001A), // Dark red
+            fontWeight: FontWeight.w600,
+            color: Colors.black, // Dark red
           ),
         ),
       ],
@@ -433,20 +446,19 @@ class PoojaSummaryPage extends ConsumerWidget {
         Text(
           'പൂജ നടത്തപ്പെടുന്നതിന് മുമ്പായി കൗണ്ടറിൽ പണമടയ്ക്കണം.',
           style: TextStyle(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w400,
+            color: Colors.grey[600],
           ),
         ),
-        SizedBox(height: 8.h),
         Text(
           cartItem.agent != null
               ? 'Agent code ഉപയോഗിച്ചതിനാൽ, ഓൺലൈനായി പണമടയ്ക്കേണ്ടതില്ല.'
               : 'ഓൺലൈനായി പണമടയ്ക്കണം.',
           style: TextStyle(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w400,
+            color: Colors.grey[600],
           ),
         ),
       ],
@@ -519,6 +531,10 @@ class PoojaSummaryPage extends ConsumerWidget {
 
       // Call checkout API
       final checkoutResponse = await ref.read(checkoutProvider.future);
+
+      // Print raw checkout API response
+      print('💳 Raw Checkout API Response:');
+      print(checkoutResponse);
 
       // Hide loading indicator
       Navigator.of(context).pop();

@@ -24,9 +24,10 @@ class PoojaConfirmedPage extends ConsumerWidget {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
+          toolbarHeight: 60.h, // Increase toolbar height for top spacing
           leadingWidth: 64.w, // give extra space for left padding
           leading: Padding(
-            padding: EdgeInsets.only(left: 16.w), // shift container inward
+            padding: EdgeInsets.only(left: 16.w, top: 16.h), // Add top padding
             child: Container(
               width: 40.w,
               height: 40.h,
