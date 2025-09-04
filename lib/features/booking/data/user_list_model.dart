@@ -20,8 +20,8 @@ class UserList {
       id: json['id'],
       name: json['name'],
       user: json['user'],
-      dob: json['DOB'],
-      time: json['time'],
+      dob: (json['DOB'] ?? '') as String,
+      time: (json['time'] ?? '') as String,
       attributes: (json['attributes'] as List)
           .map((attr) => UserAttribute.fromJson(attr))
           .toList(),
@@ -60,7 +60,7 @@ class UserAttribute {
       id: json['id'],
       userList: json['user_list'],
       nakshatram: json['nakshatram'],
-      nakshatramName: json['nakshatram_name'],
+      nakshatramName: (json['nakshatram_name'] ?? '') as String,
       status: json['status'],
     );
   }

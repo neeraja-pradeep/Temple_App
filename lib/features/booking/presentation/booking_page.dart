@@ -9,8 +9,8 @@ import '../providers/booking_provider.dart';
 import '../providers/user_list_provider.dart';
 import '../data/booking_pooja_model.dart';
 import '../data/user_list_model.dart';
-import '../data/booking_repository.dart';
 import '../providers/booking_page_providers.dart';
+import '../data/nakshatram_model.dart';
 
 // Import providers from separate file to avoid circular imports
 
@@ -25,70 +25,131 @@ class BookingPage extends ConsumerWidget {
     final bookingPoojaAsync = ref.watch(bookingPoojaProvider(poojaId));
 
     return SafeArea(
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          toolbarHeight: 60.h,
-          leadingWidth: 64.w,
-          // give extra space for left padding
-          leading: Padding(
-            padding: EdgeInsets.only(
-              left: 16.w,
-              top: 16.h,
-            ), // shift container inward
-            child: Container(
-              width: 40.w,
-              height: 40.h,
-              decoration: BoxDecoration(
-                color: Color.fromRGBO(251, 239, 217, 1),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Center(
-                child: IconButton(
-                  icon: Image.asset(
-                    'assets/backIcon.png',
-                    width: 20.w,
-                    height: 20.h,
+      child: WillPopScope(
+        onWillPop: () async {
+          _clearBookingState(ref);
+          return true;
+        },
+        child: Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            toolbarHeight: 60.h,
+            leadingWidth: 64.w,
+            // give extra space for left padding
+            leading: Padding(
+              padding: EdgeInsets.only(
+                left: 16.w,
+                top: 16.h,
+              ), // shift container inward
+              child: Container(
+                width: 40.w,
+                height: 40.h,
+                decoration: BoxDecoration(
+                  color: Color.fromRGBO(251, 239, 217, 1),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Center(
+                  child: IconButton(
+                    icon: Image.asset(
+                      'assets/backIcon.png',
+                      width: 20.w,
+                      height: 20.h,
+                    ),
+                    onPressed: () {
+                      _clearBookingState(ref);
+                      Navigator.pop(context);
+                    },
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints(
+                      minWidth: 40.w,
+                      minHeight: 40.h,
+                    ),
                   ),
-                  onPressed: () => Navigator.pop(context),
-                  padding: EdgeInsets.zero,
-                  constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
                 ),
               ),
             ),
           ),
-        ),
 
-        body: bookingPoojaAsync.when(
-          data: (pooja) => _buildBookingContent(context, pooja),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 64.sp, color: Colors.red),
-                SizedBox(height: 16.h),
-                Text(
-                  'Failed to load pooja details',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w500,
+          body: bookingPoojaAsync.when(
+            data: (pooja) => _buildBookingContent(context, pooja),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stackTrace) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64.sp, color: Colors.red),
+                  SizedBox(height: 16.h),
+                  Text(
+                    'Failed to load pooja details',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  error.toString(),
-                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                  SizedBox(height: 8.h),
+                  Text(
+                    error.toString(),
+                    style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  void _clearBookingState(WidgetRef ref) {
+    // Attempt to preserve the main user in selection/visibility
+    UserList? mainUser;
+    try {
+      final asyncUsers = ref.read(userListsProvider);
+      asyncUsers.maybeWhen(
+        data: (users) {
+          try {
+            mainUser = users.firstWhere((u) => u.id == userId);
+          } catch (_) {
+            mainUser = null;
+          }
+        },
+        orElse: () {},
+      );
+    } catch (_) {}
+
+    // Reset selected and visible users
+    try {
+      ref.read(selectedUsersProvider(userId).notifier).state = mainUser != null
+          ? [mainUser!]
+          : [];
+    } catch (_) {}
+    try {
+      ref.read(visibleUsersProvider(userId).notifier).state = mainUser != null
+          ? [mainUser!]
+          : [];
+    } catch (_) {}
+
+    // Clear calendar-related state
+    try {
+      ref.read(selectedCalendarDateProvider.notifier).state = null;
+    } catch (_) {}
+    try {
+      ref.read(showCalendarProvider.notifier).state = false;
+    } catch (_) {}
+
+    // Reset participation and agent code state
+    try {
+      ref.read(isParticipatingPhysicallyProvider.notifier).state = false;
+    } catch (_) {}
+    try {
+      ref.read(isAgentCodeProvider.notifier).state = false;
+    } catch (_) {}
+    try {
+      ref.read(agentCodeProvider.notifier).state = '';
+    } catch (_) {}
   }
 
   Widget _buildBookingContent(BuildContext context, BookingPooja pooja) {
@@ -564,10 +625,6 @@ class BookingPage extends ConsumerWidget {
 
                                   // Navigate to pooja summary page
                                   // For special pooja, use the selected date string; for regular pooja, use selectedDate
-                                  final dateForSummary = isSpecialPooja
-                                      ? ref.read(selectedCalendarDateProvider)!
-                                      : selectedDate!;
-
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -732,6 +789,16 @@ class BookingPage extends ConsumerWidget {
         // Interactive Checkbox
         GestureDetector(
           onTap: () {
+            // Prevent unselecting the main user
+            if (user.id == userId && isSelected) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('പ്രധാന ഉപയോക്താവിനെ നീക്കാൻ കഴിയില്ല'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+              return;
+            }
             final selectedUsers = ref.read(selectedUsersProvider(userId));
             final currentSelectedUsers = List<UserList>.from(selectedUsers);
 
@@ -1049,6 +1116,18 @@ class BookingPage extends ConsumerWidget {
                             // Checkbox
                             GestureDetector(
                               onTap: () {
+                                // Prevent unselecting the main user
+                                if (user.id == userId && isSelected) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'പ്രധാന ഉപയോക്താവിനെ നീക്കാൻ കഴിയില്ല',
+                                      ),
+                                      backgroundColor: Colors.orange,
+                                    ),
+                                  );
+                                  return;
+                                }
                                 final currentSelectedUsers =
                                     List<UserList>.from(selectedUsers);
                                 final currentVisibleUsers = ref.read(
@@ -1249,7 +1328,12 @@ class BookingPage extends ConsumerWidget {
     final nameController = TextEditingController();
     final dobController = TextEditingController();
     final timeController = TextEditingController();
-    int? selectedNakshatram = 1;
+    int? selectedNakshatram;
+    String? selectedNakshatramName;
+    bool didStartFetch = false;
+    List<NakshatramOption> nakshatramOptions = [];
+    bool nakshLoading = true;
+    String? nakshError;
 
     showModalBottomSheet(
       context: context,
@@ -1371,40 +1455,94 @@ class BookingPage extends ConsumerWidget {
                           ),
                         ),
                         SizedBox(height: 8.h),
-                        GestureDetector(
-                          onTap: () {
-                            // TODO: Show nakshatram selection dialog
-                            setState(() {
-                              selectedNakshatram = selectedNakshatram == 1
-                                  ? 2
-                                  : 1;
-                            });
+                        Builder(
+                          builder: (ctx) {
+                            if (!didStartFetch) {
+                              didStartFetch = true;
+                              Future(() async {
+                                try {
+                                  final options = await ref.read(
+                                    nakshatramsProvider.future,
+                                  );
+                                  setState(() {
+                                    nakshatramOptions = options;
+                                    nakshLoading = false;
+                                    nakshError = null;
+                                    if (options.isNotEmpty) {
+                                      final initial = options.first;
+                                      selectedNakshatram ??= initial.id;
+                                      selectedNakshatramName ??= initial.name;
+                                    }
+                                  });
+                                } catch (e) {
+                                  setState(() {
+                                    nakshLoading = false;
+                                    nakshError = e.toString();
+                                  });
+                                }
+                              });
+                            }
+
+                            return SizedBox(
+                              height: 40.h,
+                              child: DropdownButtonFormField<int>(
+                                value: selectedNakshatram,
+                                isExpanded: true,
+                                items: nakshatramOptions
+                                    .map(
+                                      (o) => DropdownMenuItem<int>(
+                                        value: o.id,
+                                        child: Text(o.name),
+                                      ),
+                                    )
+                                    .toList(),
+                                hint: Text(
+                                  nakshLoading
+                                      ? 'Loading...'
+                                      : (nakshError != null
+                                            ? 'Failed to load'
+                                            : 'select any'),
+                                ),
+                                onChanged: nakshLoading || nakshError != null
+                                    ? null
+                                    : (val) {
+                                        if (val == null) return;
+                                        final name = nakshatramOptions
+                                            .firstWhere((o) => o.id == val)
+                                            .name;
+                                        setState(() {
+                                          selectedNakshatram = val;
+                                          selectedNakshatramName = name;
+                                        });
+                                      },
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12.w,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey[300]!,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey[300]!,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    borderSide: BorderSide(
+                                      color: AppColors.selected,
+                                    ),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                ),
+                              ),
+                            );
                           },
-                          child: Container(
-                            width: double.infinity,
-                            height: 40.h,
-                            padding: EdgeInsets.symmetric(horizontal: 12.w),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey[300]!),
-                              borderRadius: BorderRadius.circular(8.r),
-                              color: Colors.white,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  selectedNakshatram != null
-                                      ? 'Nakshatram $selectedNakshatram'
-                                      : 'selected Nakshatram',
-                                  style: TextStyle(color: Colors.grey[400]),
-                                ),
-                                Icon(
-                                  Icons.keyboard_arrow_down,
-                                  color: Colors.black,
-                                ),
-                              ],
-                            ),
-                          ),
                         ),
                         SizedBox(height: 20.h),
 
@@ -1550,12 +1688,54 @@ class BookingPage extends ConsumerWidget {
                           onPressed: () async {
                             if (nameController.text.isNotEmpty) {
                               try {
+                                if (selectedNakshatram == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '⚠️ Please select a Nakshatram',
+                                      ),
+                                      backgroundColor: Colors.orange,
+                                      duration: Duration(seconds: 2),
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          8.r,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                String dob = dobController.text.trim();
+                                if (dob.isNotEmpty) {
+                                  dob = dob.replaceAll('/', '-');
+                                  final parts = dob.split('-');
+                                  if (parts.length == 3 &&
+                                      parts[0].length == 2 &&
+                                      parts[1].length == 2 &&
+                                      parts[2].length == 4) {
+                                    dob = '${parts[2]}-${parts[1]}-${parts[0]}';
+                                  }
+                                }
+
+                                String time = timeController.text.trim();
+                                if (RegExp(
+                                  r'^\d{1,2}:\d{2} $',
+                                ).hasMatch(time)) {
+                                  time = '$time:00';
+                                } else if (RegExp(
+                                  r'^\d{1,2}:\d{2}$',
+                                ).hasMatch(time)) {
+                                  time = '$time:00';
+                                }
+
                                 final userData = {
                                   'name': nameController.text,
-                                  'DOB': dobController.text,
-                                  'time': timeController.text,
+                                  'DOB': dob,
+                                  'time': time,
                                   'attributes': [
-                                    {'nakshatram': selectedNakshatram ?? 1},
+                                    {'nakshatram': selectedNakshatram},
                                   ],
                                 };
 
@@ -1577,34 +1757,10 @@ class BookingPage extends ConsumerWidget {
                                   '📥 Response Data: ${json.encode(newUser.toJson())}',
                                 );
 
-                                final currentVisibleUsers = ref.read(
-                                  visibleUsersProvider(userId),
-                                );
-                                final currentSelectedUsers = ref.read(
-                                  selectedUsersProvider(userId),
-                                );
-
-                                final updatedVisibleUsers = List<UserList>.from(
-                                  currentVisibleUsers,
-                                )..add(newUser);
-                                final updatedSelectedUsers =
-                                    List<UserList>.from(currentSelectedUsers)
-                                      ..add(newUser);
-
-                                ref
-                                        .read(
-                                          visibleUsersProvider(userId).notifier,
-                                        )
-                                        .state =
-                                    updatedVisibleUsers;
-                                ref
-                                        .read(
-                                          selectedUsersProvider(
-                                            userId,
-                                          ).notifier,
-                                        )
-                                        .state =
-                                    updatedSelectedUsers;
+                                // Refresh the complete user list so the new
+                                // user appears in the "View All" list, but do
+                                // not auto-add to visible/selected users.
+                                final _ = ref.refresh(userListsProvider);
 
                                 Navigator.pop(context);
 
@@ -1714,6 +1870,13 @@ class BookingPage extends ConsumerWidget {
     int? selectedNakshatram = user.attributes.isNotEmpty
         ? user.attributes.first.nakshatram
         : 1;
+    String? selectedNakshatramName = user.attributes.isNotEmpty
+        ? user.attributes.first.nakshatramName
+        : null;
+    bool didStartFetch = false;
+    List<NakshatramOption> nakshatramOptions = [];
+    bool nakshLoading = true;
+    String? nakshError;
 
     // Store original values to detect changes
     final originalName = user.name;
@@ -1855,40 +2018,91 @@ class BookingPage extends ConsumerWidget {
                           ),
                         ),
                         SizedBox(height: 8.h),
-                        GestureDetector(
-                          onTap: () {
-                            // TODO: Show nakshatram selection dialog
-                            setState(() {
-                              selectedNakshatram = selectedNakshatram == 1
-                                  ? 2
-                                  : 1;
-                            });
+                        Builder(
+                          builder: (ctx) {
+                            if (!didStartFetch) {
+                              didStartFetch = true;
+                              Future(() async {
+                                try {
+                                  final options = await ref.read(
+                                    nakshatramsProvider.future,
+                                  );
+                                  setState(() {
+                                    nakshatramOptions = options;
+                                    nakshLoading = false;
+                                    nakshError = null;
+                                    // Keep current selection by default
+                                  });
+                                } catch (e) {
+                                  setState(() {
+                                    nakshLoading = false;
+                                    nakshError = e.toString();
+                                  });
+                                }
+                              });
+                            }
+
+                            return SizedBox(
+                              height: 40.h,
+                              child: DropdownButtonFormField<int>(
+                                value: selectedNakshatram,
+                                isExpanded: true,
+                                items: nakshatramOptions
+                                    .map(
+                                      (o) => DropdownMenuItem<int>(
+                                        value: o.id,
+                                        child: Text(o.name),
+                                      ),
+                                    )
+                                    .toList(),
+                                hint: Text(
+                                  nakshLoading
+                                      ? 'Loading...'
+                                      : (nakshError != null
+                                            ? 'Failed to load'
+                                            : (selectedNakshatramName ??
+                                                  'select any')),
+                                ),
+                                onChanged: nakshLoading || nakshError != null
+                                    ? null
+                                    : (val) {
+                                        if (val == null) return;
+                                        final name = nakshatramOptions
+                                            .firstWhere((o) => o.id == val)
+                                            .name;
+                                        setState(() {
+                                          selectedNakshatram = val;
+                                          selectedNakshatramName = name;
+                                        });
+                                      },
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12.w,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey[300]!,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey[300]!,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    borderSide: BorderSide(
+                                      color: AppColors.selected,
+                                    ),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                ),
+                              ),
+                            );
                           },
-                          child: Container(
-                            width: double.infinity,
-                            height: 40.h,
-                            padding: EdgeInsets.symmetric(horizontal: 12.w),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey[300]!),
-                              borderRadius: BorderRadius.circular(8.r),
-                              color: Colors.white,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  user.attributes.isNotEmpty
-                                      ? user.attributes.first.nakshatramName
-                                      : 'selected Nakshatram',
-                                  style: TextStyle(color: Colors.grey[400]),
-                                ),
-                                Icon(
-                                  Icons.keyboard_arrow_down,
-                                  color: Colors.black,
-                                ),
-                              ],
-                            ),
-                          ),
                         ),
                         SizedBox(height: 20.h),
 
@@ -2044,12 +2258,53 @@ class BookingPage extends ConsumerWidget {
                           onPressed: hasChanges
                               ? () async {
                                   try {
+                                    if (selectedNakshatram == null) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            '⚠️ Please select a Nakshatram',
+                                          ),
+                                          backgroundColor: Colors.orange,
+                                          duration: Duration(seconds: 2),
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8.r,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+
+                                    String dob = dobController.text.trim();
+                                    if (dob.isNotEmpty) {
+                                      dob = dob.replaceAll('/', '-');
+                                      final parts = dob.split('-');
+                                      if (parts.length == 3 &&
+                                          parts[0].length == 2 &&
+                                          parts[1].length == 2 &&
+                                          parts[2].length == 4) {
+                                        dob =
+                                            '${parts[2]}-${parts[1]}-${parts[0]}';
+                                      }
+                                    }
+
+                                    String time = timeController.text.trim();
+                                    if (RegExp(
+                                      r'^\d{1,2}:\d{2}$',
+                                    ).hasMatch(time)) {
+                                      time = '$time:00';
+                                    }
+
                                     final userData = {
                                       'name': nameController.text,
-                                      'DOB': dobController.text,
-                                      'time': timeController.text,
+                                      'DOB': dob,
+                                      'time': time,
                                       'attributes': [
-                                        {'nakshatram': selectedNakshatram ?? 1},
+                                        {'nakshatram': selectedNakshatram},
                                       ],
                                     };
 

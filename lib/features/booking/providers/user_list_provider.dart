@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/user_list_repository.dart';
 import '../data/user_list_model.dart';
+import '../data/nakshatram_model.dart';
 
 final userListRepositoryProvider = Provider<UserListRepository>((ref) {
   return UserListRepository();
@@ -62,3 +63,8 @@ final updateUserProvider =
       final repository = ref.read(userListRepositoryProvider);
       return await repository.updateUser(params.userId, params.userData);
     });
+
+final nakshatramsProvider = FutureProvider<List<NakshatramOption>>((ref) async {
+  final repository = ref.read(userListRepositoryProvider);
+  return await repository.getNakshatrams();
+});
