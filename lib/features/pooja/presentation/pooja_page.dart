@@ -62,9 +62,9 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 60.h),
+                SizedBox(height: 50.h),
                 Padding(
-                  padding: const EdgeInsets.only(left: 14, bottom: 4),
+                  padding: const EdgeInsets.only(left: 18, bottom: 4),
                   child: Text(
                     "Select God",
                     style: TextStyle(
@@ -76,7 +76,7 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                 categoriesAsync.when(
                   data: (gods) {
                     return Padding(
-                      padding: const EdgeInsets.only(left: 10),
+                      padding: const EdgeInsets.only(left: 14),
                       child: SizedBox(
                         height: 152.h,
                         child: ListView.builder(
@@ -107,7 +107,7 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                 ),
                 SizedBox(height: 15.h),
                 Padding(
-                  padding: const EdgeInsets.only(left: 14),
+                  padding: const EdgeInsets.only(left: 18),
                   child: Text(
                     "പൂജ തിരഞ്ഞെടുക്കുക",
                     style: TextStyle(
@@ -117,9 +117,9 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                     ),
                   ),
                 ),
-
+            
                 Padding(
-                  padding: const EdgeInsets.all(14.0),
+                  padding: const EdgeInsets.only(top: 3, left: 14 , right: 10),
                   child: SizedBox(
                     height: 40.h,
                     width: 342.w,
@@ -193,9 +193,9 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                     ),
                   ),
                 ),
-
+            
                 Padding(
-                  padding: const EdgeInsets.only(left: 14, top: 18, bottom: 18),
+                  padding: const EdgeInsets.only(left: 18, top: 18),
                   child: Text(
                     "Date തിരഞ്ഞെടുക്കുക",
                     style: TextStyle(
@@ -205,9 +205,9 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                     ),
                   ),
                 ),
-
+            
                 Padding(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(16),
                   child: MalayalamCalendar(
                     onDateSelected: (date) {
                       ref.read(selectedDateProvider.notifier).state = date;

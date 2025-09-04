@@ -58,7 +58,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              'assets/background.png',
+              'assets/background.jpg',
               fit: BoxFit.cover,
               height: double.infinity,
               width: double.infinity,

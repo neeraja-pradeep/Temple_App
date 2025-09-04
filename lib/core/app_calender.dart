@@ -54,7 +54,7 @@ class _MalayalamCalendarState extends ConsumerState<MalayalamCalendar> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
+          padding: const EdgeInsets.only(bottom: 5.0),
           child: malayalamDateAsync.when(
             data: (date) => Text(
               date.malayalamDate,
@@ -71,107 +71,109 @@ class _MalayalamCalendarState extends ConsumerState<MalayalamCalendar> {
             ),
           ),
         ),
-        SizedBox(height: 10.h),
+        SizedBox(height: 8.h),
         Container(
-          height: 275.h,
           width: 343.w,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10.r),
             color: Colors.white,
           ),
-          child: TableCalendar(
-            rowHeight: 28.h,
-            focusedDay: _focusedDate,
-            firstDay: DateTime.now().add(const Duration(days: 1)),
-            lastDay: DateTime.utc(2030, 12, 31),
-            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            onDaySelected: _onDaySelected,
-            headerStyle: HeaderStyle(
-              titleCentered: true,
-              formatButtonVisible: false,
-              headerPadding: EdgeInsets.symmetric(vertical: 4),
-              titleTextFormatter: (date, locale) {
-                const months = [
-                  'January',
-                  'February',
-                  'March',
-                  'April',
-                  'May',
-                  'June',
-                  'July',
-                  'August',
-                  'September',
-                  'October',
-                  'November',
-                  'December',
-                ];
-                return months[date.month - 1];
-              },
-              leftChevronIcon: Icon(
-                Icons.chevron_left,
-                color: AppColors.selected,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 5),
+            child: TableCalendar(
+              rowHeight: 28.h,
+              focusedDay: _focusedDate,
+              firstDay: DateTime.now().add(const Duration(days: 1)),
+              lastDay: DateTime.utc(2030, 12, 31),
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              onDaySelected: _onDaySelected,
+              headerStyle: HeaderStyle(
+                titleCentered: true,
+                formatButtonVisible: false,
+                headerPadding: EdgeInsets.symmetric(vertical: 4),
+                titleTextFormatter: (date, locale) {
+                  const months = [
+                    'January',
+                    'February',
+                    'March',
+                    'April',
+                    'May',
+                    'June',
+                    'July',
+                    'August',
+                    'September',
+                    'October',
+                    'November',
+                    'December',
+                  ];
+                  return months[date.month - 1];
+                },
+                leftChevronIcon: Icon(
+                  Icons.chevron_left,
+                  color: AppColors.selected,
+                ),
+                rightChevronIcon: Icon(
+                  Icons.chevron_right,
+                  color: AppColors.selected,
+                ),
+                titleTextStyle: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: "NotoSansMalayalam",
+                ),
               ),
-              rightChevronIcon: Icon(
-                Icons.chevron_right,
-                color: AppColors.selected,
+              daysOfWeekStyle: DaysOfWeekStyle(
+                weekdayStyle: TextStyle(color: AppColors.selected),
+                weekendStyle: TextStyle(color: AppColors.selected),
+                dowTextFormatter: (date, locale) {
+                  const letters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+                  return letters[date.weekday % 7];
+                },
               ),
-              titleTextStyle: TextStyle(
-                color: Colors.black,
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w700,
-                fontFamily: "NotoSansMalayalam",
-              ),
-            ),
-            daysOfWeekStyle: DaysOfWeekStyle(
-              weekdayStyle: TextStyle(color: AppColors.selected),
-              weekendStyle: TextStyle(color: AppColors.selected),
-              dowTextFormatter: (date, locale) {
-                const letters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-                return letters[date.weekday % 7];
-              },
-            ),
-            calendarStyle: CalendarStyle(
-              cellMargin: const EdgeInsets.only(top: 6, left: 6, right: 6),
-              selectedDecoration: BoxDecoration(
-                color: AppColors.selected,
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              markerDecoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              rangeEndDecoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              holidayDecoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              withinRangeDecoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              defaultDecoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              todayDecoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              weekendDecoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              disabledDecoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              outsideDecoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(8),
+              calendarStyle: CalendarStyle(
+                cellMargin: const EdgeInsets.only(top: 6, left: 6, right: 6),
+                selectedDecoration: BoxDecoration(
+                  color: AppColors.selected,
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                markerDecoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                rangeEndDecoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                holidayDecoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                withinRangeDecoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                defaultDecoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                todayDecoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                weekendDecoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                disabledDecoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                outsideDecoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
           ),

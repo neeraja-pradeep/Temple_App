@@ -173,7 +173,7 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
                 // 1. Banner Section
                 Column(
                   children: [
-                    SizedBox(height: 64.h),
+                    SizedBox(height: 50.h),
                     SizedBox(
                       width: 343.w,
                       height: 142.h,

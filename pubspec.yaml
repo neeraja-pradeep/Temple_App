@@ -68,7 +68,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/background.png
+    - assets/background.jpg
     - assets/bottomNavBar/bn1.png
     - assets/bottomNavBar/bn2.png
     - assets/bottomNavBar/bn3.png
