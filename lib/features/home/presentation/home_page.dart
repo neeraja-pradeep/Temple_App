@@ -1,368 +1,270 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:shimmer/shimmer.dart';
-import '../providers/home_providers.dart';
-import '../data/models/home_pooja_category_model.dart';
-import '../services/audio_service.dart';
+import 'package:temple/core/app_colors.dart';
+import 'package:temple/features/home/providers/home_providers.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
   ConsumerState<HomePage> createState() => _HomePageState();
+
+  static Widget buildDrawerContent(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(profileProvider);
+
+    return profileAsync.when(
+      data: (profile) {
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Colors.white,
+                    radius: 30.w,
+                  ),
+                  SizedBox(width: 20.w,),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text("നമസ്കാരം",
+                      style: TextStyle(
+                        fontFamily: "NotoSansMalayalam",
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold
+                      ),),
+                      Text(profile.name, 
+                      style: TextStyle(
+                        fontFamily: "NotoSansMalayalam",
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w300
+                      )),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 15.h,),
+              Text("അക്കൗണ്ട് സെറ്റിംഗ്സ്", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500), ),
+              SizedBox(height: 6.h,),
+              Divider(color: Colors.grey,),
+              SizedBox(height: 6.h,),
+
+              Text("ഹോം സ്ക്രീൻ", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
+              Text("ദൈനംദിന പൂജ സമയങ്ങൾ", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
+              Text("ക്ഷേത്ര ചടങ്ങുകൾ", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
+              SizedBox(height: 6.h,),
+              Divider(color: Colors.grey,),
+              SizedBox(height: 6.h,),
+
+              Text("പൂജ ബുക്ക് ചെയ്യുക", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
+              Text("പ്രസാദം വാങ്ങുക", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
+              Text("സംഭാവന ചെയ്യുക വിപണി", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
+              SizedBox(height: 6.h,),
+              Divider(color: Colors.grey,),
+              SizedBox(height: 6.h,),
+
+              Text("പൗർണമി / അമാവാസ്യാ ദിവസം ", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
+              Text("ഉത്സവങ്ങൾ", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
+              Text("ഇന്ന് രാഹുകാലം", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
+              Text("നക്ഷത്രം / ജാതകം (ഐച്ഛികം)", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
+              SizedBox(height: 6.h,),
+              Divider(color: Colors.grey,),
+              SizedBox(height: 6.h,),
+
+              Text("ഞങ്ങളെ ബന്ധപ്പെടുക", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w300),),
+              Text("ക്ഷേത്രം വിവരങ്ങൾ", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w300),),
+              
+              
+            ],
+          ),
+        );
+      },
+      error: (err, _) => const Text(""),
+      loading: () =>const Text(""),
+    );
+  }
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  late final AudioPlayer player;
+
   @override
   void initState() {
     super.initState();
-    // Initialize audio when page loads
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeAudio();
+    player = ref.read(audioPlayerProvider);
+
+    player.playerStateStream.listen((state) {
+      ref.read(isPlayingProvider.notifier).state = state.playing;
     });
   }
 
   @override
-  void dispose() {
-    // Stop audio when leaving the home page
-    final audioService = ref.read(audioServiceProvider.notifier);
-    audioService.stop();
-    super.dispose();
-  }
-
-  void _initializeAudio() {
-    final songAsync = ref.read(songProvider);
-    final audioService = ref.read(audioServiceProvider.notifier);
-
-    songAsync.when(
-      data: (songResponse) {
-        audioService.playBackgroundMusic(songResponse.song.streamUrl);
-      },
-      loading: () {
-        // Song is loading
-      },
-      error: (error, stackTrace) {
-        print('Error loading song: $error');
-      },
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final categoriesAsync = ref.watch(homePoojaCategoriesProvider);
+    final godCategories = ref.watch(godCategoriesProvider);
     final profileAsync = ref.watch(profileProvider);
-    final audioState = ref.watch(audioServiceProvider);
-    final audioService = ref.read(audioServiceProvider.notifier);
+    final isPlaying = ref.watch(isPlayingProvider);
+    final musicAsync = ref.watch(songProvider);
 
-    return WillPopScope(
-      onWillPop: () async {
-        // Stop audio when navigating back
-        final audioService = ref.read(audioServiceProvider.notifier);
-        audioService.stop();
-        return true;
-      },
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        body: Stack(
+    return godCategories.when(
+      data: (categories) {
+        if (categories.isEmpty) return const Center(child: Text("ERROR"));
+
+        return Stack(
+          fit: StackFit.expand,
           children: [
-            // Full screen cards - no background needed
-            categoriesAsync.when(
-              data: (categoryResponse) {
-                if (categoryResponse.results.isEmpty) {
-                  return Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    color: Colors.black,
-                    child: const Center(
-                      child: Text(
-                        'No categories available',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  );
-                }
-
-                return PageView.builder(
-                  itemCount: categoryResponse.results.length,
-                  itemBuilder: (context, index) {
-                    final category = categoryResponse.results[index];
-                    return _buildCategoryCard(category, context);
+            // PageView carousel
+            PageView.builder(
+              itemCount: categories.length,
+              itemBuilder: (context, index) {
+                final category = categories[index];
+                return Image.network(
+                  category.homemediaUrl ?? "",
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, _, __) =>
+                      Image.asset("assets/fallBack.png", fit: BoxFit.cover),
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return _shimmerLoader();
                   },
                 );
               },
-              loading: () => _buildLoadingCards(),
-              error: (error, stackTrace) => Container(
-                width: double.infinity,
-                height: double.infinity,
-                color: Colors.black,
-                child: Center(
-                  child: Column(
+            ),
+
+            // Drawer button
+            Positioned(
+              top: 10.h,
+              left: 4.w,
+              child: IconButton(
+                onPressed: () => Scaffold.of(context).openDrawer(),
+                icon: Image.asset(
+                  "assets/icons/menu.png",
+                  height: 24.h,
+                  width: 30.w,
+                ),
+              ),
+            ),
+
+            // Notifications
+            Positioned(
+              top: 10.h,
+              right: 5.w,
+              child: IconButton(
+                onPressed: () {},
+                icon: Image.asset(
+                  "assets/icons/bell.png",
+                  height: 24.h,
+                  width: 21.76.w,
+                ),
+              ),
+            ),
+
+            // Profile
+            Positioned(
+              top: 15.h,
+              right: 110.w,
+              child: profileAsync.when(
+                data: (profile) {
+                  final formatted = formatMalayalamDate(profile.malayalamDate);
+                  return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: Colors.white,
-                        size: 48.sp,
-                      ),
-                      SizedBox(height: 16.h),
                       Text(
-                        'Failed to load categories',
-                        style: TextStyle(color: Colors.white, fontSize: 16.sp),
-                      ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        error.toString(),
+                        formatted,
                         style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12.sp,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Top bar with hamburger menu and bell icon
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: SafeArea(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 8.h,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Hamburger menu
-                      GestureDetector(
-                        onTap: () {
-                          // TODO: Implement drawer/sidebar
-                          Scaffold.of(context).openDrawer();
-                        },
-                        child: Container(
-                          width: 40.w,
-                          height: 40.h,
-                          child: Image.asset(
-                            'assets/menu.png',
-                            width: 24.w,
-                            height: 24.h,
-                          ),
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontFamily: "NotoSansMalayalam",
                         ),
                       ),
-
-                      // Center - Malayalam date and nakshatram
-                      Expanded(
-                        child: profileAsync.when(
-                          data: (profileResponse) {
-                            final profile = profileResponse.profile;
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Malayalam date
-                                Text(
-                                  profile.malayalamDate,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.w500,
-                                    fontFamily: 'NotoSansMalayalam',
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                SizedBox(height: 2.h),
-                                // Nakshatram
-                                Text(
-                                  profile.nakshatram.name,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.w400,
-                                    fontFamily: 'NotoSansMalayalam',
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            );
-                          },
-                          loading: () => Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 80.w,
-                                height: 14.h,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.3),
-                                  borderRadius: BorderRadius.circular(4.r),
-                                ),
-                              ),
-                              SizedBox(height: 2.h),
-                              Container(
-                                width: 60.w,
-                                height: 12.h,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.3),
-                                  borderRadius: BorderRadius.circular(4.r),
-                                ),
-                              ),
-                            ],
-                          ),
-                          error: (error, stackTrace) => Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Date Loading...',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // Bell icon
-                      GestureDetector(
-                        onTap: () {
-                          // TODO: Implement notifications
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Notifications coming soon!'),
-                              backgroundColor: Colors.orange,
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: 40.w,
-                          height: 40.h,
-                          child: Image.asset(
-                            'assets/bell.png',
-                            width: 24.w,
-                            height: 24.h,
-                          ),
+                      Text(
+                        profile.nakshatram,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.white,
+                          fontFamily: "NotoSansMalayalam",
                         ),
                       ),
                     ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Speaker icon in bottom left
-            Positioned(
-              bottom: 30.h,
-              left: 20.w,
-              child: GestureDetector(
-                onTap: () {
-                  audioService.toggleMute();
+                  );
                 },
-                child: Container(
-                  width: 50.w,
-                  height: 50.h,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(25.r),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Icon(
-                    audioState.isMuted ? Icons.volume_off : Icons.volume_up,
-                    color: Colors.white,
-                    size: 24.sp,
-                  ),
+                error: (err, _) => const Text("നമസ്കാരം"),
+                loading: () => const Text("നമസ്കാരം"),
+              ),
+            ),
+
+            // song
+            Positioned(
+              bottom: 10.h,
+              left: 5.w,
+              child: musicAsync.when(
+                data: (song) => IconButton(
+                  onPressed: () async {
+                    if (isPlaying) {
+                      await player.pause();
+                    } else {
+                      if (player.audioSource == null ||
+                          (player.audioSource is ProgressiveAudioSource &&
+                              (player.audioSource as ProgressiveAudioSource)
+                                      .uri
+                                      .toString() !=
+                                  song.streamUrl)) {
+                        await player.setUrl(song.streamUrl);
+                      }
+                      await player.play();
+                    }
+                  },
+                  icon: isPlaying
+                      ? Image.asset(
+                          "assets/icons/sound.png",
+                          height: 24.h,
+                          width: 29.76.w,
+                        )
+                      : Image.asset(
+                          "assets/icons/mute.png",
+                          color: const Color.fromARGB(154, 255, 255, 255),
+                          height: 24.h,
+                          width: 29.76.w,
+                        ),
                 ),
+                loading: () => const CircularProgressIndicator(),
+                error: (_, __) => const Icon(Icons.error),
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryCard(HomePoojaCategory category, BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: const BoxDecoration(),
-      child: Stack(
-        children: [
-          // Background image - full screen
-          Positioned.fill(
-            child: Image.network(
-              category.homeMediaUrl,
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Shimmer.fromColors(
-                  baseColor: Colors.grey[800]!,
-                  highlightColor: Colors.grey[600]!,
-                  child: Container(color: Colors.grey[800]),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: Colors.grey[800],
-                  child: const Center(
-                    child: Icon(
-                      Icons.image_not_supported,
-                      color: Colors.white54,
-                      size: 48,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // Gradient overlay
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
-                  stops: const [0.0, 1.0],
-                ),
-              ),
-            ),
-          ),
-
-          // Category name
-
-          // Tap to explore
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoadingCards() {
-    return PageView.builder(
-      itemCount: 3, // Show 3 loading cards
-      itemBuilder: (context, index) {
-        return Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(color: Colors.grey[800]),
-          child: Shimmer.fromColors(
-            baseColor: Colors.grey[800]!,
-            highlightColor: Colors.grey[600]!,
-            child: Container(
-              decoration: BoxDecoration(color: Colors.grey[800]),
-            ),
-          ),
         );
       },
+      loading: () => _shimmerLoader(),
+      error: (err, _) => const Center(child: Text("ERROR")),
     );
+  }
+
+  Widget _shimmerLoader() {
+    return Shimmer.fromColors(
+      baseColor: AppColors.navBarBackground.withOpacity(0.8),
+      highlightColor: Colors.white.withOpacity(0.8),
+      child: Container(color: AppColors.navBarBackground),
+    );
+  }
+
+  String formatMalayalamDate(String rawDate) {
+    final parts = rawDate.split(',');
+    if (parts.length < 2) return rawDate;
+
+    final weekday = parts[0].trim();
+    final rest = parts[1].trim();
+
+    final restParts = rest.split(' ');
+    if (restParts.length < 2) return rawDate;
+
+    final day = restParts[0];
+    final month = restParts[1];
+
+    return "$month $day, $weekday";
   }
 }
