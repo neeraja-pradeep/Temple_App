@@ -152,6 +152,56 @@ class BookingPage extends ConsumerWidget {
     } catch (_) {}
   }
 
+  Future<void> _showCenteredErrorDialog(
+    BuildContext context,
+    String message,
+  ) async {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          contentPadding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 8.h),
+          content: Text(
+            message,
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w500,
+              color: Colors.black,
+              fontFamily: 'NotoSansMalayalam',
+            ),
+          ),
+          actionsPadding: EdgeInsets.only(right: 12.w, bottom: 8.h),
+          actions: [
+            SizedBox(
+              height: 36.h,
+              child: TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.selected,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+                child: Text(
+                  'OK',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildBookingContent(BuildContext context, BookingPooja pooja) {
     // Debug logging for pooja type
     print('🏛️ Pooja Details:');
@@ -165,6 +215,30 @@ class BookingPage extends ConsumerWidget {
 
     return Consumer(
       builder: (context, ref, _) {
+        // Auto-select a default date if none selected or invalid for current pooja
+        List<String> enabledDates;
+        if (pooja.specialPooja) {
+          enabledDates = pooja.specialPoojaDates.map((d) => d.date).toList();
+        } else {
+          final now = DateTime.now();
+          enabledDates = List.generate(30, (index) {
+            final date = now.add(Duration(days: index + 1));
+            return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+          });
+        }
+        final currentSelectedDate = ref.watch(selectedCalendarDateProvider);
+        final shouldSetDefaultDate =
+            currentSelectedDate == null ||
+            !enabledDates.contains(currentSelectedDate);
+        if (enabledDates.isNotEmpty && shouldSetDefaultDate) {
+          final defaultDate = pooja.specialPooja
+              ? enabledDates
+                    .first // from API for special pooja
+              : enabledDates.first; // next available for regular pooja
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(selectedCalendarDateProvider.notifier).state = defaultDate;
+          });
+        }
         return Stack(
           fit: StackFit.expand,
           children: [
@@ -302,6 +376,18 @@ class BookingPage extends ConsumerWidget {
                       final selectedDate = ref.watch(
                         selectedCalendarDateProvider,
                       );
+
+                      // If previously stored date is invalid for this pooja, clear it
+                      if (selectedDate != null &&
+                          !enabledDates.contains(selectedDate)) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          ref
+                                  .read(selectedCalendarDateProvider.notifier)
+                                  .state =
+                              null;
+                        });
+                      }
+
                       return Card(
                         elevation: 1,
                         shape: RoundedRectangleBorder(
@@ -450,11 +536,9 @@ class BookingPage extends ConsumerWidget {
                                   final errorMsg =
                                       'Please select a date for the special pooja';
                                   print('❌ Validation Error: $errorMsg');
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(errorMsg),
-                                      backgroundColor: Colors.orange,
-                                    ),
+                                  await _showCenteredErrorDialog(
+                                    context,
+                                    "Please select a date for the special pooja",
                                   );
                                   return;
                                 }
@@ -475,15 +559,11 @@ class BookingPage extends ConsumerWidget {
                                   );
                                 } catch (e) {
                                   final errorMsg =
-                                      'Failed to find special pooja date: $e';
-                                  print(
-                                    '❌ Special Pooja Date Error: $errorMsg',
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(errorMsg),
-                                      backgroundColor: Colors.red,
-                                    ),
+                                      'Failed to find special pooja date';
+                                  print('❌ Special Pooja Date Error: $e');
+                                  await _showCenteredErrorDialog(
+                                    context,
+                                    'please select a date for the special pooja',
                                   );
                                   return;
                                 }
@@ -496,11 +576,9 @@ class BookingPage extends ConsumerWidget {
                                   final errorMsg =
                                       'Please select a date for the pooja';
                                   print('❌ Validation Error: $errorMsg');
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(errorMsg),
-                                      backgroundColor: Colors.orange,
-                                    ),
+                                  await _showCenteredErrorDialog(
+                                    context,
+                                    'Please select a date for the pooja',
                                   );
                                   return;
                                 }

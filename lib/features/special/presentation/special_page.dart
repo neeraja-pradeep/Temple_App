@@ -8,6 +8,7 @@ import '../providers/special_pooja_provider.dart';
 import '../data/special_pooja_model.dart';
 import '../../booking/presentation/booking_page.dart';
 import 'dart:async';
+import '../../booking/providers/booking_page_providers.dart';
 
 // Provider for managing selected card across both sections
 final selectedCardProvider = StateProvider<SpecialPooja?>((ref) => null);
@@ -551,6 +552,14 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
                   height: 40.h,
                   child: ElevatedButton(
                     onPressed: () {
+                      // Clear date-related booking state before entering booking
+                      try {
+                        ref.read(selectedCalendarDateProvider.notifier).state =
+                            null;
+                      } catch (_) {}
+                      try {
+                        ref.read(showCalendarProvider.notifier).state = false;
+                      } catch (_) {}
                       // Navigate to booking page
                       Navigator.push(
                         context,
