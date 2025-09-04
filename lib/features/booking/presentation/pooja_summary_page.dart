@@ -58,6 +58,18 @@ class PoojaSummaryPage extends ConsumerWidget {
                 print('🛒 Raw Cart API Response:');
                 print(cartResponse);
 
+                // Print detailed cart item for debugging
+                if (cartResponse.cart.isNotEmpty) {
+                  final cartItem = cartResponse.cart.first;
+                  print('🔍 Detailed Cart Item Debug:');
+                  print('   Cart Item ID: ${cartItem.id}');
+                  print('   Agent: ${cartItem.agent}');
+                  print('   Agent Details: ${cartItem.agentDetails}');
+                  print('   Status: ${cartItem.status}');
+                  print('   Effective Price: ${cartItem.effectivePrice}');
+                  print('   Full Cart Item JSON: ${cartItem.toString()}');
+                }
+
                 if (cartResponse.cart.isEmpty) {
                   return const Center(child: Text('No items in cart'));
                 }
@@ -401,7 +413,15 @@ class PoojaSummaryPage extends ConsumerWidget {
             ),
             SizedBox(width: 12.w),
             Text(
-              cartItem.agent != null ? 'ഏജന്റ് കോഡ് applied' : 'ഏജന്റ് കോഡ്',
+              cartItem.agent != null
+                  ? (cartItem.agentDetails != null &&
+                            cartItem.agentDetails is Map<String, dynamic> &&
+                            (cartItem.agentDetails
+                                    as Map<String, dynamic>)['name'] !=
+                                null
+                        ? 'ഏജന്റ് കോഡ്: ${(cartItem.agentDetails as Map<String, dynamic>)['name']}'
+                        : 'ഏജന്റ് കോഡ് applied')
+                  : 'ഏജന്റ് കോഡ്',
               style: TextStyle(
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w400,

@@ -24,7 +24,7 @@ class CartItem {
   final String effectivePrice;
   final String additionalCharges;
   final bool status;
-  final String? agent;
+  final int? agent;
   final Map<String, dynamic>? agentDetails;
 
   CartItem({
