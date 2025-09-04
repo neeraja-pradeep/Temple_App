@@ -43,6 +43,7 @@ dependencies:
   shimmer: ^3.0.0
   dropdown_button2: ^2.3.9
   table_calendar: ^3.2.0
+  just_audio: ^0.10.5
 
 dev_dependencies:
   flutter_test:
@@ -76,6 +77,12 @@ flutter:
     - assets/bottomNavBar/bn5.png
     - assets/backIcon.png
     - assets/calendar.png
+    - assets/icons/menu.png
+    - assets/icons/bell.png
+    - assets/icons/sound.png
+    - assets/icons/mute.png
+    - assets/fallBack.png
+    
 
   # To add assets to your application, add an assets section, like this:
   # assets:
