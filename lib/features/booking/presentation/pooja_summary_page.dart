@@ -75,6 +75,7 @@ class PoojaSummaryPage extends ConsumerWidget {
                 }
 
                 final cartItem = cartResponse.cart.first;
+                final totalParticipants = cartResponse.cart.length;
                 return Stack(
                   fit: StackFit.expand,
                   children: [
@@ -135,7 +136,10 @@ class PoojaSummaryPage extends ConsumerWidget {
                                   SizedBox(height: 32.h),
 
                                   // Participants
-                                  _buildParticipants(cartItem),
+                                  _buildParticipants(
+                                    cartItem,
+                                    totalParticipants,
+                                  ),
                                   SizedBox(height: 32.h),
 
                                   // Options/Status
@@ -302,17 +306,12 @@ class PoojaSummaryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildParticipants(CartItem cartItem) {
+  Widget _buildParticipants(CartItem cartItem, int totalParticipants) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Show user list details
-        _buildParticipantRow(
-          cartItem.userListDetails.name,
-          cartItem.userListDetails.attributes.isNotEmpty
-              ? cartItem.userListDetails.attributes.first.nakshatramName
-              : 'No nakshatram',
-        ),
+        // Show number of participants
+        _buildParticipantRow('Number of People', '$totalParticipants people'),
       ],
     );
   }
