@@ -1070,6 +1070,7 @@ class BookingPage extends ConsumerWidget {
         SizedBox(height: 12.h),
         // Agent code
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             customCheckbox(
               value: isAgentCode,
@@ -1091,9 +1092,28 @@ class BookingPage extends ConsumerWidget {
               },
             ),
             SizedBox(width: 12.w),
-            Text(
-              'ഏജന്റ് കോഡ് നൽകുക (Optional)',
-              style: TextStyle(fontSize: 12.sp, color: Colors.black),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'ഏജന്റ് കോഡ് നൽകുക (Optional)',
+                    style: TextStyle(fontSize: 12.sp, color: Colors.black),
+                  ),
+                  // Show entered agent code if available
+                  if (agentCode.isNotEmpty) ...[
+                    SizedBox(height: 4.h),
+                    Text(
+                      '$agentCode',
+                      style: TextStyle(
+                        fontSize: 11.sp,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ],
         ),
