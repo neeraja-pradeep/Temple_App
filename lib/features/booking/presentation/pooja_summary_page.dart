@@ -102,7 +102,7 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
                   children: [
                     // Background Image
                     Image.asset(
-                      'assets/background.png',
+                      'assets/background.jpg',
                       fit: BoxFit.cover,
                       height: double.infinity,
                       width: double.infinity,

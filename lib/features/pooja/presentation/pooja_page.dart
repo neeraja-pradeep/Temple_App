@@ -10,7 +10,6 @@ import 'package:temple/features/pooja/data/models/pooja_category_model.dart';
 import 'package:temple/features/pooja/providers/pooja_providers.dart';
 import 'package:temple/widgets/pooja_page_skeleton.dart';
 import 'package:temple/features/booking/presentation/booking_page.dart';
-import 'package:temple/features/booking/providers/booking_provider.dart';
 import 'package:temple/features/booking/providers/booking_page_providers.dart';
 
 class PoojaPage extends ConsumerStatefulWidget {
@@ -26,6 +25,9 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
 
   // Provider for tracking selected date from calendar
   late final StateProvider<String?> selectedDateProvider;
+
+  // Store the current Malayalam date
+  String? currentMalayalamDate;
 
   @override
   void initState() {
@@ -44,12 +46,32 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
     }
   }
 
+  Future<void> _testApiCall(int categoryId) async {
+    try {
+      print('🧪 Testing direct API call for category $categoryId');
+      final repo = ref.read(repositoryProvider);
+      final poojas = await repo.fetchPoojasByCategory(categoryId);
+      print('🧪 Direct API call successful: ${poojas.length} poojas');
+      for (var pooja in poojas) {
+        print('🧪   - ${pooja.name} (₹${pooja.price})');
+      }
+    } catch (e) {
+      print('🧪 Direct API call failed: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(poojaCategoriesProvider);
     final poojasAsync = selectedCategoryId != null
         ? ref.watch(poojasByCategoryProvider(selectedCategoryId!))
         : null;
+
+    // Watch Malayalam date provider to get the current Malayalam date
+    final malayalamDateAsync = ref.watch(malayalamDateProvider);
+    malayalamDateAsync.whenData((malayalamDate) {
+      currentMalayalamDate = malayalamDate.malayalamDate;
+    });
 
     return Stack(
       children: [
@@ -90,10 +112,16 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                                 category: god,
                                 isSelected: selectedCategoryId == god.id,
                                 onTap: () {
+                                  print(
+                                    '🎯 Category selected: ${god.id} - ${god.name}',
+                                  );
                                   setState(() {
                                     selectedCategoryId = god.id;
                                     selectedPoojaId = null;
                                   });
+
+                                  // Test the API call directly
+                                  _testApiCall(god.id);
                                 },
                               ),
                             );
@@ -117,9 +145,9 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                     ),
                   ),
                 ),
-            
+
                 Padding(
-                  padding: const EdgeInsets.only(top: 3, left: 14 , right: 10),
+                  padding: const EdgeInsets.only(top: 3, left: 14, right: 10),
                   child: SizedBox(
                     height: 40.h,
                     width: 342.w,
@@ -140,50 +168,81 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                               ),
                             ]
                           : poojasAsync!.when(
-                              data: (poojas) => poojas
-                                  .map(
-                                    (pooja) => DropdownMenuItem<int>(
-                                      value: pooja.id,
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              pooja.name,
-                                              overflow: TextOverflow.fade,
-                                              maxLines: 1,
+                              data: (poojas) {
+                                print(
+                                  '🔍 Poojas loaded for category $selectedCategoryId:',
+                                );
+                                print('   Number of poojas: ${poojas.length}');
+                                for (var pooja in poojas) {
+                                  print(
+                                    '   - ID: ${pooja.id}, Name: ${pooja.name}, Price: ${pooja.price}',
+                                  );
+                                }
+                                return poojas
+                                    .map(
+                                      (pooja) => DropdownMenuItem<int>(
+                                        value: pooja.id,
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                pooja.name,
+                                                overflow: TextOverflow.fade,
+                                                maxLines: 1,
+                                              ),
                                             ),
-                                          ),
-                                          SizedBox(width: 6.w),
-                                          Text("₹${pooja.price}"),
-                                        ],
+                                            SizedBox(width: 6.w),
+                                            Text("₹${pooja.price}"),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                    .toList();
+                              },
+                              error: (err, _) {
+                                print(
+                                  '❌ Error loading poojas for category $selectedCategoryId: $err',
+                                );
+                                return [
+                                  DropdownMenuItem<int>(
+                                    value: null,
+                                    child: Text(
+                                      "Unable to load poojas",
+                                      style: TextStyle(
+                                        color: Color.fromARGB(
+                                          165,
+                                          158,
+                                          158,
+                                          158,
+                                        ),
+                                        fontWeight: FontWeight.w400,
                                       ),
                                     ),
-                                  )
-                                  .toList(),
-                              error: (err, _) => [
-                                DropdownMenuItem<int>(
-                                  value: null,
-                                  child: Text(
-                                    "Error loading poojas",
-                                    style: TextStyle(
-                                      color: Color.fromARGB(165, 158, 158, 158),
-                                      fontWeight: FontWeight.w400,
+                                  ),
+                                ];
+                              },
+                              loading: () {
+                                print(
+                                  '⏳ Loading poojas for category $selectedCategoryId...',
+                                );
+                                return [
+                                  DropdownMenuItem<int>(
+                                    value: null,
+                                    child: Text(
+                                      "Loading Poojas...",
+                                      style: TextStyle(
+                                        color: Color.fromARGB(
+                                          165,
+                                          158,
+                                          158,
+                                          158,
+                                        ),
+                                        fontWeight: FontWeight.w400,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                              loading: () => [
-                                DropdownMenuItem<int>(
-                                  value: null,
-                                  child: Text(
-                                    "Loading Poojas...",
-                                    style: TextStyle(
-                                      color: Color.fromARGB(165, 158, 158, 158),
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                                ];
+                              },
                             ),
                       onChanged: (value) {
                         setState(() {
@@ -193,7 +252,7 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                     ),
                   ),
                 ),
-            
+
                 Padding(
                   padding: const EdgeInsets.only(left: 18, top: 18),
                   child: Text(
@@ -205,7 +264,7 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                     ),
                   ),
                 ),
-            
+
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: MalayalamCalendar(
@@ -258,7 +317,10 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                 MaterialPageRoute(
                   builder: (context) => BookingPage(
                     poojaId: selectedPoojaId!,
-                    userId: 1, // Default user ID, you can modify this as needed
+                    userId: 2, // Use same user ID as SpecialPage
+                    source: 'pooja', // Indicate this is from PoojaPage
+                    malayalamDate:
+                        currentMalayalamDate, // Pass the Malayalam date
                   ),
                 ),
               );

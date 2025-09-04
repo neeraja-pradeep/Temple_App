@@ -34,22 +34,56 @@ class PoojaRepository {
   }
 
   Future<List<Pooja>> fetchPoojasByCategory(int categoryId) async {
-    final box = await Hive.openBox<List<Pooja>>(poojaBox);
+    print('🌐 Fetching poojas for category ID: $categoryId');
 
-    final cached = box.get('poojas_$categoryId');
-    if (cached != null) return cached;
+    // For now, let's skip caching to avoid type issues
+    // TODO: Fix Hive caching later
+    print('📦 Skipping cache for now to avoid type casting issues');
 
-    final url = Uri.parse('$baseUrl/booking/poojas/?pooja_category_id=$categoryId');
-    final response = await http.get(url);
+    final url = Uri.parse(
+      '$baseUrl/booking/poojas/?pooja_category_id=$categoryId',
+    );
+    print('🌐 API Call: $url');
+    final response = await http
+        .get(url)
+        .timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            print('⏰ API call timed out after 10 seconds');
+            throw Exception('Request timeout');
+          },
+        );
+
+    print('📥 Response Status: ${response.statusCode}');
+    print('📥 Response Body: ${response.body}');
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      final poojas = data.map((e) => Pooja.fromJson(e)).toList();
+      final dynamic responseData = jsonDecode(response.body);
+      print('📦 Raw response data type: ${responseData.runtimeType}');
+      print('📦 Raw response data: $responseData');
 
-      await box.put('poojas_$categoryId', poojas);
+      List<dynamic> data;
+      if (responseData is List) {
+        data = responseData;
+      } else if (responseData is Map && responseData.containsKey('results')) {
+        data = responseData['results'] as List<dynamic>;
+      } else if (responseData is Map && responseData.containsKey('data')) {
+        data = responseData['data'] as List<dynamic>;
+      } else {
+        print('❌ Unexpected response format: $responseData');
+        throw Exception('Unexpected response format');
+      }
+
+      print('📦 Parsed data length: ${data.length}');
+      final poojas = data
+          .map((e) => Pooja.fromJson(e as Map<String, dynamic>))
+          .toList();
+      print('📦 Created ${poojas.length} pooja objects');
+
+      // Skip caching for now to avoid type issues
       return poojas;
     } else {
-      if (cached != null) return cached;
+      print('❌ API Error: ${response.statusCode} - ${response.body}');
       throw Exception('Failed to load poojas');
     }
   }
@@ -76,4 +110,3 @@ class PoojaRepository {
     }
   }
 }
-

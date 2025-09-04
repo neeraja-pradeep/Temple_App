@@ -17,8 +17,16 @@ import '../data/nakshatram_model.dart';
 class BookingPage extends ConsumerWidget {
   final int poojaId;
   final int userId;
+  final String? source; // 'pooja' or 'special' to determine calendar visibility
+  final String? malayalamDate; // Malayalam date passed from PoojaPage
 
-  const BookingPage({super.key, required this.poojaId, required this.userId});
+  const BookingPage({
+    super.key,
+    required this.poojaId,
+    required this.userId,
+    this.source,
+    this.malayalamDate,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -274,7 +282,7 @@ class BookingPage extends ConsumerWidget {
           children: [
             // Background Image
             Image.asset(
-              'assets/background.png',
+              'assets/background.jpg',
               fit: BoxFit.cover,
               height: double.infinity,
               width: double.infinity,
@@ -305,7 +313,7 @@ class BookingPage extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Pooja Name with Calendar Icon
+                        // Pooja Name with Calendar Icon (conditional)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -321,56 +329,104 @@ class BookingPage extends ConsumerWidget {
                                 ),
                               ),
                             ),
-                            GestureDetector(
-                              onTap: () {
-                                final show = ref.read(showCalendarProvider);
-                                ref.read(showCalendarProvider.notifier).state =
-                                    !show;
-                              },
-                              child: Image.asset(
-                                'assets/calendar.png',
-                                width: 20.w,
-                                height: 20.h,
+                            // Only show calendar icon if not coming from PoojaPage
+                            if (source != 'pooja') ...[
+                              GestureDetector(
+                                onTap: () {
+                                  final show = ref.read(showCalendarProvider);
+                                  ref
+                                          .read(showCalendarProvider.notifier)
+                                          .state =
+                                      !show;
+                                },
+                                child: Image.asset(
+                                  'assets/calendar.png',
+                                  width: 20.w,
+                                  height: 20.h,
+                                ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                         SizedBox(height: 8.h),
-                        // Date Information
-                        if (pooja.specialPooja &&
-                            pooja.specialPoojaDates.isNotEmpty) ...[
-                          // Special Pooja - Show first available date
-                          Text(
-                            pooja.specialPoojaDates.first.malayalamDate,
-                            style: TextStyle(
-                              fontFamily: 'NotoSansMalayalam',
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.black,
-                            ),
+                        // Show selected date when coming from PoojaPage
+                        if (source == 'pooja') ...[
+                          Consumer(
+                            builder: (context, ref, child) {
+                              final selectedDate = ref.watch(
+                                selectedCalendarDateProvider,
+                              );
+                              if (selectedDate != null) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // r
+                                    // Malayalam date passed from PoojaPage in black
+                                    Text(
+                                      malayalamDate ??
+                                          _formatDate(selectedDate),
+                                      style: TextStyle(
+                                        fontFamily: 'NotoSansMalayalam',
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2.h),
+                                    // English date in grey
+                                    Text(
+                                      _formatDate(selectedDate),
+                                      style: TextStyle(
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    SizedBox(height: 8.h),
+                                  ],
+                                );
+                              }
+                              return SizedBox.shrink();
+                            },
                           ),
-                          SizedBox(height: 4.h),
-                          Text(
-                            _formatDate(pooja.specialPoojaDates.first.date),
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.grey[600],
+                        ],
+                        // Date Information (only show when not from PoojaPage)
+                        if (source != 'pooja') ...[
+                          if (pooja.specialPooja &&
+                              pooja.specialPoojaDates.isNotEmpty) ...[
+                            // Special Pooja - Show first available date
+                            Text(
+                              pooja.specialPoojaDates.first.malayalamDate,
+                              style: TextStyle(
+                                fontFamily: 'NotoSansMalayalam',
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.black,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 8.h),
-                        ] else if (!pooja.specialPooja) ...[
-                          // Regular Pooja - Show instruction to select date
-                          Text(
-                            'തീയതി തിരഞ്ഞെടുക്കാൻ കലണ്ടർ ക്ലിക്ക് ചെയ്യുക',
-                            style: TextStyle(
-                              fontFamily: 'NotoSansMalayalam',
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.grey[600],
+                            SizedBox(height: 4.h),
+                            Text(
+                              _formatDate(pooja.specialPoojaDates.first.date),
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.grey[600],
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 8.h),
+                            SizedBox(height: 8.h),
+                          ] else if (!pooja.specialPooja) ...[
+                            // Regular Pooja - Show instruction to select date
+                            Text(
+                              'തീയതി തിരഞ്ഞെടുക്കാൻ കലണ്ടർ ക്ലിക്ക് ചെയ്യുക',
+                              style: TextStyle(
+                                fontFamily: 'NotoSansMalayalam',
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            SizedBox(height: 8.h),
+                          ],
                         ],
                       ],
                     ),

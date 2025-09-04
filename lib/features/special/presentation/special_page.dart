@@ -564,8 +564,14 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              BookingPage(poojaId: selectedCard!.id, userId: 2),
+                          builder: (context) => BookingPage(
+                            poojaId: selectedCard.id,
+                            userId: 2,
+                            source:
+                                'special', // Indicate this is from SpecialPage
+                            malayalamDate:
+                                null, // No Malayalam date needed for SpecialPage
+                          ),
                         ),
                       );
                     },
