@@ -565,7 +565,7 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
-                              BookingPage(poojaId: selectedCard!.id, userId: 1),
+                              BookingPage(poojaId: selectedCard!.id, userId: 2),
                         ),
                       );
                     },

@@ -239,6 +239,36 @@ class BookingPage extends ConsumerWidget {
             ref.read(selectedCalendarDateProvider.notifier).state = defaultDate;
           });
         }
+
+        // Ensure main user is always selected when entering booking page
+        final currentSelectedUsers = ref.watch(selectedUsersProvider(userId));
+        final currentVisibleUsers = ref.watch(visibleUsersProvider(userId));
+        final userListsAsync = ref.watch(userListsProvider);
+
+        // Check if we need to set the main user and user list is available
+        userListsAsync.when(
+          data: (users) {
+            if (currentSelectedUsers.isEmpty || currentVisibleUsers.isEmpty) {
+              try {
+                final mainUser = users.firstWhere((u) => u.id == userId);
+                // Set main user in both selected and visible lists
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ref.read(selectedUsersProvider(userId).notifier).state = [
+                    mainUser,
+                  ];
+                  ref.read(visibleUsersProvider(userId).notifier).state = [
+                    mainUser,
+                  ];
+                });
+              } catch (_) {
+                // Main user not found, keep empty lists
+              }
+            }
+          },
+          loading: () {},
+          error: (_, __) {},
+        );
+
         return Stack(
           fit: StackFit.expand,
           children: [
@@ -2578,6 +2608,8 @@ class BookingPage extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(16.r),
@@ -2585,94 +2617,108 @@ class BookingPage extends ConsumerWidget {
         ),
       ),
       builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16.w,
-            right: 16.w,
-            bottom:
-                MediaQuery.of(ctx).viewInsets.bottom +
-                MediaQuery.of(ctx).padding.bottom +
-                16.h,
-            top: 16.h,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'ഏജന്റ് കോഡ്',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () => Navigator.pop(ctx),
-                    child: Container(
-                      width: 28.w,
-                      height: 28.w,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F1F1),
-                        borderRadius: BorderRadius.circular(14.r),
+        return WillPopScope(
+          onWillPop: () async {
+            // Uncheck agent code checkbox when dismissing with back button
+            ref.read(isAgentCodeProvider.notifier).state = false;
+            ref.read(agentCodeProvider.notifier).state = '';
+            return true;
+          },
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 16.w,
+              right: 16.w,
+              bottom:
+                  MediaQuery.of(ctx).viewInsets.bottom +
+                  MediaQuery.of(ctx).padding.bottom +
+                  16.h,
+              top: 16.h,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'ഏജന്റ് കോഡ്',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
                       ),
-                      child: const Icon(Icons.close, size: 18),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16.h),
-              TextField(
-                controller: controller,
-                decoration: InputDecoration(
-                  hintText: 'Code XYZA',
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 12.h,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                ),
-              ),
-              SizedBox(height: 12.h),
-              Text(
-                'ഏജന്റ് കോഡ് ഉപയോഗിക്കുന്നതുപക്ഷത്തിൽ, തീർത്ഥാടന നടത്തിപ്പ് മുൻപ് കൗണ്ടറിൽ പണമടയ്ക്കണം. ഓൺലൈനായി പണമടയ്ക്കേണ്ടതില്ല.',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.grey[600],
-                ),
-              ),
-              SizedBox(height: 16.h),
-              SizedBox(
-                width: double.infinity,
-                height: 40.h,
-                child: ElevatedButton(
-                  onPressed: () {
-                    ref.read(agentCodeProvider.notifier).state =
-                        controller.text;
-                    Navigator.pop(ctx);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8C001A),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+                    InkWell(
+                      onTap: () {
+                        // Uncheck agent code checkbox when closing without confirming
+                        ref.read(isAgentCodeProvider.notifier).state = false;
+                        ref.read(agentCodeProvider.notifier).state = '';
+                        Navigator.pop(ctx);
+                      },
+                      child: Container(
+                        width: 28.w,
+                        height: 28.w,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F1F1),
+                          borderRadius: BorderRadius.circular(14.r),
+                        ),
+                        child: const Icon(Icons.close, size: 18),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    'സ്ഥിരീകരിക്കുക',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w700,
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                TextField(
+                  controller: controller,
+                  decoration: InputDecoration(
+                    hintText: 'Code XYZA',
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.r),
                     ),
                   ),
                 ),
-              ),
-            ],
+                SizedBox(height: 12.h),
+                Text(
+                  'ഏജന്റ് കോഡ് ഉപയോഗിക്കുന്നതുപക്ഷത്തിൽ, തീർത്ഥാടന നടത്തിപ്പ് മുൻപ് കൗണ്ടറിൽ പണമടയ്ക്കണം. ഓൺലൈനായി പണമടയ്ക്കേണ്ടതില്ല.',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                SizedBox(
+                  width: double.infinity,
+                  height: 40.h,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      ref.read(agentCodeProvider.notifier).state =
+                          controller.text;
+                      Navigator.pop(ctx);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8C001A),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                    ),
+                    child: Text(
+                      'സ്ഥിരീകരിക്കുക',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
