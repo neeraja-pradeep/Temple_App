@@ -5,13 +5,30 @@ import 'package:temple/core/app_colors.dart';
 import 'package:temple/features/booking/presentation/pooja_confirmed_page.dart';
 import '../../booking/data/cart_model.dart';
 import '../../booking/providers/booking_provider.dart';
-import '../../booking/data/checkout_model.dart';
+import '../../booking/providers/user_list_provider.dart';
+import '../../booking/providers/booking_page_providers.dart';
 
-class PoojaSummaryPage extends ConsumerWidget {
-  const PoojaSummaryPage({super.key});
+class PoojaSummaryPage extends ConsumerStatefulWidget {
+  final int userId;
+
+  const PoojaSummaryPage({super.key, required this.userId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PoojaSummaryPage> createState() => _PoojaSummaryPageState();
+}
+
+class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Invalidate cart provider to fetch fresh data every time
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(cartProvider);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5DC), // Light brown background
@@ -40,7 +57,11 @@ class PoojaSummaryPage extends ConsumerWidget {
                     width: 20.w,
                     height: 20.h,
                   ),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    // Clear all booking state before going back
+                    _clearAllBookingState();
+                    Navigator.pop(context);
+                  },
                   padding: EdgeInsets.zero,
                   constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
                 ),
@@ -133,9 +154,8 @@ class PoojaSummaryPage extends ConsumerWidget {
 
                                   // Pooja Details
                                   _buildPoojaDetails(cartItem),
-                                  SizedBox(height: 32.h),
 
-                                  // Participants
+                                  // Participants Section
                                   _buildParticipants(
                                     cartItem,
                                     totalParticipants,
@@ -147,7 +167,10 @@ class PoojaSummaryPage extends ConsumerWidget {
                                   SizedBox(height: 32.h),
 
                                   // Total Amount
-                                  _buildTotalAmount(cartItem),
+                                  _buildTotalAmount(
+                                    cartItem,
+                                    totalParticipants,
+                                  ),
 
                                   // Payment Instructions
                                   _buildPaymentInstructions(cartItem),
@@ -309,9 +332,10 @@ class PoojaSummaryPage extends ConsumerWidget {
   Widget _buildParticipants(CartItem cartItem, int totalParticipants) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         // Show number of participants
-        _buildParticipantRow('Number of People', '$totalParticipants people'),
+        _buildParticipantRow('', '$totalParticipants persons'),
       ],
     );
   }
@@ -433,7 +457,11 @@ class PoojaSummaryPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildTotalAmount(CartItem cartItem) {
+  Widget _buildTotalAmount(CartItem cartItem, int totalParticipants) {
+    // Calculate total price as effective price * number of persons
+    final double effectivePrice = double.parse(cartItem.effectivePrice);
+    final double totalPrice = effectivePrice * totalParticipants;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
@@ -447,7 +475,7 @@ class PoojaSummaryPage extends ConsumerWidget {
         ),
         SizedBox(width: 8.w),
         Text(
-          '₹${cartItem.effectivePrice}',
+          '₹${totalPrice.toStringAsFixed(2)}',
           style: TextStyle(
             fontSize: 20.sp,
             fontWeight: FontWeight.w600,
@@ -554,20 +582,29 @@ class PoojaSummaryPage extends ConsumerWidget {
       // Print raw checkout API response
       print('💳 Raw Checkout API Response:');
       print(checkoutResponse);
+      print('💳 Checkout Response Details:');
+      print('   Order ID: ${checkoutResponse.orderId}');
+      print('   Razorpay Order ID: ${checkoutResponse.razorpayOrderId}');
+      print('   Amount: ${checkoutResponse.amount}');
+      print('   Currency: ${checkoutResponse.currency}');
+      print('   Key: ${checkoutResponse.key}');
 
       // Hide loading indicator
       Navigator.of(context).pop();
 
       // Get cart data to pass to confirmed page
       final cartData = await ref.read(cartProvider.future);
-      final cartItem = cartData.cart.first;
+      final cartItem = cartData.cart.isNotEmpty ? cartData.cart.first : null;
+      final totalParticipants = cartData.cart.length;
 
-      // Navigate to pooja confirmed page
+      // Navigate to pooja confirmed page with checkout response and cart data
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => PoojaConfirmedPage(
             checkoutResponse: checkoutResponse,
+            userId: widget.userId,
             cartItem: cartItem,
+            totalParticipants: totalParticipants,
           ),
         ),
       );
@@ -594,5 +631,29 @@ class PoojaSummaryPage extends ConsumerWidget {
         },
       );
     }
+  }
+
+  void _clearAllBookingState() {
+    // Clear all booking-related providers
+
+    // Reset family providers with userId
+    ref.read(selectedUsersProvider(widget.userId).notifier).state = [];
+    ref.read(visibleUsersProvider(widget.userId).notifier).state = [];
+
+    // Reset calendar-related state
+    ref.read(selectedCalendarDateProvider.notifier).state = null;
+    ref.read(showCalendarProvider.notifier).state = false;
+
+    // Reset participation and agent code state
+    ref.read(isParticipatingPhysicallyProvider.notifier).state = false;
+    ref.read(isAgentCodeProvider.notifier).state = false;
+    ref.read(agentCodeProvider.notifier).state = '';
+
+    // Invalidate providers that can be invalidated
+    ref.invalidate(cartProvider);
+    ref.invalidate(checkoutProvider);
+    ref.invalidate(userListsProvider);
+
+    print('🧹 Cleared all booking state and cache for user ${widget.userId}');
   }
 }

@@ -577,7 +577,7 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
                       ),
                     ),
                     child: Text(
-                      'Book',
+                      'ബുക്ക്',
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,

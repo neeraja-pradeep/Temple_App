@@ -501,14 +501,59 @@ class BookingPage extends ConsumerWidget {
                   final selectedUsers = ref.watch(
                     selectedUsersProvider(userId),
                   );
-                  // Ensure price is numeric
-                  print(pooja.price);
-                  final double basePrice = double.tryParse(pooja.price) ?? 0.0;
+                  // Calculate price based on pooja type and selected date
+                  double basePrice;
+                  if (pooja.specialPooja) {
+                    // For special pooja, use the price of the selected special date
+                    final selectedDate = ref.watch(
+                      selectedCalendarDateProvider,
+                    );
+                    if (selectedDate != null) {
+                      try {
+                        final selectedSpecialDate = pooja.specialPoojaDates
+                            .firstWhere((date) => date.date == selectedDate);
+                        basePrice =
+                            double.tryParse(selectedSpecialDate.price) ?? 0.0;
+                        print(
+                          '🎯 Special Pooja - Using special date price: ${selectedSpecialDate.price}',
+                        );
+                      } catch (e) {
+                        // Fallback to first available special date price
+                        basePrice =
+                            double.tryParse(
+                              pooja.specialPoojaDates.first.price,
+                            ) ??
+                            0.0;
+                        print(
+                          '🎯 Special Pooja - Using first available date price: ${pooja.specialPoojaDates.first.price}',
+                        );
+                      }
+                    } else {
+                      // No date selected, use first available special date price
+                      basePrice =
+                          double.tryParse(
+                            pooja.specialPoojaDates.first.price,
+                          ) ??
+                          0.0;
+                      print(
+                        '🎯 Special Pooja - No date selected, using first available: ${pooja.specialPoojaDates.first.price}',
+                      );
+                    }
+                  } else {
+                    // For regular pooja, use the base price
+                    basePrice = double.tryParse(pooja.price) ?? 0.0;
+                    print(
+                      '📅 Regular Pooja - Using base price: ${pooja.price}',
+                    );
+                  }
+
                   final int userCount = selectedUsers.isNotEmpty
                       ? selectedUsers.length
                       : 1;
                   final double totalPrice = basePrice * userCount;
-                  print(totalPrice);
+                  print(
+                    '💰 Total Price: $totalPrice (Base: $basePrice × Users: $userCount)',
+                  );
                   return Container(
                     padding: EdgeInsets.all(16.w),
                     decoration: BoxDecoration(
@@ -588,8 +633,6 @@ class BookingPage extends ConsumerWidget {
                                     '🎯 Special Pooja - Date: $selectedDateStr, ID: $specialPoojaDateId',
                                   );
                                 } catch (e) {
-                                  final errorMsg =
-                                      'Failed to find special pooja date';
                                   print('❌ Special Pooja Date Error: $e');
                                   await _showCenteredErrorDialog(
                                     context,
@@ -737,7 +780,7 @@ class BookingPage extends ConsumerWidget {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          const PoojaSummaryPage(),
+                                          PoojaSummaryPage(userId: userId),
                                     ),
                                   );
                                 } else {
