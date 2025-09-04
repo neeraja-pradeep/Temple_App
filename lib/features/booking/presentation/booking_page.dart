@@ -711,7 +711,7 @@ class BookingPage extends ConsumerWidget {
     List<UserList> userLists,
   ) {
     final selectedUsers = ref.watch(selectedUsersProvider(userId));
-    final visibleUsers = ref.watch(visibleUsersProvider(userId));
+    // Only show users that are currently selected
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -744,7 +744,7 @@ class BookingPage extends ConsumerWidget {
           // User List
           if (userLists.isNotEmpty) ...[
             // Display visible users with their selection state
-            ...visibleUsers
+            ...selectedUsers
                 .map(
                   (user) => Column(
                     children: [
