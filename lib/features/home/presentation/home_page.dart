@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -90,18 +92,35 @@ class HomePage extends ConsumerStatefulWidget {
   }
 }
 
-class _HomePageState extends ConsumerState<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver {
   late final AudioPlayer player;
+  late final StreamSubscription<PlayerState> _playerSub;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     player = ref.read(audioPlayerProvider);
 
-    player.playerStateStream.listen((state) {
+    _playerSub = player.playerStateStream.listen((state) {
       ref.read(isPlayingProvider.notifier).state = state.playing;
     });
   }
+
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state){
+    if (state == AppLifecycleState.paused){
+      player.stop();
+    }
+  }
+
+  @override
+void dispose() {
+  WidgetsBinding.instance.removeObserver(this);
+  _playerSub.cancel(); // cancel stream
+  super.dispose();
+}
 
   @override
   Widget build(BuildContext context) {

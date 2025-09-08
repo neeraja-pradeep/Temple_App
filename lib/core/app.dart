@@ -103,7 +103,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
                   children: [
                     isSelected
                         ? Container(
-                            width: 63.w,
+                            width: 65.w,
                             height: 50.h,
 
                             decoration: BoxDecoration(
