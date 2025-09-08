@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'app_colors.dart';
 import '../features/special/presentation/special_page.dart';
@@ -9,7 +10,8 @@ import '../features/shop/presentation/shop_page.dart';
 import '../features/music/presentation/music_page.dart';
 
 class MainNavScreen extends StatefulWidget {
-  const MainNavScreen({super.key});
+  final Widget? drawerContent;
+  const MainNavScreen({super.key ,this.drawerContent});
 
   @override
   State<MainNavScreen> createState() => _MainNavScreenState();
@@ -17,7 +19,7 @@ class MainNavScreen extends StatefulWidget {
 
 class _MainNavScreenState extends State<MainNavScreen> {
   int _selectedIndex = 2;
-  final List<Widget> _pages = const [
+  final List<Widget> _pages = [
     SpecialPage(),
     PoojaPage(),
     HomePage(),
@@ -54,11 +56,19 @@ class _MainNavScreenState extends State<MainNavScreen> {
 
     return SafeArea(
       child: Scaffold(
+        drawer: _selectedIndex == 2
+         ? Drawer(
+          backgroundColor: Color(0xFFD9D9D9),
+          width: 285.w,
+          child: Consumer(
+            builder: (context, ref, _) => HomePage.buildDrawerContent(context, ref)),
+         )
+         : null,
         body: Stack(
           fit: StackFit.expand,
           children: [
             Image.asset(
-              'assets/background.jpg',
+              'assets/background.png',
               fit: BoxFit.cover,
               height: double.infinity,
               width: double.infinity,
