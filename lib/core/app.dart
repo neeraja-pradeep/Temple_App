@@ -11,7 +11,7 @@ import '../features/music/presentation/music_page.dart';
 
 class MainNavScreen extends StatefulWidget {
   final Widget? drawerContent;
-  const MainNavScreen({super.key ,this.drawerContent});
+  const MainNavScreen({super.key, this.drawerContent});
 
   @override
   State<MainNavScreen> createState() => _MainNavScreenState();
@@ -57,18 +57,20 @@ class _MainNavScreenState extends State<MainNavScreen> {
     return SafeArea(
       child: Scaffold(
         drawer: _selectedIndex == 2
-         ? Drawer(
-          backgroundColor: Color(0xFFD9D9D9),
-          width: 285.w,
-          child: Consumer(
-            builder: (context, ref, _) => HomePage.buildDrawerContent(context, ref)),
-         )
-         : null,
+            ? Drawer(
+                backgroundColor: Color(0xFFD9D9D9),
+                width: 285.w,
+                child: Consumer(
+                  builder: (context, ref, _) =>
+                      HomePage.buildDrawerContent(context, ref),
+                ),
+              )
+            : null,
         body: Stack(
           fit: StackFit.expand,
           children: [
             Image.asset(
-              'assets/background.png',
+              'assets/background.jpg',
               fit: BoxFit.cover,
               height: double.infinity,
               width: double.infinity,
