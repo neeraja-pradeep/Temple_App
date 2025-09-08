@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "799670961061",
+    "project_id": "temple-project-2d223",
+    "storage_bucket": "temple-project-2d223.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:799670961061:android:28e288e78448b7f39bde4c",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "799670961061-inulej0qs7q0t4ceop8irlqgnv7tqspg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1stOtrM-IPce0MOl3RHR6U5UxaxWmBkk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "799670961061-inulej0qs7q0t4ceop8irlqgnv7tqspg.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "799670961061-dbgulcqjfpn6r4h33a2vumne6jafnbhu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.temple"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:799670961061:android:97845653ee75efdf9bde4c",
+        "android_client_info": {
+          "package_name": "com.example.temple"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "799670961061-inulej0qs7q0t4ceop8irlqgnv7tqspg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1stOtrM-IPce0MOl3RHR6U5UxaxWmBkk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "799670961061-inulej0qs7q0t4ceop8irlqgnv7tqspg.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "799670961061-dbgulcqjfpn6r4h33a2vumne6jafnbhu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.temple"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
