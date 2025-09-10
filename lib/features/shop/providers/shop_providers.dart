@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:temple/features/shop/data/models/shop_category_model.dart';
 import 'package:temple/features/shop/data/models/shop_product_models.dart';
+import 'package:temple/features/shop/data/models/cart_models.dart';
 import 'package:temple/features/shop/data/shop_repository.dart';
 
 final shopRepositoryProvider = Provider<ShopRepository>((ref) {
@@ -35,4 +36,15 @@ final shopProductsByCategoryProvider = FutureProvider<List<ShopProduct>>((
   final repo = ref.read(shopRepositoryProvider);
   final categoryId = ref.watch(selectedCategoryIdProvider);
   return repo.fetchShopProducts(categoryId: categoryId);
+});
+
+// Cart state management
+final cartQuantitiesProvider = StateProvider<Map<int, int>>((ref) => {});
+
+final addToCartProvider = FutureProvider.family<void, AddToCartRequest>((
+  ref,
+  request,
+) async {
+  final repo = ref.read(shopRepositoryProvider);
+  await repo.addToCart(request);
 });
