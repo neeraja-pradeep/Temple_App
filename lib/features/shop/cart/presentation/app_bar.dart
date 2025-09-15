@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:temple/features/shop/cart/providers/checkout_provider.dart';
+import 'package:temple/features/shop/providers/gesture_riverpod.dart';
 
 class CheckoutAppBarSection extends ConsumerWidget {
   const CheckoutAppBarSection({super.key});
@@ -18,7 +18,7 @@ class CheckoutAppBarSection extends ConsumerWidget {
           GestureDetector(
             onTap: () {
               print('Checkout button pressed');
-              // ref.read(onclickCheckoutButton.notifier).state = false ;
+              ref.read(onclickCheckoutButton.notifier).state = false ;
             },
             child: Padding(
               padding: EdgeInsets.only(left: 10.w, top: 0.h),

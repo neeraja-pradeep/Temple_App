@@ -16,6 +16,7 @@ final specialPoojasProvider = FutureProvider<List<SpecialPooja>>((ref) async {
   return poojas;
 });
 
+
 final specialBannerPageProvider = StateProvider<int>((ref) => 0);
 
 final weeklyPoojaRepositoryProvider = Provider<WeeklyPoojaRepository>((ref) {

@@ -1,9 +1,25 @@
-class CategoryProductModel {
+import 'package:hive/hive.dart';
+part 'product_category.g.dart';
+
+
+@HiveType(typeId: 6) // must be unique across all models
+class CategoryProductModel extends HiveObject {
+  @HiveField(0)
   final int id;
+
+  @HiveField(1)
   final String name;
+
+  @HiveField(2)
   final String slug;
+
+  @HiveField(3)
   final String description;
+
+  @HiveField(4)
   final CategoryModel category;
+
+  @HiveField(5)
   final List<VariantModel> variants;
 
   CategoryProductModel({
@@ -40,13 +56,25 @@ class CategoryProductModel {
   }
 }
 
-class CategoryModel {
+@HiveType(typeId: 7)
+class CategoryModel extends HiveObject {
+  @HiveField(0)
   final int id;
+
+  @HiveField(1)
   final String name;
+
+  @HiveField(2)
   final String? parent;
+
+  @HiveField(3)
   final String mediaUrl;
+
+  @HiveField(4)
   final String mediaPublicId;
-  final List<dynamic> children; // can later change to List<CategoryModel> if nested
+
+  @HiveField(5)
+  final List<dynamic> children;
 
   CategoryModel({
     required this.id,
@@ -80,14 +108,30 @@ class CategoryModel {
   }
 }
 
-class VariantModel {
+@HiveType(typeId: 8)
+class VariantModel extends HiveObject {
+  @HiveField(0)
   final int id;
+
+  @HiveField(1)
   final int product;
+
+  @HiveField(2)
   final String productName;
+
+  @HiveField(3)
   final String sku;
+
+  @HiveField(4)
   final String name;
+
+  @HiveField(5)
   final String price;
+
+  @HiveField(6)
   final String mediaUrl;
+
+  @HiveField(7)
   final int stock;
 
   VariantModel({

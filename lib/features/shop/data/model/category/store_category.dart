@@ -1,6 +1,16 @@
-class StoreCategory {
+import 'package:hive/hive.dart';
+
+part 'store_category.g.dart';
+
+@HiveType(typeId: 9) // ensure unique typeId across all Hive models
+class StoreCategory extends HiveObject {
+  @HiveField(0)
   final int id;
+
+  @HiveField(1)
   final String name;
+
+  @HiveField(2)
   final String mediaUrl;
 
   StoreCategory({

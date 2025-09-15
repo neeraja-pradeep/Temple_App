@@ -8,4 +8,4 @@ final selectedIndexCatProvider = StateProvider<int>((ref) => -1); // For Categor
 final selectedIndexProvider = StateProvider<int>((ref) => -1);  //For Prouct List
 
 
-final checkoutButtonTurnON = StateProvider<bool>((ref) => false,);
+final onclickCheckoutButton = StateProvider<bool>((ref) => false,);

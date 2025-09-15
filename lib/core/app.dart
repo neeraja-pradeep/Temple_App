@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple/features/shop/cart/presentation/checkout_screen.dart';
-import 'package:temple/features/shop/cart/providers/checkout_provider.dart';
 import 'package:temple/features/shop/presentation/shopping_section.dart';
+import 'package:temple/features/shop/providers/gesture_riverpod.dart';
 
 import '../features/home/presentation/home_page.dart';
 import '../features/music/presentation/music_page.dart';
@@ -41,13 +41,13 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final onTapCheckout = ref.watch(onclickCheckoutButton);
+    final onTapCheckout = ref.watch(onclickCheckoutButton);
     final List<Widget> pages = [
       SpecialPage(),
       PoojaPage(),
       HomePage(),
-      // onTapCheckout ? CheckoutScreen() : ShoppingSectionScreeen(),
-      ShoppingSectionScreeen(),
+      onTapCheckout ? CheckoutScreen() : ShoppingSectionScreeen(),
+
       MusicPage(),
     ];
     // Set status bar style

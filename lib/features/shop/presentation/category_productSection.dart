@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple/core/constants/sized.dart';
 import 'package:temple/core/theme/color/colors.dart';
+import 'package:temple/features/shop/cart/data/model/cart_model.dart';
 import 'package:temple/features/shop/cart/providers/checkout_provider.dart';
 import 'package:temple/features/shop/data/model/product/product_category.dart';
 import 'package:temple/features/shop/providers/categoryRepo_provider.dart';
@@ -14,6 +14,7 @@ class CategoryProductGridSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fetchCategoryProducts = ref.watch(categoryProductProvider);
+    final cartItems = ref.watch(cartProviders);
 
     return Expanded(
       flex: 10,
@@ -50,7 +51,11 @@ class CategoryProductGridSection extends ConsumerWidget {
                       .toList();
 
                   return GridView.builder(
-                    padding: EdgeInsets.only(left: 10.w, right: 10.w, bottom: 80.h),
+                    padding: EdgeInsets.only(
+                      left: 10.w,
+                      right: 10.w,
+                      bottom: 80.h,
+                    ),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisSpacing: 15.w,
                       mainAxisSpacing: 10.h,
@@ -59,7 +64,24 @@ class CategoryProductGridSection extends ConsumerWidget {
                     ),
                     itemCount: allVariants.length,
                     itemBuilder: (context, index) {
-                      final variant = allVariants[index]["variant"] as VariantModel;
+                      final variant =
+                          allVariants[index]["variant"] as VariantModel;
+
+                      /// find cart item for this variant
+                      final cartItem = cartItems.firstWhere(
+                        (item) => item.productVariantId == variant.id.toString(),
+                        orElse: () => CartItem(
+                          sku: variant.sku,
+                          id: variant.id,
+                          productVariantId: variant.id.toString(),
+                          name: variant.name,
+                          price: variant.price,
+                          quantity: 0,
+                          productimage: variant.mediaUrl,
+                        ),
+                      );
+
+                      final quantity = cartItem.quantity;
 
                       return Container(
                         decoration: BoxDecoration(
@@ -81,22 +103,22 @@ class CategoryProductGridSection extends ConsumerWidget {
                               flex: 4,
                               child: Padding(
                                 padding: EdgeInsets.all(4.w),
-                                child: Image.network(
-                                  variant.mediaUrl,
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  errorBuilder: (_, __, ___) =>
-                                      const Icon(Icons.image_not_supported),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10.r),
+                                  child: Image.network(
+                                    variant.mediaUrl,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    errorBuilder: (_, __, ___) =>
+                                        const Icon(Icons.image_not_supported),
+                                  ),
                                 ),
                               ),
                             ),
 
                             /// Name + Price + Quantity Controls
                             Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8.w,
-                                vertical: 5.h,
-                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -119,39 +141,50 @@ class CategoryProductGridSection extends ConsumerWidget {
                                       ),
 
                                       /// Quantity buttons
-                                      Row(
-                                        children: [
-                                          GestureDetector(
-                                            onTap: () {
-                                              ref.read(cartProvider.notifier).removeItem(variant.id.toString());
-                                            },
-                                            child: _squareButton(
-                                              icon: Icons.remove,
-                                              color: primaryThemeColor,
-                                              filled: false,
+                                      quantity == 0
+                                          ? GestureDetector(
+                                              onTap: () {
+                                                ref
+                                                    .read(cartProviders.notifier)
+                                                    .addItem(variant.id.toString());
+                                              },
+                                              child: _squareButton(
+                                                icon: Icons.add,
+                                                color: primaryThemeColor,
+                                                filled: true,
+                                              ),
+                                            )
+                                          : Row(
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    ref
+                                                        .read(cartProviders.notifier)
+                                                        .removeItem(variant.id.toString());
+                                                  },
+                                                  child: _squareButton(
+                                                    icon: Icons.remove,
+                                                    color: primaryThemeColor,
+                                                    filled: false,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 10.w),
+                                                Text(quantity.toString()),
+                                                SizedBox(width: 10.w),
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    ref
+                                                        .read(cartProviders.notifier)
+                                                        .addItem(variant.id.toString());
+                                                  },
+                                                  child: _squareButton(
+                                                    icon: Icons.add,
+                                                    color: primaryThemeColor,
+                                                    filled: true,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                          ),
-                                          AppSizes.w10,
-                                          Consumer(
-                                            builder: (context, ref, _) {
-                                              final cart = ref.watch(cartProvider);
-                                              final quantity = cart[variant.id.toString()] ?? 0;
-                                              return Text(quantity.toString());
-                                            },
-                                          ),
-                                          AppSizes.w10,
-                                          GestureDetector(
-                                            onTap: () {
-                                              ref.read(cartProvider.notifier).addItem(variant.id.toString());
-                                            },
-                                            child: _squareButton(
-                                              icon: Icons.add,
-                                              color: primaryThemeColor,
-                                              filled: true,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
                                     ],
                                   ),
                                 ],

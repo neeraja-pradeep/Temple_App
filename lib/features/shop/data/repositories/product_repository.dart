@@ -1,10 +1,36 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:temple/core/constants/api_constants.dart';
+import 'package:temple/features/shop/cart/data/model/cart_model.dart';
 import 'package:temple/features/shop/data/model/product/product_category.dart';
 
 class CategoryProductRepository {
   final String baseUrl = ApiConstants.baseUrl;
+
+  /// Get all cart items
+ Future<List<CartItem>> getCart() async {
+  try {
+    final url = Uri.parse("$baseUrl/ecommerce/cart/");
+    final response = await http.get(url, headers: {"Content-Type": "application/json"});
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final cartList = data['cart'] as List<dynamic>;
+      return cartList.map((json) => CartItem.fromJson(json)).toList();
+    } else {
+      // Log the error status
+      print("Failed to fetch cart. Status code: ${response.statusCode}, Body: ${response.body}");
+      return [];
+    }
+  } catch (e, stackTrace) {
+    // Log any exceptions
+    print("Exception while fetching cart: $e");
+    print(stackTrace);
+    return [];
+  }
+}
+
 
   Future addToCart(String productVariantId, {int quantity = 1}) async {
     final url = Uri.parse("$baseUrl/ecommerce/cart/");
