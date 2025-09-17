@@ -1,104 +1,123 @@
-import 'dart:convert';
 import 'dart:developer';
-
-import 'package:http/http.dart' as http;
-import 'package:temple/core/constants/api_constants.dart';
+import 'package:hive/hive.dart';
 import 'package:temple/features/shop/cart/data/model/cart_model.dart';
 
 class CartRepository {
-  Future<List<CartItem>> getCart() async {
+  /// 🔑 Get the cart box
+  Future<Box<CartItem>> _cartBox() async {
+    return await Hive.openBox<CartItem>('cartBox');
+  }
+
+  /// ➕ Add or update item
+  Future<bool> addToCart(CartItem cartItem) async {
     try {
-      final url = Uri.parse("${ApiConstants.baseUrl}/ecommerce/cart/");
-      final response = await http.get(
-        url,
-        headers: {"Content-Type": "application/json"},
+      final box = await _cartBox();
+
+      final existingKey = box.keys.firstWhere(
+        (key) => box.get(key)?.productVariantId == cartItem.productVariantId,
+        orElse: () => null,
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final cartList = data['cart'] as List<dynamic>;
-        return cartList.map((json) => CartItem.fromJson(json)).toList();
-      } else {
-        // Log the error status
-        print(
-          "Failed to fetch cart. Status code: ${response.statusCode}, Body: ${response.body}",
+      if (existingKey != null) {
+        final existingItem = box.get(existingKey)!;
+        final updatedItem = CartItem(
+          id: existingItem.id,
+          productVariantId: existingItem.productVariantId,
+          name: existingItem.name,
+          sku: existingItem.sku,
+          price: existingItem.price,
+          quantity: existingItem.quantity + cartItem.quantity,
+          productimage: existingItem.productimage,
         );
-        return [];
+        await box.put(existingKey, updatedItem);
+        log("🔄 Updated quantity for: ${cartItem.productVariantId}");
+      } else {
+        await box.add(cartItem);
+        log("✅ Added new item: ${cartItem.productVariantId}");
       }
+
+      return true;
     } catch (e, stackTrace) {
-      // Log any exceptions
-      print("Exception while fetching cart: $e");
-      print(stackTrace);
+      log("🚨 Failed to add to cart: $e");
+      log("🧾 $stackTrace");
+      return false;
+    }
+  }Future<bool> decrementFromCart(String productVariantId) async {
+  try {
+    final box = await _cartBox();
+
+    final existingKey = box.keys.firstWhere(
+      (key) => box.get(key)?.productVariantId == productVariantId,
+      orElse: () => null,
+    );
+
+    if (existingKey != null) {
+      final existingItem = box.get(existingKey)!;
+
+      if (existingItem.quantity > 1) {
+        // Reduce quantity
+        final updatedItem = CartItem(
+          id: existingItem.id,
+          productVariantId: existingItem.productVariantId,
+          name: existingItem.name,
+          sku: existingItem.sku,
+          price: existingItem.price,
+          quantity: existingItem.quantity - 1,
+          productimage: existingItem.productimage,
+        );
+        await box.put(existingKey, updatedItem);
+        log("➖ Decreased quantity for: $productVariantId");
+      } else {
+        // Remove item if quantity = 1
+        await box.delete(existingKey);
+        log("🗑️ Removed item: $productVariantId");
+      }
+    }
+
+    return true;
+  } catch (e, stackTrace) {
+    log("🚨 Failed to decrement from cart: $e");
+    log("🧾 $stackTrace");
+    return false;
+  }
+}
+
+ 
+
+  /// 🛒 Get all items
+  Future<List<CartItem>> getCart() async {
+    try {
+      final box = await _cartBox();
+      return box.values.toList();
+    } catch (e, stackTrace) {
+      log("🚨 Failed to fetch cart: $e");
+      log("🧾 $stackTrace");
       return [];
     }
   }
 
-  Future removeFromCart(String productVariantId) async {
-    final url = Uri.parse("$ApiConstants.baseUrl/ecommerce/cart/remove/");
+  /// 🗑 Remove item
+  Future<bool> removeFromCart(String productVariantId) async {
+    try {
+      final box = await _cartBox();
 
-    final body = jsonEncode({"product_variant_id": productVariantId});
+      final keyToDelete = box.keys.firstWhere(
+        (key) => box.get(key)?.productVariantId == productVariantId,
+        orElse: () => null,
+      );
 
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: body,
-    );
-
-    if (response.statusCode == 200) {
-      // TODO: Update Hive/Local Storage here
-      return true;
-    } else {
-      throw Exception("Failed to remove from cart: ${response.body}");
-    }
-  }
-
-  /// Add item or increase quantity
-  Future<CartItem> addToCart(
-    String productVariantId, {
-    int quantity = 1,
-  }) async {
-    final url = Uri.parse("${ApiConstants.baseUrl}/ecommerce/cart/");
-    final body = jsonEncode({
-      "product_variant_id": productVariantId,
-      "quantity": quantity,
-    });
-
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: body,
-    );
-    log(response.body);
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final json = jsonDecode(response.body);
-      return CartItem.fromJson(json);
-    } else {
-      throw Exception("Failed to add to cart: ${response.body}");
-    }
-  }
-
-  /// Decrease quantity (if > 1) or remove (if quantity == 0)
-  Future<CartItem> updateCartQuantity(
-    String productVariantId,
-    int quantity,
-  ) async {
-    final url = Uri.parse("${ApiConstants.baseUrl}/ecommerce/cart/");
-    final body = jsonEncode({
-      "product_variant_id": productVariantId,
-      "quantity": quantity,
-    });
-
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: body,
-    );
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final json = jsonDecode(response.body);
-      return CartItem.fromJson(json);
-    } else {
-      throw Exception("Failed to update cart: ${response.body}");
+      if (keyToDelete != null) {
+        await box.delete(keyToDelete);
+        log("✅ Removed item: $productVariantId");
+        return true;
+      } else {
+        log("⚠️ Item not found: $productVariantId");
+        return false;
+      }
+    } catch (e, stackTrace) {
+      log("🚨 Failed to remove from cart: $e");
+      log("🧾 $stackTrace");
+      return false;
     }
   }
 }

@@ -11,10 +11,6 @@ final categoriesProvider = FutureProvider<List<StoreCategory>>((ref) async {
   return ref.read(categoryRepositoryProvider).fetchCategories();
 });
 
-  
-
-
-
 // PRODUCT
 final categoryProductRepositoryProvider = Provider(
   (ref) => CategoryProductRepository(),
@@ -30,25 +26,20 @@ final selectedCategoryIDProvider = Provider<int?>((ref) {
     data: (catdata) {
       if (catdata.isEmpty) return null;
 
-      if(index<0||index>=catdata.length) return null;
+      if (index < 0 || index >= catdata.length) return null;
       return catdata[index].id;
-        
     },
     error: (error, stackTrace) => null,
     loading: () => null,
   );
 });
 
-
-
-
 // Make it accept categoryId as a parameter
-final categoryProductProvider =
-    FutureProvider<List<CategoryProductModel>>((ref) async {
-      final categoryID = ref.watch(selectedCategoryIDProvider);
-      return ref
-          .read(categoryProductRepositoryProvider)
-          .fetchCategoryProduct(categoryID);
-    });
-
-
+final categoryProductProvider = FutureProvider<List<CategoryProductModel>>((
+  ref,
+) async {
+  final categoryID = ref.watch(selectedCategoryIDProvider);
+  return ref
+      .read(categoryProductRepositoryProvider)
+      .fetchCategoryProduct(categoryID);
+});

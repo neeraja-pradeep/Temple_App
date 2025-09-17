@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:temple/core/theme/color/colors.dart';
 import 'package:temple/features/shop/cart/data/model/cart_model.dart';
-import 'package:temple/features/shop/cart/providers/checkout_provider.dart';
+import 'package:temple/features/shop/cart/providers/cart_provider.dart';
 import 'package:temple/features/shop/data/model/product/product_category.dart';
 import 'package:temple/features/shop/providers/categoryRepo_provider.dart';
 import 'package:temple/widgets/mytext.dart';
@@ -42,12 +43,12 @@ class CategoryProductGridSection extends ConsumerWidget {
                     return const Center(child: Text("No products available"));
                   }
 
-                  /// Flatten → products → variants
                   final allVariants = products
-                      .expand((product) => product.variants.map((variant) => {
-                            "product": product,
-                            "variant": variant,
-                          }))
+                      .expand(
+                        (product) => product.variants.map(
+                          (variant) => {"product": product, "variant": variant},
+                        ),
+                      )
                       .toList();
 
                   return GridView.builder(
@@ -67,27 +68,40 @@ class CategoryProductGridSection extends ConsumerWidget {
                       final variant =
                           allVariants[index]["variant"] as VariantModel;
 
-                      /// find cart item for this variant
-                      final cartItem = cartItems.firstWhere(
-                        (item) => item.productVariantId == variant.id.toString(),
+                      final cartItemInCart = cartItems.firstWhere(
+                        (item) =>
+                            item.productVariantId == variant.id.toString(),
                         orElse: () => CartItem(
-                          sku: variant.sku,
                           id: variant.id,
                           productVariantId: variant.id.toString(),
                           name: variant.name,
+                          sku: variant.sku,
                           price: variant.price,
                           quantity: 0,
                           productimage: variant.mediaUrl,
                         ),
                       );
 
-                      final quantity = cartItem.quantity;
+                      final quantity = cartItemInCart.quantity;
+
+                      final cartItem = CartItem(
+                        id: variant.id,
+                        productVariantId: variant.id.toString(),
+                        name: variant.name,
+                        sku: variant.sku,
+                        price: variant.price,
+                        quantity: 1,
+                        productimage: variant.mediaUrl,
+                      );
 
                       return Container(
                         decoration: BoxDecoration(
                           color: cWhite,
                           borderRadius: BorderRadius.circular(10.r),
-                          border: Border.all(color: Colors.transparent, width: 2.w),
+                          border: Border.all(
+                            color: Colors.transparent,
+                            width: 2.w,
+                          ),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.10),
@@ -118,7 +132,10 @@ class CategoryProductGridSection extends ConsumerWidget {
 
                             /// Name + Price + Quantity Controls
                             Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8.w,
+                                vertical: 5.h,
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -131,7 +148,8 @@ class CategoryProductGridSection extends ConsumerWidget {
                                   ),
                                   SizedBox(height: 5.h),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       WText(
                                         text: "₹${variant.price}",
@@ -140,13 +158,12 @@ class CategoryProductGridSection extends ConsumerWidget {
                                         color: cBlack,
                                       ),
 
-                                      /// Quantity buttons
                                       quantity == 0
                                           ? GestureDetector(
                                               onTap: () {
                                                 ref
                                                     .read(cartProviders.notifier)
-                                                    .addItem(variant.id.toString());
+                                                    .addItem(cartItem);
                                               },
                                               child: _squareButton(
                                                 icon: Icons.add,
@@ -160,7 +177,8 @@ class CategoryProductGridSection extends ConsumerWidget {
                                                   onTap: () {
                                                     ref
                                                         .read(cartProviders.notifier)
-                                                        .removeItem(variant.id.toString());
+                                                        .decrementItem(
+                                                            variant.id.toString());
                                                   },
                                                   child: _squareButton(
                                                     icon: Icons.remove,
@@ -175,7 +193,7 @@ class CategoryProductGridSection extends ConsumerWidget {
                                                   onTap: () {
                                                     ref
                                                         .read(cartProviders.notifier)
-                                                        .addItem(variant.id.toString());
+                                                        .addItem(cartItem);
                                                   },
                                                   child: _squareButton(
                                                     icon: Icons.add,
@@ -196,7 +214,33 @@ class CategoryProductGridSection extends ConsumerWidget {
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+
+                /// 🔹 Shimmer loading effect
+                loading: () => GridView.builder(
+                  padding: EdgeInsets.only(
+                    left: 10.w,
+                    right: 10.w,
+                    bottom: 80.h,
+                  ),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisSpacing: 15.w,
+                    mainAxisSpacing: 10.h,
+                    mainAxisExtent: 138.h,
+                    crossAxisCount: 2,
+                  ),
+                  itemCount: 6,
+                  itemBuilder: (context, index) => Shimmer.fromColors(
+                    baseColor: Colors.grey.shade300,
+                    highlightColor: Colors.grey.shade100,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: cWhite,
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                    ),
+                  ),
+                ),
+
                 error: (err, _) => Center(child: Text("Error: $err")),
               ),
             ),

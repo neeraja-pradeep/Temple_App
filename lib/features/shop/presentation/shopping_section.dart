@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:temple/features/shop/cart/providers/checkout_provider.dart';
+import 'package:temple/features/shop/cart/providers/cart_provider.dart';
 import 'package:temple/features/shop/presentation/app_bar.dart';
 import 'package:temple/features/shop/presentation/category_listing.dart';
 import 'package:temple/features/shop/presentation/category_productSection.dart';
@@ -12,8 +12,7 @@ class ShoppingSectionScreeen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cartAsync = ref.watch(cartProvidercheck);
-    final selectedIndex = ref.watch(selectedIndexProvider);
+    final cartItems = ref.watch(cartProviders);
     final selectedIndex2 = ref.watch(selectedIndexCatProvider);
     // final checkbutton = ref.watch(checkoutButtonTurnON);
 
@@ -23,7 +22,11 @@ class ShoppingSectionScreeen extends ConsumerWidget {
         Column(
           children: [
             // ---------------- AppBar Section ----------------
-            AppBarSection(),
+            AppBarSection(
+              onPressed: () {
+                ref.read(onclickCheckoutButton.notifier).state = true;
+              },
+            ),
 
             // ---------------- Horizontal Category Section ----------------
             ShopCategorySection(selectedIndex: selectedIndex2),
@@ -32,20 +35,13 @@ class ShoppingSectionScreeen extends ConsumerWidget {
             CategoryProductGridSection(),
           ],
         ),
-
-        /// Checkout button fixed bottom
-        cartAsync.when(
-          data: (cartItems) {
-            if (cartItems.isNotEmpty) {
-              return CheckoutButton(onPressed: () {
-                ref.read(onclickCheckoutButton.notifier).state = true;
-              });
-            }
-            return SizedBox();
-          },
-          loading: () => CircularProgressIndicator(),
-          error: (err, _) => Text("Error: $err"),
-        ),
+        cartItems.isNotEmpty
+            ? CheckoutButton(
+                onPressed: () {
+                  ref.read(onclickCheckoutButton.notifier).state = true;
+                },
+              )
+            : const SizedBox.shrink(),
       ],
     );
   }

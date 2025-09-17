@@ -15,7 +15,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple/hive_setup.dart';
+import 'package:temple/core/hive/hive_init_provider.dart';
 import 'core/app.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -36,8 +36,9 @@ void main() async {
     return true;
   };
 
+  // 📦 Initialize Hive
   await Hive.initFlutter();
-  await initHive();
+  await HiveInitializer.init(); // 👈 register all adapters
   runApp(const ProviderScope(child: MyApp()));
 }
 
