@@ -3,21 +3,22 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'app_colors.dart';
+import 'navigation_provider.dart';
 import '../features/special/presentation/special_page.dart';
 import '../features/pooja/presentation/pooja_page.dart';
 import '../features/home/presentation/home_page.dart';
 import '../features/shop/presentation/shop_page.dart';
 import '../features/music/presentation/music_page.dart';
 
-class MainNavScreen extends StatefulWidget {
+class MainNavScreen extends ConsumerStatefulWidget {
   final Widget? drawerContent;
   const MainNavScreen({super.key, this.drawerContent});
 
   @override
-  State<MainNavScreen> createState() => _MainNavScreenState();
+  ConsumerState<MainNavScreen> createState() => _MainNavScreenState();
 }
 
-class _MainNavScreenState extends State<MainNavScreen> {
+class _MainNavScreenState extends ConsumerState<MainNavScreen> {
   int _selectedIndex = 2;
   final List<Widget> _pages = [
     SpecialPage(),
@@ -40,6 +41,23 @@ class _MainNavScreenState extends State<MainNavScreen> {
     'assets/bottomNavBar/bn4.png',
     'assets/bottomNavBar/bn5.png',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen for navigation triggers
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.listen(navigationTriggerProvider, (previous, next) {
+        if (next != null) {
+          setState(() {
+            _selectedIndex = next;
+          });
+          // Reset the trigger
+          ref.read(navigationTriggerProvider.notifier).state = null;
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
