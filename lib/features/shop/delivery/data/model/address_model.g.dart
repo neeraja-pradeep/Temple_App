@@ -48,9 +48,9 @@ class AddressModelAdapter extends TypeAdapter<AddressModel> {
       ..writeByte(6)
       ..write(obj.pincode)
       ..writeByte(7)
-      ..write(obj.selection);
-      // ..writeByte(8)
-      // ..write(obj.phonenumber);
+      ..write(obj.selection)
+      ..writeByte(8)
+      ..write(obj.phonenumber);
   }
 
   @override

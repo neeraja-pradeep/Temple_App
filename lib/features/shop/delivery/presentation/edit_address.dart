@@ -36,7 +36,7 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
       address1Controller.text = widget.address!.street;
       address2Controller.text = widget.address!.city;
       pincodeController.text = widget.address!.pincode;
-      // phoneController.text = widget.address!.phone ?? "";
+      phoneController.text = widget.address!.phonenumber;
     }
   }
 
