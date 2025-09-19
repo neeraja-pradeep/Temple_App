@@ -8,6 +8,7 @@ import 'package:temple/features/shop/data/model/product/product_category.dart';
 import 'package:temple/features/pooja/data/models/malayalam_date_model.dart';
 import 'package:temple/features/pooja/data/models/pooja_category_model.dart';
 import 'package:temple/features/pooja/data/models/pooja_model.dart';
+import 'package:temple/features/shop/delivery/data/model/address_model.dart';
 import 'package:temple/features/special/data/special_pooja_model.dart';
 
 /// 🏗 Hive Initializer Class
@@ -35,7 +36,10 @@ class HiveInitializer {
     if (!Hive.isAdapterRegistered(VariantModelAdapter().typeId)) {
       Hive.registerAdapter(VariantModelAdapter());
     }
-/////////////////////////////////////////////////////////////////////////
+    if (!Hive.isAdapterRegistered(AddressModelAdapter().typeId)) {
+      Hive.registerAdapter(AddressModelAdapter());
+    }
+    /////////////////////////////////////////////////////////////////////////
     if (!Hive.isAdapterRegistered(SpecialPoojaAdapter().typeId)) {
       Hive.registerAdapter(SpecialPoojaAdapter());
     }
@@ -54,7 +58,7 @@ class HiveInitializer {
   }
 }
 
-// 🔑 Providers for Hive Boxes 
+// 🔑 Providers for Hive Boxes
 final cartBoxProvider = FutureProvider<Box<CartItem>>(
   (ref) async => Hive.openBox<CartItem>('cartBox'),
 );
@@ -73,4 +77,7 @@ final categoryBoxProvider = FutureProvider<Box<CategoryModel>>(
 
 final variantBoxProvider = FutureProvider<Box<VariantModel>>(
   (ref) async => Hive.openBox<VariantModel>('variantBox'),
+);
+final addressBoxProvider = FutureProvider<Box<AddressModel>>(
+  (ref) async => Hive.openBox<AddressModel>('addressBox'),
 );

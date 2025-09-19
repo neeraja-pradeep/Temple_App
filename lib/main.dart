@@ -15,9 +15,11 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple/core/hive/hive_init_provider.dart';
-import 'core/app.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:temple/core/hive/hive_init_provider.dart';
+import 'package:temple/features/shop/cart/data/repositories/cart_repository.dart';
+
+import 'core/app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,11 +44,25 @@ void main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Call the function once
+    Future.microtask(()async {
+     await CartRepository().getinitStateCartFromAPi();
+    });
+  }
+
+  @override
+Widget build(BuildContext context) {
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       minTextAdapt: true,
@@ -55,3 +71,5 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+  

@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:temple/features/shop/providers/gesture_riverpod.dart';
+
 
 class CheckoutAppBarSection extends ConsumerWidget {
-  const CheckoutAppBarSection({super.key});
+    final Function()? onPressed;
+  const CheckoutAppBarSection({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -16,10 +17,7 @@ class CheckoutAppBarSection extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
-            onTap: () {
-              print('Checkout button pressed');
-              ref.read(onclickCheckoutButton.notifier).state = false ;
-            },
+            onTap: onPressed,
             child: Padding(
               padding: EdgeInsets.only(left: 10.w, top: 0.h),
               child: SvgPicture.asset(

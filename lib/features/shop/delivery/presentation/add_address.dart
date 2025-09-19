@@ -10,41 +10,25 @@ import 'package:temple/features/shop/delivery/providers/delivery_provider.dart';
 import 'package:temple/features/shop/widget/text_formfield.dart';
 import 'package:temple/widgets/mytext.dart';
 
-class AddressSheet extends ConsumerStatefulWidget {
+class AddAddressSheet extends ConsumerStatefulWidget {
   final BuildContext parentContext;
-  final AddressModel? address; // null => Add, not null => Edit
-
-  const AddressSheet({super.key, required this.parentContext, this.address});
+  const AddAddressSheet({super.key, required this.parentContext});
 
   @override
-  ConsumerState<AddressSheet> createState() => _AddressSheetState();
+  ConsumerState<AddAddressSheet> createState() => _AddAddressSheetState();
 }
 
-class _AddressSheetState extends ConsumerState<AddressSheet> {
+class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController address1Controller = TextEditingController();
   final TextEditingController address2Controller = TextEditingController();
   final TextEditingController pincodeController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    if (widget.address != null) {
-      // Prefill fields for edit
-      nameController.text = widget.address!.name;
-      address1Controller.text = widget.address!.street;
-      address2Controller.text = widget.address!.city;
-      pincodeController.text = widget.address!.pincode;
-      // phoneController.text = widget.address!.phone ?? "";
-    }
-  }
-
   void showToast(String message, {Color? bgColor}) {
     Fluttertoast.cancel();
     Fluttertoast.showToast(
       msg: message,
-        
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       backgroundColor: bgColor ?? primaryThemeColor.withOpacity(0.9),
@@ -78,68 +62,55 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
       return;
     }
 
-    final AddressModel newAddress = AddressModel(
-      id: widget.address?.id ?? 0, // Keep ID for edit
+    final newAddress = AddressModel(
+      id: 0, // Backend will assign ID
       name: nameController.text.trim(),
       street: address1Controller.text.trim(),
-      city: address2Controller.text.trim(),
-      state: widget.address?.state ?? "",
-      country: widget.address?.country ?? "India",
+      city: address2Controller.text.trim(), // adjust if needed
+      state: "",
+      country: "India",
       pincode: pincodeController.text.trim(),
-      selection: widget.address?.selection ?? true,
+      selection: true,
       phonenumber: phoneController.text.trim(),
     );
 
     try {
-      if (widget.address == null) {
-        // Add
-        await ref.read(addressListProvider.notifier).addAddress(newAddress);
-        showToast("Address added successfully", bgColor: Colors.green);
-      } else {
-        // Edit
-        await ref.read(addressListProvider.notifier).updateAddress(newAddress);
-        showToast("Address updated successfully", bgColor: Colors.green);
-      }
+      await ref.read(addressListProvider.notifier).addAddress(newAddress);
       Navigator.pop(context);
+      showToast("Address added successfully", bgColor: Colors.green);
     } catch (e) {
-      showToast(
-        widget.address == null
-            ? "Failed to add address"
-            : "Failed to update address",
-        bgColor: Colors.red,
-      );
+      showToast("Failed to add address", bgColor: Colors.red);
     }
   }
 
-  void deleteAddress() async {
+  void deleteAddress() {
     nameController.clear();
     address1Controller.clear();
     address2Controller.clear();
     pincodeController.clear();
     phoneController.clear();
 
-    try {
-      await ref
-          .read(addressListProvider.notifier)
-          .deleteAddress(widget.address!.id);
-
-      if (!mounted) return; 
-      showToast("Address deleted successfully", bgColor: Colors.red);
-      Navigator.pop(context);
-    } catch (e) {
-      showToast("❌ Failed to delete address", bgColor: Colors.red);
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Address deleted", style: TextStyle(fontSize: 14.sp)),
+        backgroundColor: Colors.grey[700],
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.r),
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         padding: EdgeInsets.all(15.w),
-        height: 0.80.sh,
+        height: 0.75.sh,
         decoration: BoxDecoration(
           color: cWhite,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
@@ -168,9 +139,7 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
                   height: 30,
                   child: Center(
                     child: Text(
-                      widget.address == null
-                          ? 'Add new Address'
-                          : 'Edit Address',
+                      'Add new Address',
                       style: TextStyle(
                         color: primaryThemeColor,
                         fontSize: 14.sp,
@@ -277,9 +246,9 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
   }
 }
 
-void showAddressSheet(BuildContext context, {AddressModel? address}) {
+void showAddAddressSheet(BuildContext parentContext) {
   showModalBottomSheet(
-    context: context,
+    context: parentContext,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (sheetContext) {
@@ -290,7 +259,7 @@ void showAddressSheet(BuildContext context, {AddressModel? address}) {
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
           ),
-          child: AddressSheet(parentContext: context, address: address),
+          child: AddAddressSheet(parentContext: parentContext),
         ),
       );
     },

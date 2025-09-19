@@ -27,6 +27,7 @@ dependencies:
   dropdown_button2: ^2.3.9        # Advanced dropdown widget
   table_calendar: ^3.2.0          # Calendar widget
   flutter_svg:                    # SVG rendering
+  fluttertoast: ^8.2.14                   # Toast notifications
 
   # ------------------------
   # State Management

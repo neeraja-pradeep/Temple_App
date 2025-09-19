@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:temple/features/music/presentation/music_page.dart';
+import 'package:temple/features/pooja/presentation/pooja_page.dart';
+import 'package:temple/features/shop/cart/presentation/checkout_screen.dart';
 import 'package:temple/features/shop/delivery/presentation/payment_method.dart';
-
+import 'package:temple/features/shop/presentation/shopping_section.dart';
 import 'package:temple/features/shop/providers/gesture_riverpod.dart';
+import 'package:temple/features/special/presentation/special_page.dart';
 
 import '../features/home/presentation/home_page.dart';
 import 'app_colors.dart';
 
 class MainNavScreen extends ConsumerStatefulWidget {
+  
   final Widget? drawerContent;
   const MainNavScreen({super.key, this.drawerContent});
 
@@ -39,19 +44,18 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
   @override
   Widget build(BuildContext context) {
     final onTapCheckout = ref.watch(onclickCheckoutButton);
+    final onTapConformCheckout = ref.watch(onclickConformCheckoutButton);
     final List<Widget> pages = [
-      PaymentMethodScreemn(),
-      PaymentMethodScreemn(),
-      PaymentMethodScreemn(),
-      PaymentMethodScreemn(),
-      PaymentMethodScreemn(),
+      SpecialPage(),
+      PoojaPage(),
+      HomePage(),
+      onTapCheckout
+          ? CheckoutScreen()
+          : onTapConformCheckout
+          ? PaymentMethodScreen()
+          : ShoppingSectionScreen(),
 
-      // SpecialPage(),
-      // PoojaPage(),
-      // HomePage(),
-      // onTapCheckout ? CheckoutScreen() : ShoppingSectionScreeen(),
-
-      // MusicPage(),
+      MusicPage(),
     ];
     // Set status bar style
     SystemChrome.setSystemUIOverlayStyle(

@@ -7,8 +7,8 @@ import 'package:temple/features/shop/presentation/category_productSection.dart';
 import 'package:temple/features/shop/providers/gesture_riverpod.dart';
 import 'package:temple/features/shop/widget/checkout_button.dart';
 
-class ShoppingSectionScreeen extends ConsumerWidget {
-  const ShoppingSectionScreeen({super.key});
+class ShoppingSectionScreen extends ConsumerWidget {
+  const ShoppingSectionScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,6 +39,7 @@ class ShoppingSectionScreeen extends ConsumerWidget {
             ? CheckoutButton(
                 onPressed: () {
                   ref.read(onclickCheckoutButton.notifier).state = true;
+               
                 },
               )
             : const SizedBox.shrink(),

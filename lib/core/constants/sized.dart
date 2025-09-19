@@ -5,6 +5,7 @@ class AppSizes {
   // Heights
   static SizedBox h5 = SizedBox(height: 5.h);
   static SizedBox h10 = SizedBox(height: 10.h);
+    static SizedBox h15 = SizedBox(height: 15.h);
   static SizedBox h20 = SizedBox(height: 20.h);
 
   // Widths

@@ -1,24 +1,40 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:temple/core/constants/sized.dart';
 import 'package:temple/core/theme/color/colors.dart';
-import 'package:temple/features/shop/presentation/app_bar.dart';
+import 'package:temple/features/shop/cart/presentation/app_bar.dart';
+import 'package:temple/features/shop/delivery/presentation/add_address.dart';
+import 'package:temple/features/shop/delivery/presentation/deliverd_completedPage.dart';
+import 'package:temple/features/shop/delivery/presentation/saved_address.dart';
+import 'package:temple/features/shop/delivery/providers/delivery_provider.dart';
+import 'package:temple/features/shop/providers/gesture_riverpod.dart';
 import 'package:temple/features/shop/widget/checkout_button.dart';
 import 'package:temple/widgets/mytext.dart';
 
-class PaymentMethodScreemn extends StatelessWidget {
-  const PaymentMethodScreemn({super.key});
+class PaymentMethodScreen extends ConsumerWidget {
+  const PaymentMethodScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final addressState = ref.watch(addressListProvider);
+
     return Stack(
       children: [
         Column(
           children: [
             /// ✅ Top App Bar
-            AppBarSection(onPressed: () {}),
+            CheckoutAppBarSection(
+              onPressed: () {
+                ref.watch(onclickCheckoutButton.notifier).state = true;
+                ref.watch(onclickConformCheckoutButton.notifier).state = false;
+              },
+            ),
 
-            /// ✅ Main Content (scrollable if needed)
+            /// ✅ Main Content
             Expanded(
               flex: 11,
               child: Padding(
@@ -51,57 +67,112 @@ class PaymentMethodScreemn extends StatelessWidget {
                           ),
                         ),
                         AppSizes.h10,
-                        Padding(
-                          padding: EdgeInsets.only(left: 8.w, right: 8.w),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              WText(
-                                text: "ഹരിചന്ദ്രൻ ഹരിചന്ദ്രൻ",
-                                fontSize: 12.sp,
-                                color: cBlack,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              AppSizes.h5,
-                              WText(
-                                text: "തിരുവല്ല, പിന്‍കോഡ്: 689101",
-                                fontSize: 11.sp,
-                                color: cGrey,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              WText(
-                                text: "689101",
-                                fontSize: 11.sp,
-                                color: cGrey,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              AppSizes.h10,
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: WText(
-                                      text: "Delivery within 5-7 days",
-                                      fontSize: 11.sp,
+
+                        addressState.when(
+                          data: (addresses) {
+                            log( "Addresses: $addresses");
+                            if (addresses.isEmpty) {
+                              // ✅ Show "Add Address" button when no address
+                              return Center(
+                                child: Column(
+                                  children: [
+                                    WText(
+                                      text: "No address found",
+                                      fontSize: 12.sp,
                                       color: cGrey,
                                       fontWeight: FontWeight.w500,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
+                                    AppSizes.h10,
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: primaryThemeColor,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8.r),
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                    showAddAddressSheet(context);
+                                      },
+                                      child: WText(
+                                        text: "Add Address",
+                                        fontSize: 12.sp,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+
+                            // ✅ Get selected/default address
+                            final defaultAddress = addresses.firstWhere(
+                              (a) => a.selection == true,
+                              orElse: () => addresses.first,
+                            );
+
+                            return Padding(
+                              padding: EdgeInsets.only(left: 8.w, right: 8.w),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  WText(
+                                    text: defaultAddress.name,
+                                    fontSize: 12.sp,
+                                    color: cBlack,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  GestureDetector(
-                                    onTap: () {},
-                                    child: WText(
-                                      text: "Change address",
-                                      fontSize: 11.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: primaryThemeColor,
-                                    ),
+                                  AppSizes.h5,
+                                  WText(
+                                    text:
+                                        "${defaultAddress.street}, ${defaultAddress.city}, ${defaultAddress.state}, ${defaultAddress.country}",
+                                    fontSize: 11.sp,
+                                    color: cGrey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  WText(
+                                    text: defaultAddress.pincode,
+                                    fontSize: 11.sp,
+                                    color: cGrey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  AppSizes.h10,
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: WText(
+                                          text: "Delivery within 5-7 days",
+                                          fontSize: 11.sp,
+                                          color: cGrey,
+                                          fontWeight: FontWeight.w500,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          showSavedAddressSheet(context);
+                                        },
+                                        child: WText(
+                                          text: "Change address",
+                                          fontSize: 11.sp,
+                                          fontWeight: FontWeight.bold,
+                                          color: primaryThemeColor,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
+                            );
+                          },
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
+                          error: (err, st) =>
+                              Center(child: Text("Error: $err")),
                         ),
+
                         AppSizes.h10,
                         Divider(thickness: 1.w, color: cGrey),
 
@@ -120,32 +191,54 @@ class PaymentMethodScreemn extends StatelessWidget {
                         ListView.separated(
                           physics: const NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
+                          itemCount: paymentMethods.length,
+                          separatorBuilder: (context, index) => AppSizes.h20,
                           itemBuilder: (context, index) {
-                            return Container(
-                              height: 42.h,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: primaryThemeColor),
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Padding(
-                                  padding: EdgeInsets.only(left: 15.w),
-                                  child: WText(
-                                    text: paymentMethods[index],
-                                    fontSize: 13.sp,
-                                    color: cBlack,
-                                    fontWeight: FontWeight.w500,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                            final selectedIndex = ref.watch(
+                              selectedPaymentProvider,
+                            );
+
+                            final isSelected = selectedIndex == index;
+
+                            return GestureDetector(
+                              onTap: () {
+                                ref
+                                    .read(selectedPaymentProvider.notifier)
+                                    .state = index;
+                              },
+                              child: Container(
+                                height: 42.h,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? primaryThemeColor.withOpacity(0.1)
+                                      : Colors.transparent,
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? primaryThemeColor
+                                        : Colors.grey,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10.r),
+                                ),
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Padding(
+                                    padding: EdgeInsets.only(left: 15.w),
+                                    child: WText(
+                                      text: paymentMethods[index],
+                                      fontSize: 13.sp,
+                                      color: isSelected
+                                          ? primaryThemeColor
+                                          : cGrey,
+                                      fontWeight: FontWeight.w500,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 ),
                               ),
                             );
                           },
-                          separatorBuilder: (context, index) => AppSizes.h20,
-                          itemCount: paymentMethods.length,
                         ),
                         AppSizes.h10,
                         Divider(thickness: 1.w, color: cGrey),
@@ -162,8 +255,6 @@ class PaymentMethodScreemn extends StatelessWidget {
                               _priceRow("Other charges/taxes", "₹0"),
                               AppSizes.h5,
                               _priceRow("ആകെ തുക", "₹1,800"),
-                              AppSizes.h5,
-                              AppSizes.h10,
                               AppSizes.h10,
                               _priceRow("Total", "₹1,840", isBold: true),
                             ],
@@ -175,13 +266,49 @@ class PaymentMethodScreemn extends StatelessWidget {
                 ),
               ),
             ),
-
-            /// ✅ Checkout Button fixed at bottom
-        
           ],
         ),
-            CheckoutButton(onPressed: () {}),
+
+        /// ✅ Checkout Button
+        CheckoutButton(
+          onPressed: () {
+            final selectedPayment =
+                ref.watch(selectedPaymentProvider.notifier).state;
+
+            // Check address availability
+            final addressAvailable = addressState.asData?.value.isNotEmpty ?? false;
+
+            if (!addressAvailable) {
+              showError("Please add a delivery address");
+              return;
+            }
+
+            if (selectedPayment == -1) {
+              showError("Please select a payment method");
+            } else {
+              ref.watch(selectedPaymentProvider.notifier).state = -1;
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DeliverdCompletedPage(),
+                ),
+              );
+            }
+          },
+        ),
       ],
+    );
+  }
+
+  void showError(String message) {
+    Fluttertoast.cancel(); // cancel previous toast if still visible
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: primaryThemeColor,
+      textColor: Colors.white,
+      fontSize: 14.0,
     );
   }
 

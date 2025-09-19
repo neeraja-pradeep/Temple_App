@@ -11,12 +11,14 @@ class CartListNotifier extends StateNotifier<List<CartItem>> {
   final CartRepository _repository;
   CartListNotifier(this._repository) : super([]) {
     loadCart();
+    
   }
 
   Future<void> loadCart() async {
     final items = await _repository.getCart();
     state = items;
   }
+
 
   Future<void> addItem(CartItem item) async {
     await _repository.addToCart(item);

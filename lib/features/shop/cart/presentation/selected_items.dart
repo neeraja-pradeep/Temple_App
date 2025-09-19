@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:temple/core/constants/sized.dart';
 import 'package:temple/core/theme/color/colors.dart';
 import 'package:temple/features/shop/cart/data/model/cart_model.dart';
+import 'package:temple/features/shop/cart/providers/addToCart_provider.dart';
 import 'package:temple/features/shop/cart/providers/cart_provider.dart';
 import 'package:temple/widgets/mytext.dart';
 
@@ -21,14 +22,13 @@ class CartSelectedItemslisting extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.shopping_cart_outlined,
-                  size: 40, color: Colors.grey),
-              AppSizes.h10,
-              WText(
-                text: "Your cart is empty",
-                fontSize: 14.sp,
-                color: cGrey,
+              const Icon(
+                Icons.shopping_cart_outlined,
+                size: 40,
+                color: Colors.grey,
               ),
+              AppSizes.h10,
+              WText(text: "Your cart is empty", fontSize: 14.sp, color: cGrey),
             ],
           ),
         ),
@@ -132,9 +132,16 @@ class CartSelectedItemslisting extends ConsumerWidget {
                               quantity == 1
                                   ? GestureDetector(
                                       onTap: () async {
+                                            ref.read(
+                                          deleteCartItemFromAPI({
+                                            "productVariantId":
+                                                item.productVariantId,
+                                          }),
+                                        );
                                         await ref
                                             .read(cartProviders.notifier)
                                             .removeItem(item.productVariantId);
+                                    
                                       },
                                       child: SvgPicture.asset(
                                         'assets/svg/delete.svg',
@@ -149,7 +156,8 @@ class CartSelectedItemslisting extends ConsumerWidget {
                                         await ref
                                             .read(cartProviders.notifier)
                                             .decrementItem(
-                                                item.productVariantId);
+                                              item.productVariantId,
+                                            );
                                       },
                                       child: Container(
                                         height: 18.h,
@@ -157,8 +165,9 @@ class CartSelectedItemslisting extends ConsumerWidget {
                                         decoration: BoxDecoration(
                                           border: Border.all(color: cGrey),
                                           color: cWhite,
-                                          borderRadius:
-                                              BorderRadius.circular(6.r),
+                                          borderRadius: BorderRadius.circular(
+                                            6.r,
+                                          ),
                                         ),
                                         child: Icon(
                                           Icons.remove,
@@ -169,10 +178,7 @@ class CartSelectedItemslisting extends ConsumerWidget {
                                     ),
 
                               // Quantity
-                              WText(
-                                text: quantity.toString(),
-                                fontSize: 12.sp,
-                              ),
+                              WText(text: quantity.toString(), fontSize: 12.sp),
 
                               // Add (+1 always)
                               GestureDetector(

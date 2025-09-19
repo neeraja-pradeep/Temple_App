@@ -9,3 +9,4 @@ final selectedIndexProvider = StateProvider<int>((ref) => -1);  //For Prouct Lis
 
 
 final onclickCheckoutButton = StateProvider<bool>((ref) => false,);
+final onclickConformCheckoutButton = StateProvider<bool>((ref) => false,);

@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple/core/constants/sized.dart';
 import 'package:temple/core/theme/color/colors.dart';
 import 'package:temple/features/shop/cart/presentation/app_bar.dart';
 import 'package:temple/features/shop/cart/presentation/item_priceDetails.dart';
 import 'package:temple/features/shop/cart/presentation/selected_items.dart';
+import 'package:temple/features/shop/cart/providers/addToCart_provider.dart';
+import 'package:temple/features/shop/cart/providers/cart_provider.dart';
+import 'package:temple/features/shop/providers/gesture_riverpod.dart';
 import 'package:temple/features/shop/widget/checkout_button.dart';
 import 'package:temple/widgets/mytext.dart';
 
-class CheckoutScreen extends StatelessWidget {
+class CheckoutScreen extends  ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
+
+  @override
+  ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
+}
+
+class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
+     bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -17,12 +28,15 @@ class CheckoutScreen extends StatelessWidget {
       children: [
         Column(
           children: [
-            CheckoutAppBarSection(), //**************** App BAR ***************
+            CheckoutAppBarSection(
+              onPressed: () =>
+                  ref.read(onclickCheckoutButton.notifier).state = false,
+            ), //**************** App BAR ***************
 
             Expanded(
               flex: 11,
               child: Padding(
-                padding:  EdgeInsets.only(bottom: 60.h),
+                padding: EdgeInsets.only(bottom: 60.h),
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -61,9 +75,41 @@ class CheckoutScreen extends StatelessWidget {
             ),
           ],
         ),
+      // Checkout Button
         CheckoutButton(
-          onPressed: () {},
-        ), //**************** Checkout Button ***************
+          onPressed: isLoading ? null : () async {
+            setState(() => isLoading = true);
+
+            final cartItems = ref.read(cartProviders);
+
+            // Call API for each item
+            for (var item in cartItems) {
+              await ref.read(
+                addAndUpdateCartItemToAPI({
+                  "productVariantId": item.productVariantId,
+                  "quantity": item.quantity,
+                }).future,
+              );
+            }
+
+            // After all API calls
+            if (!mounted) return; // avoid using ref if widget disposed
+            ref.read(onclickConformCheckoutButton.notifier).state = true;
+            ref.read(onclickCheckoutButton.notifier).state = false;
+
+            setState(() => isLoading = false);
+          },
+        ),
+
+        // Optional loading overlay
+        if (isLoading)
+          Container(
+            color: Colors.black45,
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        //**************** Checkout Button ***************
       ],
     );
   }
