@@ -4,6 +4,8 @@ class SongItem {
   final String artist;
   final String streamUrl;
   final String uploadedAt;
+  final String? media;
+  final String? homeMedia;
 
   SongItem({
     required this.id,
@@ -11,6 +13,8 @@ class SongItem {
     required this.artist,
     required this.streamUrl,
     required this.uploadedAt,
+    this.media,
+    this.homeMedia,
   });
 
   factory SongItem.fromJson(Map<String, dynamic> json) {
@@ -21,6 +25,8 @@ class SongItem {
       artist: songData['artist'],
       streamUrl: songData['stream_url'],
       uploadedAt: songData['uploaded_at'],
+      media: songData['media'],
+      homeMedia: songData['home_media'],
     );
   }
 
@@ -30,6 +36,7 @@ class SongItem {
     "artist": artist,
     "stream_url": streamUrl,
     "uploaded_at": uploadedAt,
+    "media": media,
+    "home_media": homeMedia,
   };
 }
-

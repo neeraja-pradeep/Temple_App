@@ -22,6 +22,38 @@ class _MusicPlayerPageState extends ConsumerState<MusicPlayerPage> {
       ref.read(audioPlayerProvider).durationStream;
 
   @override
+  void initState() {
+    super.initState();
+    _setupAutoPlay();
+  }
+
+  void _setupAutoPlay() {
+    // Listen to player completion events for auto-play
+    ref.read(audioPlayerProvider).playerStateStream.listen((playerState) {
+      if (playerState.processingState == ProcessingState.completed) {
+        _playNextSong();
+      }
+    });
+  }
+
+  Future<void> _playNextSong() async {
+    final queue = ref.read(queueProvider);
+    if (queue.isEmpty) return;
+
+    final currentIndex = ref.read(queueIndexProvider);
+    final nextIndex = (currentIndex + 1) % queue.length;
+
+    // If we're at the last song, loop back to first song
+    if (nextIndex == 0 && currentIndex == queue.length - 1) {
+      // Loop back to first song
+      await _playAt(ref, 0);
+    } else {
+      // Play next song
+      await _playAt(ref, nextIndex);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final player = ref.watch(audioPlayerProvider);
     final queue = ref.watch(queueProvider);
@@ -48,10 +80,33 @@ class _MusicPlayerPageState extends ConsumerState<MusicPlayerPage> {
               children: [
                 // Full screen background image
                 Image.network(
-                  current.streamUrl,
+                  current.media ?? current.homeMedia ?? '',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      Container(color: Colors.grey.shade800),
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      color: Colors.grey.shade800,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    );
+                  },
+                  errorBuilder: (_, __, ___) {
+                    print('=== IMAGE LOAD ERROR ===');
+                    print(
+                      'Trying to load image from: ${current.media ?? current.homeMedia ?? 'NO IMAGE URL'}',
+                    );
+                    print('Song: ${current.title} by ${current.artist}');
+                    print('Media URL: ${current.media}');
+                    print('Home Media URL: ${current.homeMedia}');
+                    print('=== END IMAGE ERROR ===');
+                    return Container(color: Colors.black);
+                  },
                 ),
                 // Dark overlay for better text visibility
                 Container(
