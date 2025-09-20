@@ -494,11 +494,14 @@ class _MusicPlayerPageState extends ConsumerState<MusicPlayerPage> {
     final queue = ref.read(queueProvider);
     if (index < 0 || index >= queue.length) return;
     final song = queue[index];
+
+    // Set providers immediately for UI updates
+    ref.read(queueIndexProvider.notifier).state = index;
+    ref.read(currentlyPlayingIdProvider.notifier).state = song.id;
+
     final player = ref.read(audioPlayerProvider);
     await player.setAudioSource(AudioSource.uri(Uri.parse(song.streamUrl)));
     await player.play();
-    ref.read(queueIndexProvider.notifier).state = index;
-    ref.read(currentlyPlayingIdProvider.notifier).state = song.id;
     ref.read(isPlayingProvider.notifier).state = true;
   }
 

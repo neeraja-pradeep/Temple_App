@@ -45,22 +45,21 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
   @override
   void initState() {
     super.initState();
-    // Listen for navigation triggers
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.listen(navigationTriggerProvider, (previous, next) {
-        if (next != null) {
-          setState(() {
-            _selectedIndex = next;
-          });
-          // Reset the trigger
-          ref.read(navigationTriggerProvider.notifier).state = null;
-        }
-      });
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Listen for navigation triggers
+    ref.listen(navigationTriggerProvider, (previous, next) {
+      if (next != null) {
+        setState(() {
+          _selectedIndex = next;
+        });
+        // Reset the trigger
+        ref.read(navigationTriggerProvider.notifier).state = null;
+      }
+    });
+
     // Set status bar style to light content (white icons and text)
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(

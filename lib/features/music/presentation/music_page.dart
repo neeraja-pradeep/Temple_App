@@ -52,16 +52,29 @@ class _MusicPageState extends ConsumerState<MusicPage> {
     final queue = ref.read(queueProvider);
     if (index < 0 || index >= queue.length) return;
     final song = queue[index];
+
+    // Set providers immediately for UI updates
+    ref.read(queueIndexProvider.notifier).state = index;
+    ref.read(currentlyPlayingIdProvider.notifier).state = song.id;
+
     final player = ref.read(audioPlayerProvider);
     await player.setAudioSource(AudioSource.uri(Uri.parse(song.streamUrl)));
     await player.play();
-    ref.read(queueIndexProvider.notifier).state = index;
-    ref.read(currentlyPlayingIdProvider.notifier).state = song.id;
     ref.read(isPlayingProvider.notifier).state = true;
   }
 
   @override
   Widget build(BuildContext context) {
+    // Listen for songs refresh trigger to clear cache
+    ref.listen(songsRefreshTriggerProvider, (previous, next) {
+      if (next != null && previous != null) {
+        // Only refresh cache if this is not the initial load
+        ref.read(songsProvider).whenData((songs) {
+          _refreshSongDurations(songs);
+        });
+      }
+    });
+
     final songsAsync = ref.watch(songsProvider);
     final currentlyPlayingId = ref.watch(currentlyPlayingIdProvider);
     final queue = ref.watch(queueProvider);
@@ -126,6 +139,9 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                         );
                         ref.read(queueIndexProvider.notifier).state =
                             tappedIndex < 0 ? 0 : tappedIndex;
+                        // Set currently playing ID immediately for mini player visibility
+                        ref.read(currentlyPlayingIdProvider.notifier).state =
+                            song.id;
                         // Navigate first to avoid any delay from audio setup
                         Navigator.of(context).push(
                           MaterialPageRoute(
@@ -141,10 +157,6 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                             );
                             await player.seek(Duration.zero);
                             await player.play();
-                            ref
-                                    .read(currentlyPlayingIdProvider.notifier)
-                                    .state =
-                                song.id;
                             ref.read(isPlayingProvider.notifier).state = true;
                           } catch (_) {}
                         });
@@ -176,10 +188,18 @@ class _MusicPageState extends ConsumerState<MusicPage> {
     );
   }
 
-  Future<String> _getOrLoadDuration(SongItem song) async {
+  Future<String> _getOrLoadDuration(
+    SongItem song, {
+    bool forceRefresh = false,
+  }) async {
     final box = await Hive.openBox("song_durations");
-    final cached = box.get(song.id.toString());
-    if (cached is String) return cached;
+
+    // If not forcing refresh, check cache first
+    if (!forceRefresh) {
+      final cached = box.get(song.id.toString());
+      if (cached is String) return cached;
+    }
+
     final player = AudioPlayer();
     try {
       await player.setAudioSource(AudioSource.uri(Uri.parse(song.streamUrl)));
@@ -192,6 +212,19 @@ class _MusicPageState extends ConsumerState<MusicPage> {
       }
     } catch (_) {}
     return "--:--";
+  }
+
+  Future<void> _refreshSongDurations(List<SongItem> songs) async {
+    final box = await Hive.openBox("song_durations");
+
+    // Clear existing cache for all songs
+    for (final song in songs) {
+      await box.delete(song.id.toString());
+    }
+
+    print('=== REFRESHING SONG DURATIONS ===');
+    print('Cleared cache for ${songs.length} songs');
+    print('=== END REFRESH ===');
   }
 
   String? _formatDuration(Duration? d) {

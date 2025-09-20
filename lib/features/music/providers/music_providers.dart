@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import '../data/music_repository.dart';
@@ -11,8 +12,18 @@ final musicRepositoryProvider = Provider<MusicRepository>((ref) {
 // Songs provider - fetches songs from API
 final songsProvider = FutureProvider<List<SongItem>>((ref) async {
   final repository = ref.read(musicRepositoryProvider);
-  return await repository.fetchSongs();
+  final songs = await repository.fetchSongs();
+
+  // Trigger cache refresh when new songs are fetched (but not on initial load)
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    ref.read(songsRefreshTriggerProvider.notifier).state = DateTime.now();
+  });
+
+  return songs;
 });
+
+// Provider to trigger cache refresh
+final songsRefreshTriggerProvider = StateProvider<DateTime?>((ref) => null);
 
 // Audio player provider
 final audioPlayerProvider = Provider<AudioPlayer>((ref) {
@@ -43,4 +54,3 @@ final isPlayingProvider = StateProvider<bool>((ref) {
 final currentlyPlayingIdProvider = StateProvider<int?>((ref) {
   return null;
 });
-
