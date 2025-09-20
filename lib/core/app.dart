@@ -7,8 +7,11 @@ import 'navigation_provider.dart';
 import '../features/special/presentation/special_page.dart';
 import '../features/pooja/presentation/pooja_page.dart';
 import '../features/home/presentation/home_page.dart';
-import '../features/shop/presentation/shop_page.dart';
 import '../features/music/presentation/music_page.dart';
+import '../features/shop/cart/presentation/checkout_screen.dart';
+import '../features/shop/delivery/presentation/payment_method.dart';
+import '../features/shop/presentation/shopping_section.dart';
+import '../features/shop/providers/gesture_riverpod.dart';
 
 class MainNavScreen extends ConsumerStatefulWidget {
   final Widget? drawerContent;
@@ -20,13 +23,7 @@ class MainNavScreen extends ConsumerStatefulWidget {
 
 class _MainNavScreenState extends ConsumerState<MainNavScreen> {
   int _selectedIndex = 2;
-  final List<Widget> _pages = [
-    SpecialPage(),
-    PoojaPage(),
-    HomePage(),
-    ShopPage(),
-    MusicPage(),
-  ];
+
   final List<String> _labels = [
     'പ്രത്യകം', // Special
     'പൂജ', // Pooja
@@ -34,6 +31,7 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
     'വിപണി', // Shop
     'സംഗീതം', // Music
   ];
+
   final List<String> _icons = [
     'assets/bottomNavBar/bn1.png',
     'assets/bottomNavBar/bn2.png',
@@ -49,6 +47,21 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final onTapCheckout = ref.watch(onclickCheckoutButton);
+    final onTapConformCheckout = ref.watch(onclickConformCheckoutButton);
+
+    final List<Widget> pages = [
+      const SpecialPage(),
+      const PoojaPage(),
+      const HomePage(),
+      onTapCheckout
+          ? const CheckoutScreen()
+          : onTapConformCheckout
+          ? const PaymentMethodScreen()
+          : const ShoppingSectionScreen(),
+      const MusicPage(),
+    ];
+
     // Listen for navigation triggers
     ref.listen(navigationTriggerProvider, (previous, next) {
       if (next != null) {
@@ -75,7 +88,7 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
       child: Scaffold(
         drawer: _selectedIndex == 2
             ? Drawer(
-                backgroundColor: Color(0xFFD9D9D9),
+                backgroundColor: const Color(0xFFD9D9D9),
                 width: 285.w,
                 child: Consumer(
                   builder: (context, ref, _) =>
@@ -87,13 +100,13 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              'assets/background.jpg',
+              'assets/backgroundimage.jpg',
               fit: BoxFit.cover,
               height: double.infinity,
               width: double.infinity,
               alignment: Alignment.topCenter,
             ),
-            _pages[_selectedIndex],
+            pages[_selectedIndex],
           ],
         ),
         bottomNavigationBar: Container(
@@ -121,25 +134,17 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
                     isSelected
                         ? Container(
                             width: 65.w,
-                            height: 50.h,
-
+                            height: 55.h, // increased to avoid overflow
                             decoration: BoxDecoration(
-                              color: AppColors
-                                  .selectedBackground, // white background
+                              color: AppColors.selectedBackground,
                               borderRadius: BorderRadius.circular(12.r),
                               border: Border.all(
-                                color: AppColors
-                                    .selectedBackground, // border color
+                                color: AppColors.selectedBackground,
                                 width: 1.w,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color.fromRGBO(
-                                    140,
-                                    0,
-                                    26,
-                                    0.16,
-                                  ), // shadow color rgba(140, 0, 26, 0.16)
+                                  color: const Color.fromRGBO(140, 0, 26, 0.16),
                                   offset: Offset(0, 4.h),
                                   blurRadius: 16.r,
                                 ),
@@ -150,17 +155,19 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
                               children: [
                                 Image.asset(
                                   _icons[index],
-                                  width: 28.w,
-                                  height: 28.w,
+                                  width: 26.w,
+                                  height: 26.w,
                                   color: AppColors.selected,
                                 ),
-                                SizedBox(height: 2.h),
-                                Text(
-                                  _labels[index],
-                                  style: TextStyle(
-                                    fontSize: 13.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.selected,
+                                SizedBox(height: 1.h), // reduced spacing
+                                FittedBox(
+                                  child: Text(
+                                    _labels[index],
+                                    style: TextStyle(
+                                      fontSize: 12.sp, // reduced font size
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.selected,
+                                    ),
                                   ),
                                 ),
                               ],
