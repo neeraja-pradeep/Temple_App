@@ -5,6 +5,7 @@ import 'package:temple/core/app.dart';
 import 'package:temple/core/constants/sized.dart';
 import 'package:temple/core/theme/color/colors.dart';
 import 'package:temple/features/shop/cart/presentation/app_bar.dart';
+import 'package:temple/features/shop/cart/providers/cart_provider.dart';
 import 'package:temple/features/shop/providers/gesture_riverpod.dart';
 import 'package:temple/features/shop/widget/text_widget.dart';
 import 'package:temple/widgets/mytext.dart';
@@ -33,7 +34,10 @@ class DeliverdCompletedPage extends ConsumerWidget {
               children: [
                 /// Custom App Bar
                 CheckoutAppBarSection(
-                  onPressed: () {
+                  onPressed: () async {
+                    // Clear cart data after successful order completion
+                    await ref.read(cartProviders.notifier).clearCart();
+
                     ref.watch(onclickCheckoutButton.notifier).state = false;
                     ref.watch(onclickConformCheckoutButton.notifier).state =
                         false;
@@ -192,7 +196,10 @@ class DeliverdCompletedPage extends ConsumerWidget {
                         ),
                         padding: EdgeInsets.symmetric(vertical: 11.h),
                       ),
-                      onPressed: () {
+                      onPressed: () async {
+                        // Clear cart data after successful order completion
+                        await ref.read(cartProviders.notifier).clearCart();
+
                         ref.watch(onclickCheckoutButton.notifier).state = false;
                         ref.watch(onclickConformCheckoutButton.notifier).state =
                             false;

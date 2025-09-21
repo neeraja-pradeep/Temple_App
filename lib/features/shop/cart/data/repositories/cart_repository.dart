@@ -261,52 +261,54 @@ class CartRepository {
       return false;
     }
   }
+
   Future<List<CartItem>> getinitStateCartFromAPi() async {
-  final box = await _cartBox();
-  try {
-    // 1️⃣ Fetch from API
-    final response = await http.get(
-      Uri.parse("$baseUrl/ecommerce/cart/"),
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-    );
+    final box = await _cartBox();
+    try {
+      // 1️⃣ Fetch from API
+      final response = await http.get(
+        Uri.parse("$baseUrl/ecommerce/cart/"),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final List<dynamic> rawCartItems = data["cart"] ?? [];
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final List<dynamic> rawCartItems = data["cart"] ?? [];
 
-      // 2️⃣ Map API response to Hive model
-      final List<CartItem> cartItems = rawCartItems.map((item) {
-        final variant = item["product_variant"];
-        return CartItem(
-          id: item["id"],
-          productVariantId: variant["id"].toString(),
-          name: variant["name"],
-          sku: variant["sku"],
-          price: variant["price"],
-          quantity: item["quantity"],
-          productimage: item["product_image"] ?? "",
-        );
-      }).toList();
+        // 2️⃣ Map API response to Hive model
+        final List<CartItem> cartItems = rawCartItems.map((item) {
+          final variant = item["product_variant"];
+          return CartItem(
+            id: item["id"],
+            productVariantId: variant["id"].toString(),
+            name: variant["name"],
+            sku: variant["sku"],
+            price: variant["price"],
+            quantity: item["quantity"],
+            productimage: item["product_image"] ?? "",
+          );
+        }).toList();
 
-      // 3️⃣ Save/update Hive
-      await box.clear(); // clear old cart
-      await box.addAll(cartItems);
+        // 3️⃣ Save/update Hive
+        await box.clear(); // clear old cart
+        await box.addAll(cartItems);
 
-      log("✅ Cart fetched from API: ${cartItems.length} items");
-      return cartItems;
-    } else {
-      log("⚠️ Failed to fetch cart from API, returning Hive cache");
+        log("✅ Cart fetched from API: ${cartItems.length} items");
+        return cartItems;
+      } else {
+        log("⚠️ Failed to fetch cart from API, returning Hive cache");
+        return box.values.toList();
+      }
+    } catch (e, st) {
+      log("🚨 Error fetching cart: $e");
+      log("$st");
       return box.values.toList();
     }
-  } catch (e, st) {
-    log("🚨 Error fetching cart: $e");
-    log("$st");
-    return box.values.toList();
   }
-}
+
   /// 🛒 Get all items
   Future<List<CartItem>> getCart() async {
     try {
@@ -339,6 +341,20 @@ class CartRepository {
       }
     } catch (e, stackTrace) {
       log("🚨 Failed to remove from cart: $e");
+      log("🧾 $stackTrace");
+      return false;
+    }
+  }
+
+  /// 🗑 Clear all cart items (used after successful order completion)
+  Future<bool> clearCart() async {
+    try {
+      final box = await _cartBox();
+      await box.clear();
+      log("✅ Cart cleared successfully after order completion");
+      return true;
+    } catch (e, stackTrace) {
+      log("🚨 Failed to clear cart: $e");
       log("🧾 $stackTrace");
       return false;
     }

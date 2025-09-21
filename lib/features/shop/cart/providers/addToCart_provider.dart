@@ -63,6 +63,12 @@ final addAndUpdateCartItemToAPI =
       return checkoutResult;
     });
 
+/// 🗑 Clear all cart items (used after successful order completion)
+final clearCartProvider = FutureProvider<bool>((ref) async {
+  final repo = ref.watch(cartRepositoryProvider);
+  return await repo.clearCart();
+});
+
 final deleteCartItemFromAPI = FutureProvider.family<bool, Map<String, dynamic>>(
   (ref, data) async {
     final repo = ref.watch(cartRepositoryProvider);
