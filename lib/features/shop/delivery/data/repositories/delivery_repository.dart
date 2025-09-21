@@ -31,7 +31,9 @@ class AddressRepository {
         log("✅ Fetched ${addresses.length} addresses from API.");
         return addresses;
       } else {
-        log("⚠️ Failed to fetch addresses. Status code: ${response.statusCode}");
+        log(
+          "⚠️ Failed to fetch addresses. Status code: ${response.statusCode}",
+        );
         throw Exception("Failed to fetch addresses");
       }
     } catch (e) {
@@ -71,7 +73,9 @@ class AddressRepository {
         log("✅ Address added successfully: ${newAddress.name}");
         return newAddress;
       } else {
-        log("❌ Add failed. Status: ${response.statusCode}, Body: ${response.body}");
+        log(
+          "❌ Add failed. Status: ${response.statusCode}, Body: ${response.body}",
+        );
         throw Exception("Failed to add address");
       }
     } catch (e) {
@@ -105,7 +109,9 @@ class AddressRepository {
 
       if (response.statusCode == 200 || response.statusCode == 204) {
         final updatedAddress = AddressModel.fromJson(
-          response.statusCode == 204 ? address.toJson() : jsonDecode(response.body),
+          response.statusCode == 204
+              ? address.toJson()
+              : jsonDecode(response.body),
         );
 
         await box.put(updatedAddress.id, updatedAddress);
@@ -113,7 +119,9 @@ class AddressRepository {
         log("✅ Address with ID ${updatedAddress.id} updated.");
         return updatedAddress;
       } else {
-        log("❌ Update failed. Status: ${response.statusCode}, Body: ${response.body}");
+        log(
+          "❌ Update failed. Status: ${response.statusCode}, Body: ${response.body}",
+        );
         throw Exception("Failed to update address");
       }
     } catch (e) {
@@ -127,7 +135,7 @@ class AddressRepository {
     final box = await _openBox();
     try {
       final response = await http.patch(
-          Uri.parse('$baseUrl$id/'), 
+        Uri.parse('$baseUrl$id/'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"id": id, "selection": true}),
       );
@@ -140,7 +148,9 @@ class AddressRepository {
         }
         log("✅ Address with ID $id selected.");
       } else {
-        log("❌ Failed select. Status: ${response.statusCode}, Body: ${response.body}");
+        log(
+          "❌ Failed select. Status: ${response.statusCode}, Body: ${response.body}",
+        );
         throw Exception("Failed to select address");
       }
     } catch (e) {
@@ -155,16 +165,71 @@ class AddressRepository {
     try {
       final response = await http.delete(Uri.parse("$baseUrl$id/"));
 
+      // Check if response body contains an error message
+      if (response.body.isNotEmpty) {
+        try {
+          final responseData = jsonDecode(response.body);
+          if (responseData.containsKey('error')) {
+            // Backend returned an error message even with 200 status
+            log("❌ Delete failed. Error: ${responseData['error']}");
+            throw Exception(responseData['error']);
+          }
+        } catch (e) {
+          // If JSON parsing fails, continue with normal flow
+          log("⚠️ Could not parse response body: $e");
+        }
+      }
+
       if (response.statusCode == 200 || response.statusCode == 204) {
         await box.delete(id); // ✅ delete by id key
         log("✅ Address with ID $id deleted.");
       } else {
-        log("❌ Delete failed. Status: ${response.statusCode}, Body: ${response.body}");
-        throw Exception("Failed to delete address");
+        log(
+          "❌ Delete failed. Status: ${response.statusCode}, Body: ${response.body}",
+        );
+
+        // Try to parse error message from response body
+        String errorMessage = "Failed to delete address";
+        if (response.body.isNotEmpty) {
+          try {
+            final responseData = jsonDecode(response.body);
+            if (responseData.containsKey('error')) {
+              errorMessage = responseData['error'];
+            }
+          } catch (e) {
+            // If JSON parsing fails, use status code based message
+            if (response.statusCode == 400) {
+              errorMessage = "Invalid request. Please try again";
+            } else if (response.statusCode == 404) {
+              errorMessage = "Address not found";
+            } else if (response.statusCode == 403) {
+              errorMessage = "You don't have permission to delete this address";
+            } else if (response.statusCode == 500) {
+              errorMessage = "Server error occurred while deleting address";
+            }
+          }
+        } else {
+          // No response body, use status code based message
+          if (response.statusCode == 400) {
+            errorMessage = "Invalid request. Please try again";
+          } else if (response.statusCode == 404) {
+            errorMessage = "Address not found";
+          } else if (response.statusCode == 403) {
+            errorMessage = "You don't have permission to delete this address";
+          } else if (response.statusCode == 500) {
+            errorMessage = "Server error occurred while deleting address";
+          }
+        }
+        throw Exception(errorMessage);
       }
     } catch (e) {
       log("❌ Exception while deleting: $e");
-      rethrow;
+      // If it's already an Exception with a message, rethrow it
+      if (e is Exception) {
+        rethrow;
+      }
+      // Otherwise, wrap it in a generic message
+      throw Exception("Network error occurred while deleting address");
     }
   }
 }

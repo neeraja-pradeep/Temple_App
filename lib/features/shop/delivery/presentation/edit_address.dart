@@ -44,7 +44,7 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
     Fluttertoast.cancel();
     Fluttertoast.showToast(
       msg: message,
-        
+
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       backgroundColor: bgColor ?? primaryThemeColor.withOpacity(0.9),
@@ -112,6 +112,7 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
   }
 
   void deleteAddress() async {
+    // Clear form fields
     nameController.clear();
     address1Controller.clear();
     address2Controller.clear();
@@ -123,12 +124,113 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
           .read(addressListProvider.notifier)
           .deleteAddress(widget.address!.id);
 
-      if (!mounted) return; 
-      showToast("Address deleted successfully", bgColor: Colors.red);
+      if (!mounted) return;
+      showToast("Address deleted successfully", bgColor: Colors.green);
       Navigator.pop(context);
     } catch (e) {
-      showToast("❌ Failed to delete address", bgColor: Colors.red);
+      if (!mounted) return;
+      // Show error dialog with specific error message
+      String errorMessage =
+          "Please try again later or contact support if the problem persists.";
+      if (e is Exception) {
+        errorMessage = e.toString().replaceFirst('Exception: ', '');
+      }
+      showErrorDialog("Unable to delete address", errorMessage);
     }
+  }
+
+  void showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          elevation: 10,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: EdgeInsets.all(20.w),
+            decoration: BoxDecoration(
+              color: cWhite,
+              borderRadius: BorderRadius.circular(20.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Error Icon
+                Container(
+                  width: 60.w,
+                  height: 60.w,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.error_outline,
+                    color: Colors.red,
+                    size: 30.sp,
+                  ),
+                ),
+                SizedBox(height: 20.h),
+
+                // Title
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: cBlack,
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 12.h),
+
+                // Message
+                Text(
+                  message,
+                  style: TextStyle(color: cGrey, fontSize: 14.sp, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 25.h),
+
+                // OK Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryThemeColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      elevation: 0,
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      'OK',
+                      style: TextStyle(
+                        color: cWhite,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override

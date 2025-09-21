@@ -59,13 +59,17 @@ class AddressNotifier extends StateNotifier<AsyncValue<List<AddressModel>>> {
   }
 
   Future<void> deleteAddress(int id) async {
-    log(  "Deleting address with id: $id");
+    log("Deleting address with id: $id");
     try {
       await repository.deleteAddress(id);
       fetchAddresses();
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+    } catch (e) {
+      // Don't set state to error - let the UI handle the exception with dialog
+      rethrow;
     }
   }
 }
-final selectedPaymentProvider = StateProvider<int>((ref) => -1); // -1 means none selected
+
+final selectedPaymentProvider = StateProvider<int>(
+  (ref) => -1,
+); // -1 means none selected
