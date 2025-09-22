@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple/core/app_colors.dart';
 import 'package:temple/features/music/providers/music_providers.dart';
@@ -65,16 +64,6 @@ class _MusicPageState extends ConsumerState<MusicPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Listen for songs refresh trigger to clear cache
-    ref.listen(songsRefreshTriggerProvider, (previous, next) {
-      if (next != null && previous != null) {
-        // Only refresh cache if this is not the initial load
-        ref.read(songsProvider).whenData((songs) {
-          _refreshSongDurations(songs);
-        });
-      }
-    });
-
     final songsAsync = ref.watch(songsProvider);
     final currentlyPlayingId = ref.watch(currentlyPlayingIdProvider);
     final queue = ref.watch(queueProvider);
@@ -161,7 +150,6 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                           } catch (_) {}
                         });
                       },
-                      durationTextFuture: _getOrLoadDuration(song),
                     );
                   },
                   separatorBuilder: (_, __) => SizedBox(height: 12.h),
@@ -187,64 +175,13 @@ class _MusicPageState extends ConsumerState<MusicPage> {
       ),
     );
   }
-
-  Future<String> _getOrLoadDuration(
-    SongItem song, {
-    bool forceRefresh = false,
-  }) async {
-    final box = await Hive.openBox("song_durations");
-
-    // If not forcing refresh, check cache first
-    if (!forceRefresh) {
-      final cached = box.get(song.id.toString());
-      if (cached is String) return cached;
-    }
-
-    final player = AudioPlayer();
-    try {
-      await player.setAudioSource(AudioSource.uri(Uri.parse(song.streamUrl)));
-      final duration = await player.load();
-      final total = duration ?? player.duration;
-      final text = _formatDuration(total);
-      if (text != null) {
-        await box.put(song.id.toString(), text);
-        return text;
-      }
-    } catch (_) {}
-    return "--:--";
-  }
-
-  Future<void> _refreshSongDurations(List<SongItem> songs) async {
-    final box = await Hive.openBox("song_durations");
-
-    // Clear existing cache for all songs
-    for (final song in songs) {
-      await box.delete(song.id.toString());
-    }
-
-    print('=== REFRESHING SONG DURATIONS ===');
-    print('Cleared cache for ${songs.length} songs');
-    print('=== END REFRESH ===');
-  }
-
-  String? _formatDuration(Duration? d) {
-    if (d == null) return null;
-    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return "$minutes:$seconds";
-  }
 }
 
 class _SongTile extends StatelessWidget {
   final SongItem song;
   final VoidCallback onOpen;
-  final Future<String> durationTextFuture;
 
-  const _SongTile({
-    required this.song,
-    required this.onOpen,
-    required this.durationTextFuture,
-  });
+  const _SongTile({required this.song, required this.onOpen});
 
   @override
   Widget build(BuildContext context) {
@@ -283,23 +220,17 @@ class _SongTile extends StatelessWidget {
               ),
             ),
             SizedBox(width: 12.w),
-            FutureBuilder<String>(
-              future: durationTextFuture,
-              builder: (context, snapshot) {
-                final text = snapshot.data ?? '...';
-                return SizedBox(
-                  width: 52.w,
-                  child: Text(
-                    text,
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                );
-              },
+            SizedBox(
+              width: 52.w,
+              child: Text(
+                song.duration,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ],
         ),
