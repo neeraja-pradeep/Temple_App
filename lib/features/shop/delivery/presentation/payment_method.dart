@@ -14,6 +14,7 @@ import 'package:temple/features/shop/delivery/providers/delivery_provider.dart';
 import 'package:temple/features/shop/providers/gesture_riverpod.dart';
 import 'package:temple/features/shop/widget/checkout_button.dart';
 import 'package:temple/widgets/mytext.dart';
+import 'package:temple/features/shop/cart/providers/addToCart_provider.dart';
 
 class PaymentMethodScreen extends ConsumerWidget {
   const PaymentMethodScreen({super.key});
@@ -70,7 +71,7 @@ class PaymentMethodScreen extends ConsumerWidget {
 
                         addressState.when(
                           data: (addresses) {
-                            log( "Addresses: $addresses");
+                            log("Addresses: $addresses");
                             if (addresses.isEmpty) {
                               // ✅ Show "Add Address" button when no address
                               return Center(
@@ -87,12 +88,13 @@ class PaymentMethodScreen extends ConsumerWidget {
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: primaryThemeColor,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.r),
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
                                         ),
                                       ),
                                       onPressed: () {
-                                    showAddAddressSheet(context);
+                                        showAddAddressSheet(context);
                                       },
                                       child: WText(
                                         text: "Add Address",
@@ -203,8 +205,9 @@ class PaymentMethodScreen extends ConsumerWidget {
                             return GestureDetector(
                               onTap: () {
                                 ref
-                                    .read(selectedPaymentProvider.notifier)
-                                    .state = index;
+                                        .read(selectedPaymentProvider.notifier)
+                                        .state =
+                                    index;
                               },
                               child: Container(
                                 height: 42.h,
@@ -271,12 +274,14 @@ class PaymentMethodScreen extends ConsumerWidget {
 
         /// ✅ Checkout Button
         CheckoutButton(
-          onPressed: () {
-            final selectedPayment =
-                ref.watch(selectedPaymentProvider.notifier).state;
+          onPressed: () async {
+            final selectedPayment = ref
+                .watch(selectedPaymentProvider.notifier)
+                .state;
 
             // Check address availability
-            final addressAvailable = addressState.asData?.value.isNotEmpty ?? false;
+            final addressAvailable =
+                addressState.asData?.value.isNotEmpty ?? false;
 
             if (!addressAvailable) {
               showError("Please add a delivery address");
@@ -286,13 +291,24 @@ class PaymentMethodScreen extends ConsumerWidget {
             if (selectedPayment == -1) {
               showError("Please select a payment method");
             } else {
-              ref.watch(selectedPaymentProvider.notifier).state = -1;
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DeliverdCompletedPage(),
-                ),
-              );
+              // Call checkout API (no payload)
+              print("[PAYMENT] Starting pay API call...");
+              final orderId = await ref.read(payAndGetOrderIdProvider.future);
+              print("[PAYMENT] Pay API call completed. orderId=$orderId");
+              if (!context.mounted) return;
+
+              if (orderId != null) {
+                ref.watch(selectedPaymentProvider.notifier).state = -1;
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        DeliverdCompletedPage(orderId: orderId),
+                  ),
+                );
+              } else {
+                showError("Payment failed. Please try again");
+              }
             }
           },
         ),

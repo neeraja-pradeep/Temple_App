@@ -6,7 +6,12 @@ import 'package:temple/widgets/mytext.dart';
 
 class CheckoutButton extends ConsumerWidget {
   final Function()? onPressed;
-  const CheckoutButton({required this.onPressed, super.key});
+  final String text;
+  const CheckoutButton({
+    required this.onPressed,
+    this.text = 'Checkout',
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,9 +27,9 @@ class CheckoutButton extends ConsumerWidget {
           ),
           padding: EdgeInsets.symmetric(vertical: 10.h),
         ),
-        onPressed: onPressed, 
+        onPressed: onPressed,
         child: WText(
-          text: 'Checkout',
+          text: text,
           color: cWhite,
           fontSize: 14.sp,
           fontWeight: FontWeight.bold,
@@ -33,4 +38,3 @@ class CheckoutButton extends ConsumerWidget {
     );
   }
 }
-

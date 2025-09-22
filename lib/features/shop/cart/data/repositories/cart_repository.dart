@@ -17,25 +17,95 @@ class CartRepository {
   /// 🛒 Trigger checkout
   Future<bool> checkoutCart() async {
     try {
-      final response = await http.post(
-        Uri.parse("$baseUrl/ecommerce/checkout/"),
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-      );
+      final uri = Uri.parse("$baseUrl/ecommerce/checkout/");
+      final headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      };
+
+      // Raw request log
+      print("HTTP REQUEST → POST ${uri.toString()}");
+      print("REQUEST HEADERS → ${headers.toString()}");
+
+      final response = await http.post(uri, headers: headers);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        log("✅ Checkout successful: ${response.body}");
+        print("HTTP RESPONSE ← ${response.statusCode}");
+        print("RESPONSE BODY ← ${response.body}");
         return true;
       } else {
-        log("❌ Checkout failed: ${response.statusCode} ${response.body}");
+        print("HTTP RESPONSE ← ${response.statusCode}");
+        print("RESPONSE BODY ← ${response.body}");
         return false;
       }
     } catch (e, st) {
-      log("⚠️ Error during checkout: $e");
-      log("$st");
+      print("EXCEPTION DURING CHECKOUT → $e");
+      print(st.toString());
       return false;
+    }
+  }
+
+  /// 💳 Initiate payment (no payload)
+  Future<bool> pay() async {
+    try {
+      final uri = Uri.parse("$baseUrl/ecommerce/pay/");
+      final headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      };
+
+      print("HTTP REQUEST → POST ${uri.toString()}");
+      print("REQUEST HEADERS → ${headers.toString()}");
+
+      final response = await http.post(uri, headers: headers);
+
+      print("HTTP RESPONSE ← ${response.statusCode}");
+      print("RESPONSE BODY ← ${response.body}");
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e, st) {
+      print("EXCEPTION DURING PAY → $e");
+      print(st.toString());
+      return false;
+    }
+  }
+
+  /// 💳 Initiate payment and try to extract order id from response
+  Future<int?> payAndReturnOrderId() async {
+    try {
+      final uri = Uri.parse("$baseUrl/ecommerce/pay/");
+      final headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      };
+      print("HTTP REQUEST → POST ${uri.toString()}");
+      final response = await http.post(uri, headers: headers);
+      print("HTTP RESPONSE ← ${response.statusCode}");
+      print("RESPONSE BODY ← ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        try {
+          final decoded = jsonDecode(response.body);
+          if (decoded is Map<String, dynamic>) {
+            final dynamic directId = decoded['id'] ?? decoded['order_id'];
+            if (directId != null) {
+              return int.tryParse(directId.toString());
+            }
+            if (decoded['order'] is Map<String, dynamic>) {
+              final inner = decoded['order'] as Map<String, dynamic>;
+              final dynamic innerId = inner['id'] ?? inner['order_id'];
+              if (innerId != null) {
+                return int.tryParse(innerId.toString());
+              }
+            }
+          }
+        } catch (_) {}
+      }
+      return null;
+    } catch (e, st) {
+      print("EXCEPTION DURING PAY (orderId) → $e");
+      print(st.toString());
+      return null;
     }
   }
 

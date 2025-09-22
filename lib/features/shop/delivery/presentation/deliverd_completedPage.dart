@@ -9,9 +9,11 @@ import 'package:temple/features/shop/cart/providers/cart_provider.dart';
 import 'package:temple/features/shop/providers/gesture_riverpod.dart';
 import 'package:temple/features/shop/widget/text_widget.dart';
 import 'package:temple/widgets/mytext.dart';
+import 'package:temple/features/shop/delivery/providers/delivery_provider.dart';
 
 class DeliverdCompletedPage extends ConsumerWidget {
-  const DeliverdCompletedPage({super.key});
+  final int? orderId;
+  const DeliverdCompletedPage({super.key, this.orderId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,93 +73,111 @@ class DeliverdCompletedPage extends ConsumerWidget {
                         padding: EdgeInsets.all(15.w),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-
                           children: [
-                            /// Title
-                            Center(
-                              child: WText(
-                                text: "നന്ദി!",
-                                color: cBlack,
-                                fontSize: 11.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Center(
-                              child: WText(
-                                text: 'നിങ്ങളുടെ ഓർഡർ സ്ഥിരീകരിച്ചു',
-                                color: cBlack,
-                                fontSize: 11.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            AppSizes.h20,
-
-                            /// Order ID
-                            TextFontWidget(
-                              text: "Order ID: #ORD23984",
-                              fontsize: 11.sp,
-                              fontWeight: FontWeight.bold,
-                              color: cBlack,
-                            ),
-                            AppSizes.h10,
-
-                            /// Total Price
-                            TextFontWidget(
-                              text: "മൊത്തം തുക: ₹1,840",
-                              fontsize: 11.sp,
-                              fontWeight: FontWeight.bold,
-                              color: cBlack,
-                            ),
-                            AppSizes.h15,
-
-                            /// Item List
-                            SizedBox(
-                              height: 130.h,
-                              child: ListView.separated(
-                                shrinkWrap: true,
-                                itemBuilder: (context, index) {
-                                  return TextFontWidget(
-                                    text: "Item Details 0${index + 1}",
-                                    fontsize: 11.sp,
-                                    fontWeight: FontWeight.w500,
-                                    color: cGrey,
+                            if (orderId != null)
+                              Consumer(
+                                builder: (context, ref, _) {
+                                  final order = ref.watch(
+                                    orderDetailProvider(orderId!),
+                                  );
+                                  return order.when(
+                                    data: (data) {
+                                      final addr = data.shippingAddress;
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Center(
+                                            child: WText(
+                                              text: "നന്ദി!",
+                                              color: cBlack,
+                                              fontSize: 11.sp,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Center(
+                                            child: WText(
+                                              text:
+                                                  'നിങ്ങളുടെ ഓർഡർ സ്ഥിരീകരിച്ചു',
+                                              color: cBlack,
+                                              fontSize: 11.sp,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          SizedBox(height: 32.h),
+                                          TextFontWidget(
+                                            text: "Order ID: #${data.id}",
+                                            fontsize: 11.sp,
+                                            fontWeight: FontWeight.bold,
+                                            color: cBlack,
+                                          ),
+                                          AppSizes.h10,
+                                          TextFontWidget(
+                                            text: "മൊത്തം തുക: ₹${data.total}",
+                                            fontsize: 11.sp,
+                                            fontWeight: FontWeight.bold,
+                                            color: cBlack,
+                                          ),
+                                          AppSizes.h15,
+                                          SizedBox(
+                                            height: 130.h,
+                                            child: ListView.separated(
+                                              shrinkWrap: true,
+                                              itemBuilder: (context, index) {
+                                                final line = data.lines[index];
+                                                return TextFontWidget(
+                                                  text:
+                                                      "${line.productName} – ${line.variantName} x${line.quantity} @ ₹${line.price}",
+                                                  fontsize: 11.sp,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: cGrey,
+                                                );
+                                              },
+                                              separatorBuilder:
+                                                  (context, index) =>
+                                                      AppSizes.h10,
+                                              itemCount: data.lines.length,
+                                            ),
+                                          ),
+                                          AppSizes.h20,
+                                          if (addr != null) ...[
+                                            TextFontWidget(
+                                              text: "${addr['street']}",
+                                              fontsize: 11.sp,
+                                              fontWeight: FontWeight.bold,
+                                              color: cBlack,
+                                            ),
+                                            TextFontWidget(
+                                              text:
+                                                  "${addr['city']}, ${addr['state']}",
+                                              fontsize: 11.sp,
+                                              fontWeight: FontWeight.w500,
+                                              color: cGrey,
+                                            ),
+                                            TextFontWidget(
+                                              text:
+                                                  "${addr['country']} ${addr['pincode']}",
+                                              fontsize: 11.sp,
+                                              fontWeight: FontWeight.w500,
+                                              color: cGrey,
+                                            ),
+                                          ],
+                                          AppSizes.h10,
+                                        ],
+                                      );
+                                    },
+                                    loading: () => const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                    error: (e, _) => Text(e.toString()),
                                   );
                                 },
-                                separatorBuilder: (context, index) =>
-                                    AppSizes.h10,
-                                itemCount: 10,
                               ),
-                            ),
+
+                            /// Title
                             AppSizes.h20,
 
-                            /// Address Section
-                            TextFontWidget(
-                              text: "ഹരിചന്ദ്രൻ – മകയിരം നക്ഷത്രം",
-                              fontsize: 11.sp,
-                              fontWeight: FontWeight.bold,
-                              color: cBlack,
-                            ),
-                            TextFontWidget(
-                              text: "തിരുവല്ല, address line 01",
-                              fontsize: 11.sp,
-                              fontWeight: FontWeight.w500,
-                              color: cGrey,
-                            ),
-                            TextFontWidget(
-                              text: "പിന്‍കോഡ് 689101",
-                              fontsize: 11.sp,
-                              fontWeight: FontWeight.w500,
-                              color: cGrey,
-                            ),
-                            AppSizes.h10,
-                            TextFontWidget(
-                              text: "ഡെലിവറി: 6–8 ദിവസങ്ങൾക്കുള്ളിൽ",
-                              fontsize: 11.sp,
-                              fontWeight: FontWeight.w500,
-                              color: cGrey,
-                            ),
-                            AppSizes.h20,
-                            AppSizes.h20,
+                            // Static fallback below retained after dynamic block
                             AppSizes.h20,
                             AppSizes.h20,
 

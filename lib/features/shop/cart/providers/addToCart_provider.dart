@@ -69,6 +69,23 @@ final clearCartProvider = FutureProvider<bool>((ref) async {
   return await repo.clearCart();
 });
 
+/// ✅ Trigger checkout (no payload)
+final checkoutCartProvider = FutureProvider<bool>((ref) async {
+  final repo = ref.watch(cartRepositoryProvider);
+  return await repo.checkoutCart();
+});
+
+/// 💳 Trigger payment (no payload)
+final payProvider = FutureProvider<bool>((ref) async {
+  final repo = ref.watch(cartRepositoryProvider);
+  return await repo.pay();
+});
+
+final payAndGetOrderIdProvider = FutureProvider<int?>((ref) async {
+  final repo = ref.watch(cartRepositoryProvider);
+  return await repo.payAndReturnOrderId();
+});
+
 final deleteCartItemFromAPI = FutureProvider.family<bool, Map<String, dynamic>>(
   (ref, data) async {
     final repo = ref.watch(cartRepositoryProvider);

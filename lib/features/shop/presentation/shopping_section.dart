@@ -37,9 +37,9 @@ class ShoppingSectionScreen extends ConsumerWidget {
         ),
         cartItems.isNotEmpty
             ? CheckoutButton(
+                text: 'Add to Cart',
                 onPressed: () {
                   ref.read(onclickCheckoutButton.notifier).state = true;
-               
                 },
               )
             : const SizedBox.shrink(),

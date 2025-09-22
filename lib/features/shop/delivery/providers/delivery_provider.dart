@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:temple/features/shop/delivery/data/model/address_model.dart';
 import 'package:temple/features/shop/delivery/data/repositories/delivery_repository.dart';
+import 'package:temple/features/shop/delivery/data/repositories/order_repository.dart';
 
 final addressRepositoryProvider = Provider((ref) => AddressRepository());
 
@@ -73,3 +74,11 @@ class AddressNotifier extends StateNotifier<AsyncValue<List<AddressModel>>> {
 final selectedPaymentProvider = StateProvider<int>(
   (ref) => -1,
 ); // -1 means none selected
+
+// Orders
+final orderRepositoryProvider = Provider((ref) => OrderRepository());
+
+final orderDetailProvider = FutureProvider.family((ref, int orderId) async {
+  final repo = ref.watch(orderRepositoryProvider);
+  return repo.fetchOrderById(orderId);
+});
