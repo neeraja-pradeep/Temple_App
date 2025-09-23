@@ -293,7 +293,10 @@ class PaymentMethodScreen extends ConsumerWidget {
             } else {
               // Call checkout API (no payload)
               print("[PAYMENT] Starting pay API call...");
-              final orderId = await ref.read(payAndGetOrderIdProvider.future);
+              // Force a fresh provider execution to avoid cached results
+              final orderId = await ref.refresh(
+                payAndGetOrderIdProvider.future,
+              );
               print("[PAYMENT] Pay API call completed. orderId=$orderId");
               if (!context.mounted) return;
 

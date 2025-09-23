@@ -160,10 +160,16 @@ class CategoryProductGridSection extends ConsumerWidget {
 
                                       quantity == 0
                                           ? GestureDetector(
-                                              onTap: () {
-                                                ref
-                                                    .read(cartProviders.notifier)
-                                                    .addItem(cartItem);
+                                              onTap: () async {
+                                                await ref
+                                                    .read(
+                                                      cartProviders.notifier,
+                                                    )
+                                                    .addOrUpdateViaApi(
+                                                      productVariantId: cartItem
+                                                          .productVariantId,
+                                                      quantity: 1,
+                                                    );
                                               },
                                               child: _squareButton(
                                                 icon: Icons.add,
@@ -174,11 +180,19 @@ class CategoryProductGridSection extends ConsumerWidget {
                                           : Row(
                                               children: [
                                                 GestureDetector(
-                                                  onTap: () {
-                                                    ref
-                                                        .read(cartProviders.notifier)
-                                                        .decrementItem(
-                                                            variant.id.toString());
+                                                  onTap: () async {
+                                                    await ref
+                                                        .read(
+                                                          cartProviders
+                                                              .notifier,
+                                                        )
+                                                        .decrementViaApi(
+                                                          productVariantId:
+                                                              variant.id
+                                                                  .toString(),
+                                                          currentQuantity:
+                                                              quantity,
+                                                        );
                                                   },
                                                   child: _squareButton(
                                                     icon: Icons.remove,
@@ -190,10 +204,18 @@ class CategoryProductGridSection extends ConsumerWidget {
                                                 Text(quantity.toString()),
                                                 SizedBox(width: 10.w),
                                                 GestureDetector(
-                                                  onTap: () {
-                                                    ref
-                                                        .read(cartProviders.notifier)
-                                                        .addItem(cartItem);
+                                                  onTap: () async {
+                                                    await ref
+                                                        .read(
+                                                          cartProviders
+                                                              .notifier,
+                                                        )
+                                                        .addOrUpdateViaApi(
+                                                          productVariantId: cartItem
+                                                              .productVariantId,
+                                                          quantity:
+                                                              quantity + 1,
+                                                        );
                                                   },
                                                   child: _squareButton(
                                                     icon: Icons.add,

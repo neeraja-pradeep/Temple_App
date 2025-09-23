@@ -54,18 +54,21 @@ class CartRepository {
         "Accept": "application/json",
       };
 
-      print("HTTP REQUEST → POST ${uri.toString()}");
-      print("REQUEST HEADERS → ${headers.toString()}");
+      log("[PAYMENT] REQUEST → POST ${uri.toString()}");
+      _logLarge("[PAYMENT] REQUEST HEADERS", headers.toString());
 
       final response = await http.post(uri, headers: headers);
 
-      print("HTTP RESPONSE ← ${response.statusCode}");
-      print("RESPONSE BODY ← ${response.body}");
+      log("[PAYMENT] RESPONSE ← ${response.statusCode}");
+      _logLarge("[PAYMENT] RESPONSE HEADERS", response.headers.toString());
+      _logBodyJsonPretty("[PAYMENT] RESPONSE BODY", response.body);
 
-      return response.statusCode == 200 || response.statusCode == 201;
+      final ok = response.statusCode == 200 || response.statusCode == 201;
+      log("[PAYMENT] RESULT → ${ok ? 'SUCCESS' : 'FAIL'}");
+      return ok;
     } catch (e, st) {
-      print("EXCEPTION DURING PAY → $e");
-      print(st.toString());
+      log("[PAYMENT] EXCEPTION DURING PAY → $e");
+      log(st.toString());
       return false;
     }
   }
@@ -78,10 +81,11 @@ class CartRepository {
         "Content-Type": "application/json",
         "Accept": "application/json",
       };
-      print("HTTP REQUEST → POST ${uri.toString()}");
+      log("[PAYMENT] REQUEST (orderId) → POST ${uri.toString()}");
       final response = await http.post(uri, headers: headers);
-      print("HTTP RESPONSE ← ${response.statusCode}");
-      print("RESPONSE BODY ← ${response.body}");
+      log("[PAYMENT] RESPONSE (orderId) ← ${response.statusCode}");
+      _logLarge("[PAYMENT] RESPONSE HEADERS", response.headers.toString());
+      _logBodyJsonPretty("[PAYMENT] RESPONSE BODY", response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         try {
@@ -89,23 +93,73 @@ class CartRepository {
           if (decoded is Map<String, dynamic>) {
             final dynamic directId = decoded['id'] ?? decoded['order_id'];
             if (directId != null) {
-              return int.tryParse(directId.toString());
+              final parsed = int.tryParse(directId.toString());
+              log("[PAYMENT] PARSED ORDER ID (direct) → $parsed");
+              return parsed;
             }
             if (decoded['order'] is Map<String, dynamic>) {
               final inner = decoded['order'] as Map<String, dynamic>;
               final dynamic innerId = inner['id'] ?? inner['order_id'];
               if (innerId != null) {
-                return int.tryParse(innerId.toString());
+                final parsed = int.tryParse(innerId.toString());
+                log("[PAYMENT] PARSED ORDER ID (inner) → $parsed");
+                return parsed;
               }
             }
           }
-        } catch (_) {}
+        } catch (parseErr, st) {
+          log("[PAYMENT] ORDER ID PARSE ERROR → $parseErr");
+          log(st.toString());
+        }
       }
+      log("[PAYMENT] NO ORDER ID FOUND IN RESPONSE");
       return null;
     } catch (e, st) {
-      print("EXCEPTION DURING PAY (orderId) → $e");
-      print(st.toString());
+      log("[PAYMENT] EXCEPTION DURING PAY (orderId) → $e");
+      log(st.toString());
       return null;
+    }
+  }
+
+  /// Pretty-print and chunk large JSON/text bodies to avoid logcat truncation
+  void _logBodyJsonPretty(String label, String body) {
+    String printable;
+    try {
+      final dynamic decoded = jsonDecode(body);
+      printable = const JsonEncoder.withIndent('  ').convert(decoded);
+    } catch (_) {
+      printable = body; // not JSON, log raw
+    }
+    _logLarge(label, printable);
+  }
+
+  void _logLarge(String label, String text) {
+    const int chunkSize = 800; // safe chunk size for Android logcat
+    if (text.length <= chunkSize) {
+      final line = "$label →\n$text";
+      log(line);
+      // Also print for environments that filter out log()
+      // ignore: avoid_print
+      print(line);
+      return;
+    }
+    final header = "$label (chunked) → length=${text.length}";
+    log(header);
+    // ignore: avoid_print
+    print(header);
+    int start = 0;
+    int index = 1;
+    while (start < text.length) {
+      final end = (start + chunkSize < text.length)
+          ? start + chunkSize
+          : text.length;
+      final chunk = text.substring(start, end);
+      final part = "$label [part $index] →\n$chunk";
+      log(part);
+      // ignore: avoid_print
+      print(part);
+      start = end;
+      index++;
     }
   }
 

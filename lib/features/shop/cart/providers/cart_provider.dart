@@ -16,7 +16,8 @@ class CartListNotifier extends StateNotifier<List<CartItem>> {
   }
 
   Future<void> loadCart() async {
-    final items = await _repository.getCart();
+    // Prefer fresh data from API and sync to Hive; falls back to Hive inside repo
+    final items = await _repository.getinitStateCartFromAPi();
     state = items;
   }
 
@@ -39,5 +40,40 @@ class CartListNotifier extends StateNotifier<List<CartItem>> {
   Future<void> clearCart() async {
     await _repository.clearCart();
     state = []; // Clear the state immediately
+  }
+
+  /// ➕ Add or update via API (POST if new, PATCH if exists), then sync
+  Future<void> addOrUpdateViaApi({
+    required String productVariantId,
+    required int quantity,
+  }) async {
+    await _repository.addAndUpdateCartItemToAPI(
+      productVariantId: productVariantId,
+      quantity: quantity,
+    );
+    await loadCart();
+  }
+
+  /// ➖ Decrement via API (PATCH new qty, or DELETE if zero), then sync
+  Future<void> decrementViaApi({
+    required String productVariantId,
+    required int currentQuantity,
+  }) async {
+    final nextQty = currentQuantity - 1;
+    if (nextQty <= 0) {
+      await _repository.deleteCartItemByProductVariantId(productVariantId);
+    } else {
+      await _repository.addAndUpdateCartItemToAPI(
+        productVariantId: productVariantId,
+        quantity: nextQty,
+      );
+    }
+    await loadCart();
+  }
+
+  /// 🗑 Delete item via API by productVariantId, then sync
+  Future<void> deleteViaApi(String productVariantId) async {
+    await _repository.deleteCartItemByProductVariantId(productVariantId);
+    await loadCart();
   }
 }

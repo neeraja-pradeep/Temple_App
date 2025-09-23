@@ -4,8 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:temple/core/constants/sized.dart';
 import 'package:temple/core/theme/color/colors.dart';
-import 'package:temple/features/shop/cart/data/model/cart_model.dart';
-import 'package:temple/features/shop/cart/providers/addToCart_provider.dart';
+
 import 'package:temple/features/shop/cart/providers/cart_provider.dart';
 import 'package:temple/widgets/mytext.dart';
 
@@ -132,16 +131,11 @@ class CartSelectedItemslisting extends ConsumerWidget {
                               quantity == 1
                                   ? GestureDetector(
                                       onTap: () async {
-                                            ref.read(
-                                          deleteCartItemFromAPI({
-                                            "productVariantId":
-                                                item.productVariantId,
-                                          }),
-                                        );
                                         await ref
                                             .read(cartProviders.notifier)
-                                            .removeItem(item.productVariantId);
-                                    
+                                            .deleteViaApi(
+                                              item.productVariantId,
+                                            );
                                       },
                                       child: SvgPicture.asset(
                                         'assets/svg/delete.svg',
@@ -155,8 +149,10 @@ class CartSelectedItemslisting extends ConsumerWidget {
                                       onTap: () async {
                                         await ref
                                             .read(cartProviders.notifier)
-                                            .decrementItem(
-                                              item.productVariantId,
+                                            .decrementViaApi(
+                                              productVariantId:
+                                                  item.productVariantId,
+                                              currentQuantity: quantity,
                                             );
                                       },
                                       child: Container(
@@ -183,19 +179,12 @@ class CartSelectedItemslisting extends ConsumerWidget {
                               // Add (+1 always)
                               GestureDetector(
                                 onTap: () async {
-                                  final singleIncrement = CartItem(
-                                    id: item.id,
-                                    productVariantId: item.productVariantId,
-                                    name: item.name,
-                                    sku: item.sku,
-                                    price: item.price,
-                                    quantity: 1, // ✅ Always add +1
-                                    productimage: item.productimage,
-                                  );
-
                                   await ref
                                       .read(cartProviders.notifier)
-                                      .addItem(singleIncrement);
+                                      .addOrUpdateViaApi(
+                                        productVariantId: item.productVariantId,
+                                        quantity: quantity + 1,
+                                      );
                                 },
                                 child: SvgPicture.asset(
                                   'assets/svg/add.svg',
