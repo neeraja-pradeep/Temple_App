@@ -500,9 +500,44 @@ class _MusicPlayerPageState extends ConsumerState<MusicPlayerPage> {
     ref.read(currentlyPlayingIdProvider.notifier).state = song.id;
 
     final player = ref.read(audioPlayerProvider);
-    await player.setAudioSource(AudioSource.uri(Uri.parse(song.streamUrl)));
-    await player.play();
-    ref.read(isPlayingProvider.notifier).state = true;
+    final String originalUrl = song.streamUrl;
+    final String url = _normalizeStreamUrl(originalUrl);
+    try {
+      debugPrint('=== AUDIO LOAD START (player) ===');
+      debugPrint('Original URL: ' + originalUrl);
+      debugPrint('Normalized URL: ' + url);
+      await player.setAudioSource(
+        AudioSource.uri(
+          Uri.parse(url),
+          headers: const {
+            'Accept': '*/*',
+            'User-Agent': 'TemplePlayer/1.0 (JustAudio/ExoPlayer)',
+          },
+        ),
+      );
+      await player.seek(Duration.zero);
+      await player.play();
+      ref.read(isPlayingProvider.notifier).state = true;
+      debugPrint('=== AUDIO PLAY STARTED (player) ===');
+    } catch (e, st) {
+      debugPrint('=== AUDIO LOAD ERROR (player) ===');
+      debugPrint('Error: ' + e.toString());
+      debugPrint(st.toString());
+      try {
+        final String httpsUrl = url.startsWith('http://')
+            ? url.replaceFirst('http://', 'https://')
+            : url;
+        await player.setAudioSource(AudioSource.uri(Uri.parse(httpsUrl)));
+        await player.seek(Duration.zero);
+        await player.play();
+        ref.read(isPlayingProvider.notifier).state = true;
+        debugPrint('Retry succeeded (player)');
+      } catch (e2, st2) {
+        debugPrint('Retry failed (player): ' + e2.toString());
+        debugPrint(st2.toString());
+      }
+      debugPrint('=== END AUDIO LOAD ERROR (player) ===');
+    }
   }
 
   String _fmt(Duration d) {
@@ -510,6 +545,15 @@ class _MusicPlayerPageState extends ConsumerState<MusicPlayerPage> {
     final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return "$m:$s";
   }
+}
+
+// Prefer https when possible and trim whitespace
+String _normalizeStreamUrl(String url) {
+  final String trimmed = url.trim();
+  if (trimmed.startsWith('http://res.cloudinary.com/')) {
+    return trimmed.replaceFirst('http://', 'https://');
+  }
+  return trimmed;
 }
 
 class _ThinTrackShape extends SliderTrackShape {

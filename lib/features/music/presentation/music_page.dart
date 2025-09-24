@@ -57,9 +57,45 @@ class _MusicPageState extends ConsumerState<MusicPage> {
     ref.read(currentlyPlayingIdProvider.notifier).state = song.id;
 
     final player = ref.read(audioPlayerProvider);
-    await player.setAudioSource(AudioSource.uri(Uri.parse(song.streamUrl)));
-    await player.play();
-    ref.read(isPlayingProvider.notifier).state = true;
+    final String originalUrl = song.streamUrl;
+    final String url = _normalizeStreamUrl(originalUrl);
+    try {
+      debugPrint('=== AUDIO LOAD START ===');
+      debugPrint('Original URL: ' + originalUrl);
+      debugPrint('Normalized URL: ' + url);
+      await player.setAudioSource(
+        AudioSource.uri(
+          Uri.parse(url),
+          headers: const {
+            'Accept': '*/*',
+            'User-Agent': 'TemplePlayer/1.0 (JustAudio/ExoPlayer)',
+          },
+        ),
+      );
+      await player.seek(Duration.zero);
+      await player.play();
+      ref.read(isPlayingProvider.notifier).state = true;
+      debugPrint('=== AUDIO PLAY STARTED ===');
+    } catch (e, st) {
+      debugPrint('=== AUDIO LOAD ERROR ===');
+      debugPrint('Error: ' + e.toString());
+      debugPrint(st.toString());
+      debugPrint('Will retry once with https (if applicable) and no headers');
+      try {
+        final String httpsUrl = url.startsWith('http://')
+            ? url.replaceFirst('http://', 'https://')
+            : url;
+        await player.setAudioSource(AudioSource.uri(Uri.parse(httpsUrl)));
+        await player.seek(Duration.zero);
+        await player.play();
+        ref.read(isPlayingProvider.notifier).state = true;
+        debugPrint('Retry succeeded');
+      } catch (e2, st2) {
+        debugPrint('Retry failed: ' + e2.toString());
+        debugPrint(st2.toString());
+      }
+      debugPrint('=== END AUDIO LOAD ERROR ===');
+    }
   }
 
   @override
@@ -141,13 +177,50 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                         Future.microtask(() async {
                           final player = ref.read(audioPlayerProvider);
                           try {
+                            final String originalUrl = song.streamUrl;
+                            final String url = _normalizeStreamUrl(originalUrl);
+                            debugPrint('=== AUDIO LOAD (list tap) ===');
+                            debugPrint('Original URL: ' + originalUrl);
+                            debugPrint('Normalized URL: ' + url);
                             await player.setAudioSource(
-                              AudioSource.uri(Uri.parse(song.streamUrl)),
+                              AudioSource.uri(
+                                Uri.parse(url),
+                                headers: const {
+                                  'Accept': '*/*',
+                                  'User-Agent':
+                                      'TemplePlayer/1.0 (JustAudio/ExoPlayer)',
+                                },
+                              ),
                             );
                             await player.seek(Duration.zero);
                             await player.play();
                             ref.read(isPlayingProvider.notifier).state = true;
-                          } catch (_) {}
+                          } catch (e, st) {
+                            debugPrint(
+                              'AUDIO LOAD ERROR (list tap): ' + e.toString(),
+                            );
+                            debugPrint(st.toString());
+                            try {
+                              final String httpsUrl =
+                                  song.streamUrl.startsWith('http://')
+                                  ? song.streamUrl.replaceFirst(
+                                      'http://',
+                                      'https://',
+                                    )
+                                  : song.streamUrl;
+                              await player.setAudioSource(
+                                AudioSource.uri(Uri.parse(httpsUrl)),
+                              );
+                              await player.seek(Duration.zero);
+                              await player.play();
+                              ref.read(isPlayingProvider.notifier).state = true;
+                            } catch (e2, st2) {
+                              debugPrint(
+                                'Retry failed (list tap): ' + e2.toString(),
+                              );
+                              debugPrint(st2.toString());
+                            }
+                          }
                         });
                       },
                     );
@@ -175,6 +248,15 @@ class _MusicPageState extends ConsumerState<MusicPage> {
       ),
     );
   }
+}
+
+// Prefer https when possible and trim whitespace
+String _normalizeStreamUrl(String url) {
+  final String trimmed = url.trim();
+  if (trimmed.startsWith('http://res.cloudinary.com/')) {
+    return trimmed.replaceFirst('http://', 'https://');
+  }
+  return trimmed;
 }
 
 class _SongTile extends StatelessWidget {

@@ -8,13 +8,36 @@ class SpecialPoojaRepository {
       'http://templerun.click/api/booking/poojas/?banner=true';
 
   Future<List<SpecialPooja>> fetchSpecialPoojas() async {
-    final response = await http.get(Uri.parse(_endpoint));
-    if (response.statusCode == 200) {
-      print(response.body);
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((e) => SpecialPooja.fromJson(e)).toList();
-    } else {
-      throw Exception('Failed to load special poojas');
+    try {
+      final uri = Uri.parse(_endpoint);
+      final response = await http.get(
+        uri,
+        headers: const {'Accept': 'application/json'},
+      );
+      if (response.statusCode != 200) {
+        throw Exception(
+          'Failed to load special poojas: ${response.statusCode}',
+        );
+      }
+      final dynamic decoded = json.decode(response.body);
+      List<dynamic> list;
+      if (decoded is List) {
+        list = decoded;
+      } else if (decoded is Map<String, dynamic>) {
+        list =
+            (decoded['poojas'] as List?) ??
+            (decoded['results'] as List?) ??
+            (decoded['data'] as List?) ??
+            <dynamic>[];
+      } else {
+        list = <dynamic>[];
+      }
+      return list
+          .map((e) => SpecialPooja.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      print('fetchSpecialPoojas error: $e');
+      rethrow;
     }
   }
 

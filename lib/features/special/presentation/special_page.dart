@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:temple/core/app_colors.dart';
 import '../providers/special_pooja_provider.dart';
 import '../data/special_pooja_model.dart';
@@ -466,10 +467,14 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8.r),
                             child: Image.network(
-                              pooja.mediaUrl,
+                              _normalizeImageUrl(pooja.mediaUrl),
                               width: 134.w,
                               height: 80.h,
                               fit: BoxFit.cover,
+                              loadingBuilder: (context, child, progress) {
+                                if (progress == null) return child;
+                                return _buildShimmerBox(134.w, 80.h, 8.r);
+                              },
                               errorBuilder: (context, error, stackTrace) =>
                                   Container(
                                     decoration: BoxDecoration(
@@ -583,10 +588,14 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8.r),
                     child: Image.network(
-                      pooja.mediaUrl,
+                      _normalizeImageUrl(pooja.mediaUrl),
                       width: 146.w,
                       height: 80.h,
                       fit: BoxFit.cover,
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return _buildShimmerBox(146.w, 80.h, 8.r);
+                      },
                       errorBuilder: (context, error, stackTrace) => Container(
                         decoration: BoxDecoration(
                           color: Colors.grey[200],
@@ -700,10 +709,14 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8.r),
                       child: Image.network(
-                        pooja.bannerUrl,
+                        _normalizeImageUrl(pooja.bannerUrl),
                         width: 343.w,
                         height: 142.h,
                         fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) return child;
+                          return _buildShimmerBox(343.w, 142.h, 8.r);
+                        },
                         errorBuilder: (context, error, stackTrace) => Container(
                           color: Colors.grey,
                           width: 343.w,
@@ -832,27 +845,23 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
             left: 8.w,
             right: 8.w,
           ),
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(8.r),
-          ),
-          child: Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.selected),
-            ),
-          ),
+          child: _buildShimmerBox(343.w, 142.h, 8.r),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
             3,
-            (index) => Container(
-              margin: EdgeInsets.symmetric(horizontal: 4.w),
-              width: 12.w,
-              height: 12.w,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(12.w),
+            (index) => Shimmer.fromColors(
+              baseColor: Colors.grey.shade300,
+              highlightColor: Colors.grey.shade100,
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 4.w),
+                width: 12.w,
+                height: 12.w,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.w),
+                ),
               ),
             ),
           ),
@@ -906,19 +915,12 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
         itemCount: 3,
         separatorBuilder: (context, i) => SizedBox(width: 11.w),
         itemBuilder: (context, index) {
-          return Container(
+          return _buildPoojaCardShimmer(
             width: 150.w,
             height: 220.h,
-            margin: EdgeInsets.only(bottom: 6.h),
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.selected),
-              ),
-            ),
+            imageHeight: 80.h,
+            radius: 12.r,
+            padding: 8.0,
           );
         },
       ),
@@ -959,18 +961,12 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
       ),
       itemCount: 4,
       itemBuilder: (context, index) {
-        return Container(
+        return _buildPoojaCardShimmer(
           width: 163.w,
           height: 200.h,
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          child: Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.selected),
-            ),
-          ),
+          imageHeight: 80.h,
+          radius: 12.r,
+          padding: 8.0,
         );
       },
     );
@@ -995,4 +991,92 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
       ),
     );
   }
+}
+
+// Ensures image URLs have a scheme; defaults to https
+String _normalizeImageUrl(String url) {
+  final String trimmed = (url).trim();
+  if (trimmed.isEmpty) return trimmed;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  return 'https://' + trimmed;
+}
+
+// Shimmer placeholder box
+Widget _buildShimmerBox(double width, double height, double radius) {
+  return Shimmer.fromColors(
+    baseColor: Colors.grey.shade300,
+    highlightColor: Colors.grey.shade100,
+    child: Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    ),
+  );
+}
+
+// Reusable shimmer skeleton matching the pooja card layout
+Widget _buildPoojaCardShimmer({
+  required double width,
+  required double height,
+  required double imageHeight,
+  required double radius,
+  required double padding,
+}) {
+  return Shimmer.fromColors(
+    baseColor: Colors.grey.shade300,
+    highlightColor: Colors.grey.shade100,
+    child: Container(
+      width: width,
+      height: height,
+      margin: EdgeInsets.only(bottom: 6.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(padding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image placeholder
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.r),
+                  child: Container(
+                    width: width - (padding * 2),
+                    height: imageHeight,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                // Title line
+                Container(
+                  width: width * 0.7,
+                  height: 12.h,
+                  color: Colors.white,
+                ),
+                SizedBox(height: 6.h),
+                // Subtitle line
+                Container(
+                  width: width * 0.5,
+                  height: 12.h,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+            // Price line
+            Container(width: width * 0.3, height: 14.h, color: Colors.white),
+          ],
+        ),
+      ),
+    ),
+  );
 }
