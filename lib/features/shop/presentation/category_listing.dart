@@ -62,7 +62,7 @@ class ShopCategorySection extends ConsumerWidget {
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(5.r),
                               child: Image.network(
-                                data[index].mediaUrl,
+                                _normalizeImageUrl(data[index].mediaUrl),
                                 fit: BoxFit.fitHeight,
                                 width: double.infinity,
                                 height: double.infinity,
@@ -117,4 +117,14 @@ class ShopCategorySection extends ConsumerWidget {
       ),
     );
   }
+}
+
+// Ensures image URLs have a scheme; defaults to https
+String _normalizeImageUrl(String url) {
+  final String trimmed = (url).trim();
+  if (trimmed.isEmpty) return trimmed;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  return 'https://' + trimmed;
 }

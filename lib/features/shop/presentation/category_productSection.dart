@@ -120,7 +120,7 @@ class CategoryProductGridSection extends ConsumerWidget {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(10.r),
                                   child: Image.network(
-                                    variant.mediaUrl,
+                                    _normalizeImageUrl(variant.mediaUrl),
                                     fit: BoxFit.cover,
                                     width: double.infinity,
                                     errorBuilder: (_, __, ___) =>
@@ -289,4 +289,14 @@ class CategoryProductGridSection extends ConsumerWidget {
       child: Icon(icon, color: filled ? cWhite : color, size: 16),
     );
   }
+}
+
+// Ensures image URLs have a scheme; defaults to https
+String _normalizeImageUrl(String url) {
+  final String trimmed = (url).trim();
+  if (trimmed.isEmpty) return trimmed;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  return 'https://' + trimmed;
 }
