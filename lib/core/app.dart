@@ -12,6 +12,11 @@ import '../features/shop/cart/presentation/checkout_screen.dart';
 import '../features/shop/delivery/presentation/payment_method.dart';
 import '../features/shop/presentation/shopping_section.dart';
 import '../features/shop/providers/gesture_riverpod.dart';
+import '../features/home/providers/home_providers.dart';
+import '../features/auth/presentation/login_page.dart';
+import '../features/auth/presentation/register_page.dart';
+import '../features/auth/presentation/user_details_basic_page.dart';
+import '../features/auth/presentation/user_details_address_page.dart';
 
 class MainNavScreen extends ConsumerStatefulWidget {
   final Widget? drawerContent;
@@ -63,8 +68,16 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
     ];
 
     // Listen for navigation triggers
-    ref.listen(navigationTriggerProvider, (previous, next) {
+    ref.listen(navigationTriggerProvider, (previous, next) async {
       if (next != null) {
+        // If leaving Home tab (index 2), pause audio and reset play state
+        if (_selectedIndex == 2) {
+          final player = ref.read(audioPlayerProvider);
+          try {
+            await player.pause();
+          } catch (_) {}
+          ref.read(isPlayingProvider.notifier).state = false;
+        }
         setState(() {
           _selectedIndex = next;
         });
@@ -126,7 +139,17 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
             children: List.generate(_icons.length, (index) {
               final isSelected = _selectedIndex == index;
               return GestureDetector(
-                onTap: () => setState(() => _selectedIndex = index),
+                onTap: () async {
+                  // If leaving Home tab (index 2), pause audio and reset play state
+                  if (_selectedIndex == 2 && index != 2) {
+                    final player = ref.read(audioPlayerProvider);
+                    try {
+                      await player.pause();
+                    } catch (_) {}
+                    ref.read(isPlayingProvider.notifier).state = false;
+                  }
+                  setState(() => _selectedIndex = index);
+                },
                 behavior: HitTestBehavior.opaque,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -201,7 +224,14 @@ class App extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MainNavScreen(),
+      home: const LoginPage(),
+      routes: {
+        '/login': (_) => const LoginPage(),
+        '/register': (_) => const RegisterPage(),
+        '/user/basic': (_) => const UserDetailsBasicPage(),
+        '/user/address': (_) => const UserDetailsAddressPage(),
+        '/main': (_) => const MainNavScreen(),
+      },
       builder: (context, child) {
         ScreenUtil.init(context);
         return child!;

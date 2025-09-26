@@ -86,6 +86,9 @@ flutter:
     - assets/icons/mute.png
     - assets/fallBack.png
     - assets/icons/playlist.png
+    - assets/loginUI.jpg
+    - assets/icons/facebook.png
+    - assets/icons/google.png
 
     # To add assets to your application, add an assets section, like this:
     # assets:

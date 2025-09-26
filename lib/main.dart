@@ -56,13 +56,13 @@ class _MyAppState extends ConsumerState<MyApp> {
   void initState() {
     super.initState();
     // Call the function once
-    Future.microtask(()async {
-     await CartRepository().getinitStateCartFromAPi();
+    Future.microtask(() async {
+      await CartRepository().getinitStateCartFromAPi();
     });
   }
 
   @override
-Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       minTextAdapt: true,
@@ -71,5 +71,3 @@ Widget build(BuildContext context) {
     );
   }
 }
-
-  
