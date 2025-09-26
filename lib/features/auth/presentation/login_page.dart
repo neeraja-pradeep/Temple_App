@@ -106,7 +106,7 @@ class LoginPage extends ConsumerWidget {
                               : Text(
                                   'Sign in',
                                   style: TextStyle(
-                                    fontSize: 20.sp,
+                                    fontSize: 18.sp,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.white,
                                   ),
@@ -217,7 +217,7 @@ class _SocialButton extends StatelessWidget {
       width: 36.w,
       height: 36.w,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.socialButtonBackground,
         borderRadius: BorderRadius.circular(8.r),
         boxShadow: const [
           BoxShadow(

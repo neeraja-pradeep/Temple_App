@@ -10,4 +10,7 @@ class AppColors {
   static const Color inputFieldColor = Color(
     0xFFFBF6F1,
   ); // rgba(251, 246, 241, 1)
+  static const Color socialButtonBackground = Color(
+    0xFFECECEC,
+  ); // rgba(236, 236, 236, 1)
 }
