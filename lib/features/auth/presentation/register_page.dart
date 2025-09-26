@@ -19,7 +19,7 @@ class RegisterPage extends ConsumerWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset('assets/loginUI.jpg', fit: BoxFit.cover),
+          Image.asset('assets/loginUi.jpg', fit: BoxFit.cover),
           SafeArea(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 20.h),

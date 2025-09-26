@@ -13,12 +13,13 @@ class LoginPage extends ConsumerWidget {
     final phoneController = ref.watch(loginPhoneControllerProvider);
     final otpController = ref.watch(loginOtpControllerProvider);
     final isLoading = ref.watch(authLoadingProvider);
+    final otpSent = ref.watch(otpSentProvider);
 
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset('assets/loginUI.jpg', fit: BoxFit.cover),
+          Image.asset('assets/loginUi.jpg', fit: BoxFit.cover),
           SafeArea(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 20.h),
@@ -41,7 +42,9 @@ class LoginPage extends ConsumerWidget {
                     ),
                     SizedBox(height: 30.h),
                     Text(
-                      "Welcome back you’ve \nbeen missed!",
+                      otpSent
+                          ? "Enter the OTP sent to \nyour phone number"
+                          : "Welcome back you've \nbeen missed!",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 20.sp,
@@ -58,27 +61,51 @@ class LoginPage extends ConsumerWidget {
                           ? 'Enter valid phone'
                           : null,
                     ),
-                    _LabeledTextField(
-                      controller: otpController,
-                      hintText: 'OTP',
-                      keyboardType: TextInputType.number,
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Enter OTP' : null,
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          'Forgot your password?',
-                          style: TextStyle(
-                            color: AppColors.selected,
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w600,
+                    if (otpSent) ...[
+                      SizedBox(height: 30.h),
+                      _LabeledTextField(
+                        controller: otpController,
+                        hintText: 'OTP',
+                        keyboardType: TextInputType.number,
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Enter OTP'
+                            : null,
+                      ),
+                      SizedBox(height: 10.h),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            ref
+                                .read(authControllerProvider.notifier)
+                                .resetOTPState();
+                          },
+                          child: Text(
+                            'Change Number',
+                            style: TextStyle(
+                              color: AppColors.selected,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
+                    if (!otpSent)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {},
+                          child: Text(
+                            'Forgot your password?',
+                            style: TextStyle(
+                              color: AppColors.selected,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
                     SizedBox(height: 20.h),
                     Align(
                       alignment: Alignment.center,
@@ -88,9 +115,19 @@ class LoginPage extends ConsumerWidget {
                         child: ElevatedButton(
                           onPressed: isLoading
                               ? null
-                              : () => ref
-                                    .read(authControllerProvider.notifier)
-                                    .login(context),
+                              : () {
+                                  if (otpSent) {
+                                    // Verify OTP
+                                    ref
+                                        .read(authControllerProvider.notifier)
+                                        .login(context);
+                                  } else {
+                                    // Send OTP
+                                    ref
+                                        .read(authControllerProvider.notifier)
+                                        .sendOTP(context, phoneController.text);
+                                  }
+                                },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.selected,
                             elevation: 6,
@@ -104,7 +141,7 @@ class LoginPage extends ConsumerWidget {
                                   color: Colors.white,
                                 )
                               : Text(
-                                  'Sign in',
+                                  otpSent ? 'Verify OTP' : 'Send OTP',
                                   style: TextStyle(
                                     fontSize: 18.sp,
                                     fontWeight: FontWeight.w600,

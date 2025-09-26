@@ -20,11 +20,12 @@ import 'package:temple/core/hive/hive_init_provider.dart';
 import 'package:temple/features/shop/cart/data/repositories/cart_repository.dart';
 
 import 'core/app.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Pass all uncaught "fatal" errors from the framework to Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;

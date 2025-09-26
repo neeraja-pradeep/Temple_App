@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/services/firebase_auth_service.dart';
 
 // Form keys
 final loginFormKeyProvider = Provider<GlobalKey<FormState>>((ref) {
@@ -154,49 +156,138 @@ final userAddressPinControllerProvider =
 // Loading state
 final authLoadingProvider = StateProvider<bool>((ref) => false);
 
+// Verification ID for OTP
+final verificationIdProvider = StateProvider<String?>((ref) => null);
+
+// Track if OTP has been sent
+final otpSentProvider = StateProvider<bool>((ref) => false);
+
 // Auth controller
 class AuthController extends StateNotifier<bool> {
   AuthController(this.ref) : super(false);
 
   final Ref ref;
 
-  Future<void> login(BuildContext context) async {
-    final formKey = ref.read(loginFormKeyProvider);
-    final isValid = formKey.currentState?.validate() ?? false;
-    if (!isValid) return;
+  Future<void> sendOTP(BuildContext context, String phoneNumber) async {
+    _setLoading(true);
+    try {
+      await FirebaseAuthService.sendOTP(
+        phoneNumber: phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          // Auto-verification completed
+          final userCredential = await FirebaseAuth.instance
+              .signInWithCredential(credential);
+          if (userCredential.user != null) {
+            _handleLoginSuccess(context);
+          }
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          _handleError(context, 'Verification failed: ${e.message}');
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          ref.read(verificationIdProvider.notifier).state = verificationId;
+          ref.read(otpSentProvider.notifier).state = true;
+          _setLoading(false);
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('OTP sent successfully')),
+            );
+          }
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          ref.read(verificationIdProvider.notifier).state = verificationId;
+        },
+      );
+    } catch (e) {
+      _handleError(context, 'Failed to send OTP: $e');
+    }
+  }
+
+  Future<void> verifyOTP(BuildContext context, String otp) async {
+    final verificationId = ref.read(verificationIdProvider);
+    if (verificationId == null) {
+      _handleError(context, 'Verification ID not found');
+      return;
+    }
 
     _setLoading(true);
     try {
-      await Future.delayed(const Duration(seconds: 1));
-      // TODO: Integrate real login logic (API / Firebase)
-      if (context.mounted) {
-        FocusScope.of(context).unfocus();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Logged in')));
+      final userCredential = await FirebaseAuthService.verifyOTP(
+        verificationId: verificationId,
+        otp: otp,
+      );
+
+      if (userCredential?.user != null) {
+        _handleLoginSuccess(context);
+      } else {
+        _handleError(context, 'Invalid OTP');
       }
-    } finally {
-      _setLoading(false);
+    } catch (e) {
+      _handleError(context, 'OTP verification failed: $e');
     }
+  }
+
+  void resetOTPState() {
+    ref.read(otpSentProvider.notifier).state = false;
+    ref.read(verificationIdProvider.notifier).state = null;
+    ref.read(loginOtpControllerProvider).clear();
+  }
+
+  Future<void> login(BuildContext context) async {
+    final formKey = ref.read(loginFormKeyProvider);
+    final otpController = ref.read(loginOtpControllerProvider);
+
+    final isValid = formKey.currentState?.validate() ?? false;
+    if (!isValid) return;
+
+    final otp = otpController.text.trim();
+
+    // Verify OTP (this method is called when OTP field is visible)
+    await verifyOTP(context, otp);
   }
 
   Future<void> register(BuildContext context) async {
     final formKey = ref.read(registerFormKeyProvider);
+    final phoneController = ref.read(registerPhoneControllerProvider);
+    final otpController = ref.read(registerOtpControllerProvider);
+
     final isValid = formKey.currentState?.validate() ?? false;
     if (!isValid) return;
 
-    _setLoading(true);
-    try {
-      await Future.delayed(const Duration(seconds: 1));
-      // TODO: Integrate real register logic (API / Firebase)
+    final phoneNumber = phoneController.text.trim();
+    final otp = otpController.text.trim();
+
+    if (otp.isEmpty) {
+      // Send OTP first
+      await sendOTP(context, phoneNumber);
+    } else {
+      // Verify OTP and proceed to user details
+      await verifyOTP(context, otp);
       if (context.mounted) {
-        FocusScope.of(context).unfocus();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Account created')));
+        Navigator.pushReplacementNamed(context, '/user/basic');
       }
-    } finally {
-      _setLoading(false);
+    }
+  }
+
+  void _handleLoginSuccess(BuildContext context) {
+    _setLoading(false);
+    if (context.mounted) {
+      FocusScope.of(context).unfocus();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Login successful')));
+      // Navigate to main app
+      Navigator.pushReplacementNamed(context, '/main');
+    }
+  }
+
+  void _handleError(BuildContext context, String message) {
+    _setLoading(false);
+    if (context.mounted) {
+      FocusScope.of(context).unfocus();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
