@@ -1,18 +1,16 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'dart:convert';
 import 'package:temple_app/core/app_colors.dart';
 import 'package:temple_app/features/booking/presentation/pooja_summary_page.dart';
 import 'package:temple_app/widgets/custom_calendar_picker.dart';
-
-import '../data/booking_pooja_model.dart';
-import '../data/nakshatram_model.dart';
-import '../data/user_list_model.dart';
-import '../providers/booking_page_providers.dart';
 import '../providers/booking_provider.dart';
 import '../providers/user_list_provider.dart';
+import '../data/booking_pooja_model.dart';
+import '../data/user_list_model.dart';
+import '../providers/booking_page_providers.dart';
+import '../data/nakshatram_model.dart';
 
 // Import providers from separate file to avoid circular imports
 
@@ -969,7 +967,7 @@ class BookingPage extends ConsumerWidget {
                     ],
                   ),
                 )
-                ,
+                .toList(),
 
             // Add new user option
             _buildAddNewUserOption(context, ref, userLists),
@@ -1235,7 +1233,7 @@ class BookingPage extends ConsumerWidget {
                   if (agentCode.isNotEmpty) ...[
                     SizedBox(height: 4.h),
                     Text(
-                      agentCode,
+                      '$agentCode',
                       style: TextStyle(
                         fontSize: 11.sp,
                         color: Colors.grey[600],
@@ -1715,7 +1713,7 @@ class BookingPage extends ConsumerWidget {
                             return SizedBox(
                               height: 40.h,
                               child: DropdownButtonFormField<int>(
-                                initialValue: selectedNakshatram,
+                                value: selectedNakshatram,
                                 isExpanded: true,
                                 items: nakshatramOptions
                                     .map(
@@ -1950,7 +1948,7 @@ class BookingPage extends ConsumerWidget {
 
                                 String time = timeController.text.trim();
                                 if (RegExp(
-                                  r'^\d{1,2}:\d{2} $',
+                                  r'^\d{1,2}:\d{2}$',
                                 ).hasMatch(time)) {
                                   time = '$time:00';
                                 } else if (RegExp(
@@ -2274,7 +2272,7 @@ class BookingPage extends ConsumerWidget {
                             return SizedBox(
                               height: 40.h,
                               child: DropdownButtonFormField<int>(
-                                initialValue: selectedNakshatram,
+                                value: selectedNakshatram,
                                 isExpanded: true,
                                 items: nakshatramOptions
                                     .map(
