@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:temple/core/theme/color/colors.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
 
 class WText extends StatelessWidget {
   final String text;

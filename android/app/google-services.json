@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:799670961061:android:20b987eb993677209bde4c",
+        "mobilesdk_app_id": "1:799670961061:android:047bcb70a6af7cbe9bde4c",
         "android_client_info": {
-          "package_name": "com.example.temple.in"
+          "package_name": "com.nexotech.templeapp.in"
         }
       },
       "oauth_client": [
@@ -31,10 +31,10 @@
               "client_type": 3
             },
             {
-              "client_id": "799670961061-dbgulcqjfpn6r4h33a2vumne6jafnbhu.apps.googleusercontent.com",
+              "client_id": "799670961061-8ekvg5ophtubg4fh49lq17f8mbc9i0bc.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.temple"
+                "bundle_id": "com.example.temple.in"
               }
             }
           ]

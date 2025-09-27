@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:temple/core/constants/sized.dart';
-import 'package:temple/core/theme/color/colors.dart';
-import 'package:temple/features/shop/delivery/data/model/address_model.dart';
-import 'package:temple/features/shop/delivery/providers/delivery_provider.dart';
-import 'package:temple/features/shop/widget/text_formfield.dart';
-import 'package:temple/widgets/mytext.dart';
+import 'package:temple_app/core/constants/sized.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
+import 'package:temple_app/features/shop/delivery/data/model/address_model.dart';
+import 'package:temple_app/features/shop/delivery/providers/delivery_provider.dart';
+import 'package:temple_app/features/shop/widget/text_formfield.dart';
+import 'package:temple_app/widgets/mytext.dart';
 
 class AddressSheet extends ConsumerStatefulWidget {
   final BuildContext parentContext;

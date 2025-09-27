@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple/core/constants/sized.dart';
-import 'package:temple/core/theme/color/colors.dart';
-import 'package:temple/features/shop/cart/presentation/app_bar.dart';
-import 'package:temple/features/shop/cart/presentation/item_priceDetails.dart';
-import 'package:temple/features/shop/cart/presentation/selected_items.dart';
-import 'package:temple/features/shop/cart/providers/addToCart_provider.dart';
-import 'package:temple/features/shop/cart/providers/cart_provider.dart';
-import 'package:temple/features/shop/providers/gesture_riverpod.dart';
-import 'package:temple/features/shop/widget/checkout_button.dart';
-import 'package:temple/widgets/mytext.dart';
+import 'package:temple_app/core/constants/sized.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
+import 'package:temple_app/features/shop/cart/presentation/app_bar.dart';
+import 'package:temple_app/features/shop/cart/presentation/item_priceDetails.dart';
+import 'package:temple_app/features/shop/cart/presentation/selected_items.dart';
+import 'package:temple_app/features/shop/cart/providers/addToCart_provider.dart';
+import 'package:temple_app/features/shop/cart/providers/cart_provider.dart';
+import 'package:temple_app/features/shop/providers/gesture_riverpod.dart';
+import 'package:temple_app/features/shop/widget/checkout_button.dart';
+import 'package:temple_app/widgets/mytext.dart';
 
 class CheckoutScreen extends  ConsumerStatefulWidget {
   const CheckoutScreen({super.key});

@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:temple/core/app_colors.dart';
-import 'package:temple/features/home/providers/home_providers.dart';
+import 'package:temple_app/core/app_colors.dart';
+import 'package:temple_app/features/home/providers/home_providers.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});

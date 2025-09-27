@@ -1,9 +1,9 @@
 import 'dart:developer';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:temple/features/shop/delivery/data/model/address_model.dart';
-import 'package:temple/features/shop/delivery/data/repositories/delivery_repository.dart';
-import 'package:temple/features/shop/delivery/data/repositories/order_repository.dart';
+import 'package:temple_app/features/shop/delivery/data/model/address_model.dart';
+import 'package:temple_app/features/shop/delivery/data/repositories/delivery_repository.dart';
+import 'package:temple_app/features/shop/delivery/data/repositories/order_repository.dart';
 
 final addressRepositoryProvider = Provider((ref) => AddressRepository());
 

@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:temple/features/shop/data/model/product/product_category.dart';
-import 'package:temple/features/shop/data/model/category/store_category.dart';
-import 'package:temple/features/shop/data/repositories/category_repository.dart';
-import 'package:temple/features/shop/data/repositories/product_repository.dart';
+import 'package:temple_app/features/shop/data/model/product/product_category.dart';
+import 'package:temple_app/features/shop/data/model/category/store_category.dart';
+import 'package:temple_app/features/shop/data/repositories/category_repository.dart';
+import 'package:temple_app/features/shop/data/repositories/product_repository.dart';
 
 // CATEGORY
 final categoryRepositoryProvider = Provider((ref) => CategoryRepository());

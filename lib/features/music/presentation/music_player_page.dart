@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:temple/core/app_colors.dart';
-import 'package:temple/core/navigation_provider.dart';
+import 'package:temple_app/core/app_colors.dart';
+import 'package:temple_app/core/navigation_provider.dart';
 import '../data/song_model.dart';
 import '../providers/music_providers.dart';
 
@@ -504,8 +504,8 @@ class _MusicPlayerPageState extends ConsumerState<MusicPlayerPage> {
     final String url = _normalizeStreamUrl(originalUrl);
     try {
       debugPrint('=== AUDIO LOAD START (player) ===');
-      debugPrint('Original URL: ' + originalUrl);
-      debugPrint('Normalized URL: ' + url);
+      debugPrint('Original URL: $originalUrl');
+      debugPrint('Normalized URL: $url');
       await player.setAudioSource(
         AudioSource.uri(
           Uri.parse(url),
@@ -521,7 +521,7 @@ class _MusicPlayerPageState extends ConsumerState<MusicPlayerPage> {
       debugPrint('=== AUDIO PLAY STARTED (player) ===');
     } catch (e, st) {
       debugPrint('=== AUDIO LOAD ERROR (player) ===');
-      debugPrint('Error: ' + e.toString());
+      debugPrint('Error: $e');
       debugPrint(st.toString());
       try {
         final String httpsUrl = url.startsWith('http://')
@@ -533,7 +533,7 @@ class _MusicPlayerPageState extends ConsumerState<MusicPlayerPage> {
         ref.read(isPlayingProvider.notifier).state = true;
         debugPrint('Retry succeeded (player)');
       } catch (e2, st2) {
-        debugPrint('Retry failed (player): ' + e2.toString());
+        debugPrint('Retry failed (player): $e2');
         debugPrint(st2.toString());
       }
       debugPrint('=== END AUDIO LOAD ERROR (player) ===');

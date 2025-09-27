@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:temple/core/constants/sized.dart';
-import 'package:temple/core/theme/color/colors.dart';
-import 'package:temple/features/shop/cart/presentation/app_bar.dart';
-import 'package:temple/features/shop/delivery/presentation/add_address.dart';
-import 'package:temple/features/shop/delivery/presentation/deliverd_completedPage.dart';
-import 'package:temple/features/shop/delivery/presentation/saved_address.dart';
-import 'package:temple/features/shop/delivery/providers/delivery_provider.dart';
-import 'package:temple/features/shop/providers/gesture_riverpod.dart';
-import 'package:temple/features/shop/widget/checkout_button.dart';
-import 'package:temple/widgets/mytext.dart';
-import 'package:temple/features/shop/cart/providers/addToCart_provider.dart';
+import 'package:temple_app/core/constants/sized.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
+import 'package:temple_app/features/shop/cart/presentation/app_bar.dart';
+import 'package:temple_app/features/shop/delivery/presentation/add_address.dart';
+import 'package:temple_app/features/shop/delivery/presentation/deliverd_completedPage.dart';
+import 'package:temple_app/features/shop/delivery/presentation/saved_address.dart';
+import 'package:temple_app/features/shop/delivery/providers/delivery_provider.dart';
+import 'package:temple_app/features/shop/providers/gesture_riverpod.dart';
+import 'package:temple_app/features/shop/widget/checkout_button.dart';
+import 'package:temple_app/widgets/mytext.dart';
+import 'package:temple_app/features/shop/cart/providers/addToCart_provider.dart';
 
 class PaymentMethodScreen extends ConsumerWidget {
   const PaymentMethodScreen({super.key});

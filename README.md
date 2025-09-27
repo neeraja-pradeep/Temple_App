@@ -1,4 +1,4 @@
-# temple
+# temple_app
 
 A new Flutter project.
 

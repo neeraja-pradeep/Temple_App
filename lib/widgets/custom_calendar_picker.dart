@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple/core/app_colors.dart';
+import 'package:temple_app/core/app_colors.dart';
 
 class CustomCalendarPicker extends StatefulWidget {
   final List<String> enabledDates;
@@ -8,11 +8,11 @@ class CustomCalendarPicker extends StatefulWidget {
   final void Function(String) onDateSelected;
 
   const CustomCalendarPicker({
-    Key? key,
+    super.key,
     required this.enabledDates,
     required this.onDateSelected,
     this.selectedDate,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomCalendarPicker> createState() => _CustomCalendarPickerState();

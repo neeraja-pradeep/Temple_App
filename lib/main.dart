@@ -16,8 +16,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:temple/core/hive/hive_init_provider.dart';
-import 'package:temple/features/shop/cart/data/repositories/cart_repository.dart';
+import 'package:temple_app/core/hive/hive_init_provider.dart';
+import 'package:temple_app/features/shop/cart/data/repositories/cart_repository.dart';
 
 import 'core/app.dart';
 import 'firebase_options.dart';
