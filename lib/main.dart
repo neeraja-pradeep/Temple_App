@@ -18,6 +18,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:temple_app/core/hive/hive_init_provider.dart';
 import 'package:temple_app/features/shop/cart/data/repositories/cart_repository.dart';
+import 'package:temple_app/core/services/token_storage_service.dart';
 
 import 'core/app.dart';
 import 'firebase_options.dart';
@@ -43,6 +44,10 @@ void main() async {
   // 📦 Initialize Hive
   await Hive.initFlutter();
   await HiveInitializer.init(); // 👈 register all adapters
+
+  // 🔐 Initialize Token Storage
+  await TokenStorageService.init();
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
