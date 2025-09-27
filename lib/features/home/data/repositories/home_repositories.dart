@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:temple/features/home/data/models/god_category_model.dart';
-import 'package:temple/features/home/data/models/profile_model.dart';
-import 'package:temple/features/home/data/models/song_model.dart';
+import 'package:temple_app/features/home/data/models/god_category_model.dart';
+import 'package:temple_app/features/home/data/models/profile_model.dart';
+import 'package:temple_app/features/home/data/models/song_model.dart';
 
 
 class HomeRepository {

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:temple/core/constants/sized.dart';
-import 'package:temple/core/theme/color/colors.dart';
+import 'package:temple_app/core/constants/sized.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
 
-import 'package:temple/features/shop/cart/providers/cart_provider.dart';
-import 'package:temple/widgets/mytext.dart';
+import 'package:temple_app/features/shop/cart/providers/cart_provider.dart';
+import 'package:temple_app/widgets/mytext.dart';
 
 class CartSelectedItemslisting extends ConsumerWidget {
   const CartSelectedItemslisting({super.key});

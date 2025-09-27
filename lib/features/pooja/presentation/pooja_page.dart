@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:temple/core/app_buttonStyles.dart';
-import 'package:temple/core/app_calender.dart';
-import 'package:temple/core/app_colors.dart';
-import 'package:temple/core/app_dropdown.dart';
-import 'package:temple/features/pooja/data/models/pooja_category_model.dart';
-import 'package:temple/features/pooja/providers/pooja_providers.dart';
-import 'package:temple/widgets/pooja_page_skeleton.dart';
-import 'package:temple/features/booking/presentation/booking_page.dart';
-import 'package:temple/features/booking/providers/booking_page_providers.dart';
+import 'package:temple_app/core/app_buttonStyles.dart';
+import 'package:temple_app/core/app_calender.dart';
+import 'package:temple_app/core/app_colors.dart';
+import 'package:temple_app/core/app_dropdown.dart';
+import 'package:temple_app/features/pooja/data/models/pooja_category_model.dart';
+import 'package:temple_app/features/pooja/providers/pooja_providers.dart';
+import 'package:temple_app/widgets/pooja_page_skeleton.dart';
+import 'package:temple_app/features/booking/presentation/booking_page.dart';
+import 'package:temple_app/features/booking/providers/booking_page_providers.dart';
 
 class PoojaPage extends ConsumerStatefulWidget {
   const PoojaPage({super.key});
@@ -431,5 +431,5 @@ String _normalizeImageUrl(String url) {
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     return trimmed;
   }
-  return 'https://' + trimmed;
+  return 'https://$trimmed';
 }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:temple/features/shop/cart/providers/cart_provider.dart';
-import 'package:temple/features/shop/presentation/app_bar.dart';
-import 'package:temple/features/shop/presentation/category_listing.dart';
-import 'package:temple/features/shop/presentation/category_productSection.dart';
-import 'package:temple/features/shop/providers/gesture_riverpod.dart';
-import 'package:temple/features/shop/widget/checkout_button.dart';
+import 'package:temple_app/features/shop/cart/providers/cart_provider.dart';
+import 'package:temple_app/features/shop/presentation/app_bar.dart';
+import 'package:temple_app/features/shop/presentation/category_listing.dart';
+import 'package:temple_app/features/shop/presentation/category_productSection.dart';
+import 'package:temple_app/features/shop/providers/gesture_riverpod.dart';
+import 'package:temple_app/features/shop/widget/checkout_button.dart';
 
 class ShoppingSectionScreen extends ConsumerWidget {
   const ShoppingSectionScreen({super.key});

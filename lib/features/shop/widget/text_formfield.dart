@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple/core/theme/color/colors.dart';
-import 'package:temple/widgets/mytext.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
+import 'package:temple_app/widgets/mytext.dart';
 
 // ignore: must_be_immutable
 class TextFormFiledWithoutColorEight extends StatelessWidget {

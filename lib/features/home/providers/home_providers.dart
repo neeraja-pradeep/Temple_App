@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:temple/features/home/data/models/god_category_model.dart';
-import 'package:temple/features/home/data/models/profile_model.dart';
-import 'package:temple/features/home/data/models/song_model.dart';
-import 'package:temple/features/home/data/repositories/home_repositories.dart';
+import 'package:temple_app/features/home/data/models/god_category_model.dart';
+import 'package:temple_app/features/home/data/models/profile_model.dart';
+import 'package:temple_app/features/home/data/models/song_model.dart';
+import 'package:temple_app/features/home/data/repositories/home_repositories.dart';
 
 final homeRepositoryProvider = Provider<HomeRepository>((ref) => HomeRepository());
 

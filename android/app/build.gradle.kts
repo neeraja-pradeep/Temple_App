@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.temple.in"
+    namespace = "com.example.temple_app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.2.12479018"
 
@@ -19,15 +19,18 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions { jvmTarget = JavaVersion.VERSION_11.toString() }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11.toString()
+    }
 
-    defaultConfig {
-        applicationId = "com.example.temple.in"
+     defaultConfig {
+        applicationId = "com.nexotech.templeapp.in"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
@@ -37,4 +40,6 @@ android {
     }
 }
 
-flutter { source = "../.." }
+flutter {
+    source = "../.."
+}

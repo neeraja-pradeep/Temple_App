@@ -1,16 +1,18 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'dart:convert';
-import 'package:temple/core/app_colors.dart';
-import 'package:temple/features/booking/presentation/pooja_summary_page.dart';
-import 'package:temple/widgets/custom_calendar_picker.dart';
-import '../providers/booking_provider.dart';
-import '../providers/user_list_provider.dart';
+import 'package:temple_app/core/app_colors.dart';
+import 'package:temple_app/features/booking/presentation/pooja_summary_page.dart';
+import 'package:temple_app/widgets/custom_calendar_picker.dart';
+
 import '../data/booking_pooja_model.dart';
+import '../data/nakshatram_model.dart';
 import '../data/user_list_model.dart';
 import '../providers/booking_page_providers.dart';
-import '../data/nakshatram_model.dart';
+import '../providers/booking_provider.dart';
+import '../providers/user_list_provider.dart';
 
 // Import providers from separate file to avoid circular imports
 
@@ -967,7 +969,7 @@ class BookingPage extends ConsumerWidget {
                     ],
                   ),
                 )
-                .toList(),
+                ,
 
             // Add new user option
             _buildAddNewUserOption(context, ref, userLists),
@@ -1233,7 +1235,7 @@ class BookingPage extends ConsumerWidget {
                   if (agentCode.isNotEmpty) ...[
                     SizedBox(height: 4.h),
                     Text(
-                      '$agentCode',
+                      agentCode,
                       style: TextStyle(
                         fontSize: 11.sp,
                         color: Colors.grey[600],
@@ -1713,7 +1715,7 @@ class BookingPage extends ConsumerWidget {
                             return SizedBox(
                               height: 40.h,
                               child: DropdownButtonFormField<int>(
-                                value: selectedNakshatram,
+                                initialValue: selectedNakshatram,
                                 isExpanded: true,
                                 items: nakshatramOptions
                                     .map(
@@ -2272,7 +2274,7 @@ class BookingPage extends ConsumerWidget {
                             return SizedBox(
                               height: 40.h,
                               child: DropdownButtonFormField<int>(
-                                value: selectedNakshatram,
+                                initialValue: selectedNakshatram,
                                 isExpanded: true,
                                 items: nakshatramOptions
                                     .map(

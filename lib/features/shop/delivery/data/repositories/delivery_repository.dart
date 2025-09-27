@@ -3,8 +3,8 @@ import 'dart:developer';
 
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
-import 'package:temple/core/constants/api_constants.dart';
-import 'package:temple/features/shop/delivery/data/model/address_model.dart';
+import 'package:temple_app/core/constants/api_constants.dart';
+import 'package:temple_app/features/shop/delivery/data/model/address_model.dart';
 
 class AddressRepository {
   final String baseUrl = "${ApiConstants.baseUrl}/ecommerce/address/";

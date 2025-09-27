@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:temple/features/shop/cart/data/model/cart_model.dart';
-import 'package:temple/features/shop/cart/data/repositories/cart_repository.dart';
+import 'package:temple_app/features/shop/cart/data/model/cart_model.dart';
+import 'package:temple_app/features/shop/cart/data/repositories/cart_repository.dart';
 
 final cartProviders = StateNotifierProvider<CartListNotifier, List<CartItem>>((
   ref,

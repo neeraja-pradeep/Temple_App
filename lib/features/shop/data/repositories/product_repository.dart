@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:temple/core/constants/api_constants.dart';
-import 'package:temple/features/shop/cart/data/model/cart_model.dart';
-import 'package:temple/features/shop/data/model/product/product_category.dart';
+import 'package:temple_app/core/constants/api_constants.dart';
+import 'package:temple_app/features/shop/cart/data/model/cart_model.dart';
+import 'package:temple_app/features/shop/data/model/product/product_category.dart';
 
 class CategoryProductRepository {
   final String baseUrl = ApiConstants.baseUrl;

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:temple/features/pooja/data/models/malayalam_date_model.dart';
-import 'package:temple/features/pooja/data/models/pooja_model.dart';
-import 'package:temple/features/pooja/data/repositories/pooja_repository.dart';
+import 'package:temple_app/features/pooja/data/models/malayalam_date_model.dart';
+import 'package:temple_app/features/pooja/data/models/pooja_model.dart';
+import 'package:temple_app/features/pooja/data/repositories/pooja_repository.dart';
 import '../data/models/pooja_category_model.dart';
 
 final repositoryProvider = Provider<PoojaRepository>((ref) => PoojaRepository());

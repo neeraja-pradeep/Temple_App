@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:temple/features/pooja/data/models/malayalam_date_model.dart';
-import 'package:temple/features/pooja/data/models/pooja_model.dart';
+import 'package:temple_app/features/pooja/data/models/malayalam_date_model.dart';
+import 'package:temple_app/features/pooja/data/models/pooja_model.dart';
 import '../models/pooja_category_model.dart';
 
 class PoojaRepository {

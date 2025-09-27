@@ -2,14 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
 // 📦 Models
-import 'package:temple/features/shop/cart/data/model/cart_model.dart';
-import 'package:temple/features/shop/data/model/category/store_category.dart';
-import 'package:temple/features/shop/data/model/product/product_category.dart';
-import 'package:temple/features/pooja/data/models/malayalam_date_model.dart';
-import 'package:temple/features/pooja/data/models/pooja_category_model.dart';
-import 'package:temple/features/pooja/data/models/pooja_model.dart';
-import 'package:temple/features/shop/delivery/data/model/address_model.dart';
-import 'package:temple/features/special/data/special_pooja_model.dart';
+import 'package:temple_app/features/shop/cart/data/model/cart_model.dart';
+import 'package:temple_app/features/shop/data/model/category/store_category.dart';
+import 'package:temple_app/features/shop/data/model/product/product_category.dart';
+import 'package:temple_app/features/pooja/data/models/malayalam_date_model.dart';
+import 'package:temple_app/features/pooja/data/models/pooja_category_model.dart';
+import 'package:temple_app/features/pooja/data/models/pooja_model.dart';
+import 'package:temple_app/features/shop/delivery/data/model/address_model.dart';
+import 'package:temple_app/features/special/data/special_pooja_model.dart';
 
 /// 🏗 Hive Initializer Class
 class HiveInitializer {

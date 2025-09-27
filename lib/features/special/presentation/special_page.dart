@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:temple/core/app_colors.dart';
+import 'package:temple_app/core/app_colors.dart';
 import '../providers/special_pooja_provider.dart';
 import '../data/special_pooja_model.dart';
 import '../../booking/presentation/booking_page.dart';
@@ -928,7 +928,7 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
   }
 
   Widget _buildWeeklyPoojasErrorWidget(String message) {
-    return Container(
+    return SizedBox(
       height: 190.h,
       child: Center(
         child: Column(
@@ -973,7 +973,7 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
   }
 
   Widget _buildSpecialPrayersErrorWidget(String message) {
-    return Container(
+    return SizedBox(
       height: 200.h,
       child: Center(
         child: Column(
@@ -1000,7 +1000,7 @@ String _normalizeImageUrl(String url) {
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     return trimmed;
   }
-  return 'https://' + trimmed;
+  return 'https://$trimmed';
 }
 
 // Shimmer placeholder box

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple/core/theme/color/colors.dart';
-import 'package:temple/widgets/mytext.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
+import 'package:temple_app/widgets/mytext.dart';
 
 class CheckoutButton extends ConsumerWidget {
   final Function()? onPressed;
