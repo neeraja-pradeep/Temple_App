@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.temple"
+    namespace = "com.example.temple.in"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.2.12479018"
 
@@ -22,7 +22,7 @@ android {
     kotlinOptions { jvmTarget = JavaVersion.VERSION_11.toString() }
 
     defaultConfig {
-        applicationId = "com.example.temple"
+        applicationId = "com.example.temple.in"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

@@ -7,80 +7,12 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:799670961061:android:28e288e78448b7f39bde4c",
+        "mobilesdk_app_id": "1:799670961061:android:20b987eb993677209bde4c",
         "android_client_info": {
-          "package_name": "com.example.flutter_application_1"
+          "package_name": "com.example.temple.in"
         }
       },
       "oauth_client": [
-        {
-          "client_id": "799670961061-0emuo3s98iiq4c2thkcb0gel16ppe6bs.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.flutter_application_1",
-            "certificate_hash": "6bf32565d81c98c6359e0f86ed6ba6c5e1986e6e"
-          }
-        },
-        {
-          "client_id": "799670961061-db32phnuhqa3v0la5rb9tjsjo9r5sro2.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.flutter_application_1",
-            "certificate_hash": "4b2ef4b3e95a6356398474c0226ec09aa8adc617"
-          }
-        },
-        {
-          "client_id": "799670961061-inulej0qs7q0t4ceop8irlqgnv7tqspg.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD1stOtrM-IPce0MOl3RHR6U5UxaxWmBkk"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "799670961061-inulej0qs7q0t4ceop8irlqgnv7tqspg.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "799670961061-dbgulcqjfpn6r4h33a2vumne6jafnbhu.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.temple"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:799670961061:android:97845653ee75efdf9bde4c",
-        "android_client_info": {
-          "package_name": "com.example.temple"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "799670961061-den29a4b8daqg2r3trfbtu57r12j88bu.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.temple",
-            "certificate_hash": "6bf32565d81c98c6359e0f86ed6ba6c5e1986e6e"
-          }
-        },
-        {
-          "client_id": "799670961061-k1vn112irq2hg6dri4fjae9loikekukn.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.temple",
-            "certificate_hash": "4b2ef4b3e95a6356398474c0226ec09aa8adc617"
-          }
-        },
         {
           "client_id": "799670961061-inulej0qs7q0t4ceop8irlqgnv7tqspg.apps.googleusercontent.com",
           "client_type": 3
