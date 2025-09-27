@@ -15,14 +15,17 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:temple/hive_setup.dart';
-import 'core/app.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:temple/core/hive/hive_init_provider.dart';
+import 'package:temple/features/shop/cart/data/repositories/cart_repository.dart';
+
+import 'core/app.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Pass all uncaught "fatal" errors from the framework to Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -36,13 +39,28 @@ void main() async {
     return true;
   };
 
+  // 📦 Initialize Hive
   await Hive.initFlutter();
-  await initHive();
+  await HiveInitializer.init(); // 👈 register all adapters
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
+
+  @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Call the function once
+    Future.microtask(() async {
+      await CartRepository().getinitStateCartFromAPi();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

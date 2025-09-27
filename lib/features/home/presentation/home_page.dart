@@ -26,73 +26,164 @@ class HomePage extends ConsumerStatefulWidget {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.white,
-                    radius: 30.w,
-                  ),
-                  SizedBox(width: 20.w,),
+                  CircleAvatar(backgroundColor: Colors.white, radius: 30.w),
+                  SizedBox(width: 20.w),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text("നമസ്കാരം",
-                      style: TextStyle(
-                        fontFamily: "NotoSansMalayalam",
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold
-                      ),),
-                      Text(profile.name, 
-                      style: TextStyle(
-                        fontFamily: "NotoSansMalayalam",
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w300
-                      )),
+                      Text(
+                        "നമസ്കാരം",
+                        style: TextStyle(
+                          fontFamily: "NotoSansMalayalam",
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        profile.name,
+                        style: TextStyle(
+                          fontFamily: "NotoSansMalayalam",
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ),
-              SizedBox(height: 15.h,),
-              Text("അക്കൗണ്ട് സെറ്റിംഗ്സ്", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500), ),
-              SizedBox(height: 6.h,),
-              Divider(color: Colors.grey,),
-              SizedBox(height: 6.h,),
+              SizedBox(height: 15.h),
+              Text(
+                "അക്കൗണ്ട് സെറ്റിംഗ്സ്",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontFamily: "NotoSansMalayalam",
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(height: 6.h),
+              Divider(color: Colors.grey),
+              SizedBox(height: 6.h),
 
-              Text("ഹോം സ്ക്രീൻ", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
-              Text("ദൈനംദിന പൂജ സമയങ്ങൾ", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
-              Text("ക്ഷേത്ര ചടങ്ങുകൾ", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
-              SizedBox(height: 6.h,),
-              Divider(color: Colors.grey,),
-              SizedBox(height: 6.h,),
+              Text(
+                "ഹോം സ്ക്രീൻ",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontFamily: "NotoSansMalayalam",
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                "ദൈനംദിന പൂജ സമയങ്ങൾ",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontFamily: "NotoSansMalayalam",
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                "ക്ഷേത്ര ചടങ്ങുകൾ",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontFamily: "NotoSansMalayalam",
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(height: 6.h),
+              Divider(color: Colors.grey),
+              SizedBox(height: 6.h),
 
-              Text("പൂജ ബുക്ക് ചെയ്യുക", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
-              Text("പ്രസാദം വാങ്ങുക", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
-              Text("സംഭാവന ചെയ്യുക വിപണി", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
-              SizedBox(height: 6.h,),
-              Divider(color: Colors.grey,),
-              SizedBox(height: 6.h,),
+              Text(
+                "പൂജ ബുക്ക് ചെയ്യുക",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontFamily: "NotoSansMalayalam",
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                "പ്രസാദം വാങ്ങുക",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontFamily: "NotoSansMalayalam",
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                "സംഭാവന ചെയ്യുക വിപണി",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontFamily: "NotoSansMalayalam",
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(height: 6.h),
+              Divider(color: Colors.grey),
+              SizedBox(height: 6.h),
 
-              Text("പൗർണമി / അമാവാസ്യാ ദിവസം ", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
-              Text("ഉത്സവങ്ങൾ", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
-              Text("ഇന്ന് രാഹുകാലം", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
-              Text("നക്ഷത്രം / ജാതകം (ഐച്ഛികം)", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w500),),
-              SizedBox(height: 6.h,),
-              Divider(color: Colors.grey,),
-              SizedBox(height: 6.h,),
+              Text(
+                "പൗർണമി / അമാവാസ്യാ ദിവസം ",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontFamily: "NotoSansMalayalam",
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                "ഉത്സവങ്ങൾ",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontFamily: "NotoSansMalayalam",
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                "ഇന്ന് രാഹുകാലം",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontFamily: "NotoSansMalayalam",
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                "നക്ഷത്രം / ജാതകം (ഐച്ഛികം)",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontFamily: "NotoSansMalayalam",
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(height: 6.h),
+              Divider(color: Colors.grey),
+              SizedBox(height: 6.h),
 
-              Text("ഞങ്ങളെ ബന്ധപ്പെടുക", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w300),),
-              Text("ക്ഷേത്രം വിവരങ്ങൾ", style: TextStyle( fontSize: 16.sp, fontFamily: "NotoSansMalayalam", fontWeight: FontWeight.w300),),
-              
-              
+              Text(
+                "ഞങ്ങളെ ബന്ധപ്പെടുക",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontFamily: "NotoSansMalayalam",
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
+              Text(
+                "ക്ഷേത്രം വിവരങ്ങൾ",
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontFamily: "NotoSansMalayalam",
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
             ],
           ),
         );
       },
       error: (err, _) => const Text(""),
-      loading: () =>const Text(""),
+      loading: () => const Text(""),
     );
   }
 }
 
-class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver {
+class _HomePageState extends ConsumerState<HomePage>
+    with WidgetsBindingObserver {
   late final AudioPlayer player;
   late final StreamSubscription<PlayerState> _playerSub;
 
@@ -107,20 +198,19 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
     });
   }
 
-
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state){
-    if (state == AppLifecycleState.paused){
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
       player.stop();
     }
   }
 
   @override
-void dispose() {
-  WidgetsBinding.instance.removeObserver(this);
-  _playerSub.cancel(); // cancel stream
-  super.dispose();
-}
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _playerSub.cancel(); // cancel stream
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +232,7 @@ void dispose() {
               itemBuilder: (context, index) {
                 final category = categories[index];
                 return Image.network(
-                  category.homemediaUrl ?? "",
+                  _ensureHttps(category.homemediaUrl),
                   fit: BoxFit.cover,
                   errorBuilder: (context, _, __) =>
                       Image.asset("assets/fallBack.png", fit: BoxFit.cover),
@@ -229,8 +319,7 @@ void dispose() {
                     } else {
                       if (player.audioSource == null ||
                           (player.audioSource is ProgressiveAudioSource &&
-                              (player.audioSource as ProgressiveAudioSource)
-                                      .uri
+                              (player.audioSource as ProgressiveAudioSource).uri
                                       .toString() !=
                                   song.streamUrl)) {
                         await player.setUrl(song.streamUrl);
@@ -269,6 +358,15 @@ void dispose() {
       highlightColor: Colors.white.withOpacity(0.8),
       child: Container(color: AppColors.navBarBackground),
     );
+  }
+
+  String _ensureHttps(String? url) {
+    if (url == null || url.trim().isEmpty) return "";
+    final trimmed = url.trim();
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return trimmed;
+    }
+    return "https://$trimmed";
   }
 
   String formatMalayalamDate(String rawDate) {

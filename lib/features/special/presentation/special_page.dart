@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:temple/core/app_colors.dart';
-import 'package:temple/widgets/weekly_pooja_skeleton.dart';
-import 'package:temple/widgets/special_page_skeleton.dart';
 import '../providers/special_pooja_provider.dart';
 import '../data/special_pooja_model.dart';
 import '../../booking/presentation/booking_page.dart';
@@ -96,69 +95,32 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
       _startAutoScroll();
     });
 
-    return asyncPoojas.when(
-      data: (poojas) {
-        if (poojas.isEmpty) {
-          return cachedPoojas.when(
-            data: (cache) => cache.isEmpty
-                ? const Center(child: Text('No special poojas available.'))
-                : _buildPage(
-                    context,
-                    ref,
-                    cache,
-                    cachedWeeklyPoojas,
-                    cachedSpecialPrayers,
-                    _pageController,
-                    currentPage,
-                  ),
-            loading: () => const SpecialPageSkeleton(),
-            error: (e, st) =>
-                const Center(child: Text('No special poojas available.')),
-          );
-        }
-        return _buildPage(
-          context,
-          ref,
-          poojas,
-          asyncWeeklyPoojas,
-          asyncSpecialPrayers,
-          _pageController,
-          currentPage,
-        );
-      },
-      loading: () => const SpecialPageSkeleton(),
-      error: (e, st) {
-        return cachedPoojas.when(
-          data: (cache) => cache.isEmpty
-              ? const Center(child: Text('No special poojas available.'))
-              : _buildPage(
-                  context,
-                  ref,
-                  cache,
-                  cachedWeeklyPoojas,
-                  cachedSpecialPrayers,
-                  _pageController,
-                  currentPage,
-                ),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, st) =>
-              const Center(child: Text('No special poojas available.')),
-        );
-      },
+    return _buildPage(
+      context,
+      ref,
+      asyncPoojas,
+      cachedPoojas,
+      asyncWeeklyPoojas,
+      cachedWeeklyPoojas,
+      asyncSpecialPrayers,
+      cachedSpecialPrayers,
+      _pageController,
+      currentPage,
     );
   }
 
   Widget _buildPage(
     BuildContext context,
     WidgetRef ref,
-    List<SpecialPooja> poojas,
-    AsyncValue<List<SpecialPooja>> weeklyPoojas,
-    AsyncValue<List<SpecialPooja>> specialPrayers,
+    AsyncValue<List<SpecialPooja>> asyncPoojas,
+    AsyncValue<List<SpecialPooja>> cachedPoojas,
+    AsyncValue<List<SpecialPooja>> asyncWeeklyPoojas,
+    AsyncValue<List<SpecialPooja>> cachedWeeklyPoojas,
+    AsyncValue<List<SpecialPooja>> asyncSpecialPrayers,
+    AsyncValue<List<SpecialPooja>> cachedSpecialPrayers,
     PageController pageController,
-    int currentPage, {
-    AsyncValue<List<SpecialPooja>>? cachedWeeklyPoojas,
-    AsyncValue<List<SpecialPooja>>? cachedSpecialPrayers,
-  }) {
+    int currentPage,
+  ) {
     final selectedCard = ref.watch(selectedCardProvider);
 
     return Stack(
@@ -170,358 +132,30 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 1. Banner Section
-                Column(
-                  children: [
-                    SizedBox(height: 50.h),
-                    SizedBox(
-                      width: 343.w,
-                      height: 142.h,
-                      child: PageView.builder(
-                        itemCount: poojas.length,
-                        // controller: PageController(
-                        //   viewportFraction: 1.0,
-                        //   initialPage: currentPage,
-                        // ),
-                        controller: pageController,
-                        onPageChanged: (i) =>
-                            ref.read(specialBannerPageProvider.notifier).state =
-                                i,
-                        itemBuilder: (context, index) {
-                          final pooja = poojas[index];
-                          final date = pooja.specialPoojaDates.isNotEmpty
-                              ? (pooja.specialPoojaDates.first.date.isNotEmpty
-                                    ? pooja.specialPoojaDates.first.date
-                                    : pooja
-                                          .specialPoojaDates
-                                          .first
-                                          .malayalamDate)
-                              : '';
-                          return Container(
-                            // width: 343.w,
-                            height: 142.h,
-                            margin: EdgeInsets.only(
-                              top: 0.h,
-                              bottom: 12.h,
-                              left: 8.w,
-                              right: 8.w,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8.r),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.10),
-                                  blurRadius: 4.r,
-                                  offset: Offset(0.w, 4.h),
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
-                            child: Stack(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8.r),
-                                  child: Image.network(
-                                    pooja.bannerUrl,
-                                    width: 343.w,
-                                    height: 142.h,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            Container(
-                                              color: Colors.grey,
-                                              width: 343.w,
-                                              height: 142.h,
-                                              child: const Icon(
-                                                Icons.broken_image,
-                                              ),
-                                            ),
-                                  ),
-                                ),
-                                Positioned(
-                                  left: 12.w,
-                                  top: 12.h,
-                                  right: 12.w,
-                                  bottom: 12.h,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            pooja.name,
-                                            style: TextStyle(
-                                              fontFamily: 'NotoSansMalayalam',
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 20.sp,
-                                              color: Colors.white,
-                                              shadows: [
-                                                Shadow(
-                                                  color: Colors.black
-                                                      .withOpacity(0.5),
-                                                  blurRadius: 6.r,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          // SizedBox(height: 4.h),
-                                          Text(
-                                            pooja.categoryName,
-                                            style: TextStyle(
-                                              fontSize: 20.sp,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w500,
-                                              shadows: [
-                                                Shadow(
-                                                  color: Colors.black
-                                                      .withOpacity(0.4),
-                                                  blurRadius: 4.r,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          if (pooja
-                                              .captionsDesc
-                                              .isNotEmpty) ...[
-                                            SizedBox(height: 4.h),
-                                            Text(
-                                              pooja.captionsDesc,
-                                              style: TextStyle(
-                                                fontSize: 12.sp,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w400,
-                                                shadows: [
-                                                  Shadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.3),
-                                                    blurRadius: 3.r,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                      if (date.isNotEmpty) ...[
-                                        Text(
-                                          date,
-                                          style: TextStyle(
-                                            fontSize: 12.sp,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w400,
-                                            shadows: [
-                                              Shadow(
-                                                color: Colors.black.withOpacity(
-                                                  0.3,
-                                                ),
-                                                blurRadius: 3.r,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    // SizedBox(height: 10.h),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        poojas.length >= 3 ? poojas.length : 3,
-                        (index) => AnimatedContainer(
-                          duration: Duration(milliseconds: 200),
-                          margin: EdgeInsets.symmetric(horizontal: 4.w),
-                          width: currentPage == index ? 35.w : 12.w,
-                          height: 12.w,
-                          decoration: BoxDecoration(
-                            color: currentPage == index
-                                ? AppColors.selected
-                                : AppColors.unselected,
-                            borderRadius: BorderRadius.circular(12.w),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                // 1. Banner Section - Independent loading/error handling
+                _buildBannerSection(
+                  context,
+                  ref,
+                  asyncPoojas,
+                  cachedPoojas,
+                  pageController,
+                  currentPage,
                 ),
 
-                // 2. Today's Prayers Section
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 0.h,
-                    horizontal: 16.w,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 24.h),
-                      Text(
-                        "ഇന്നത്തെ പൂജകൾ",
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 12.h),
-                      weeklyPoojas.when(
-                        data: (poojas) {
-                          if (poojas.isEmpty) {
-                            return cachedWeeklyPoojas?.when(
-                                  data: (cache) => cache.isEmpty
-                                      ? const Center(
-                                          child: Text('No prayers available.'),
-                                        )
-                                      : _buildWeeklyPoojasList(
-                                          context,
-                                          ref,
-                                          cache,
-                                          null,
-                                        ),
-                                  loading: () => const Center(
-                                    child: WeeklyPoojaSkeleton(),
-                                  ),
-                                  error: (e, st) => const Center(
-                                    child: Text('No prayers available.'),
-                                  ),
-                                ) ??
-                                const Center(
-                                  child: Text('No prayers available.'),
-                                );
-                          }
-                          return _buildWeeklyPoojasList(
-                            context,
-                            ref,
-                            poojas,
-                            cachedWeeklyPoojas,
-                          );
-                        },
-                        loading: () =>
-                            const Center(child: CircularProgressIndicator()),
-                        error: (e, st) {
-                          return cachedWeeklyPoojas?.when(
-                                data: (cache) => cache.isEmpty
-                                    ? const Center(
-                                        child: Text('No prayers available.'),
-                                      )
-                                    : _buildWeeklyPoojasList(
-                                        context,
-                                        ref,
-                                        cache,
-                                        null,
-                                      ),
-                                loading: () =>
-                                    const Center(child: WeeklyPoojaSkeleton()),
-                                error: (e, st) => const Center(
-                                  child: Text('No prayers available.'),
-                                ),
-                              ) ??
-                              const Center(
-                                child: Text('No prayers available.'),
-                              );
-                        },
-                      ),
-                    ],
-                  ),
+                // 2. Today's Prayers Section - Independent loading/error handling
+                _buildWeeklyPoojasSection(
+                  context,
+                  ref,
+                  asyncWeeklyPoojas,
+                  cachedWeeklyPoojas,
                 ),
 
-                // 3. Today's Special Section
-                Padding(
-                  padding: EdgeInsets.only(
-                    bottom: 16.h,
-                    left: 16.w,
-                    right: 16.w,
-                  ),
-
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(height: 24.h),
-                      Text(
-                        "പ്രത്യേക പൂജകൾ",
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      specialPrayers.when(
-                        data: (prayers) {
-                          if (prayers.isEmpty) {
-                            return cachedSpecialPrayers?.when(
-                                  data: (cache) => cache.isEmpty
-                                      ? const Center(
-                                          child: Text(
-                                            'No special prayers available.',
-                                          ),
-                                        )
-                                      : _buildSpecialPrayersGrid(
-                                          context,
-                                          ref,
-                                          cache,
-                                          null,
-                                        ),
-                                  loading: () => const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                  error: (e, st) => const Center(
-                                    child: Text(
-                                      'No special prayers available.',
-                                    ),
-                                  ),
-                                ) ??
-                                const Center(
-                                  child: Text('No special prayers available.'),
-                                );
-                          }
-                          return _buildSpecialPrayersGrid(
-                            context,
-                            ref,
-                            prayers,
-                            cachedSpecialPrayers,
-                          );
-                        },
-                        loading: () =>
-                            const Center(child: CircularProgressIndicator()),
-                        error: (e, st) {
-                          return cachedSpecialPrayers?.when(
-                                data: (cache) => cache.isEmpty
-                                    ? const Center(
-                                        child: Text(
-                                          'No special prayers available.',
-                                        ),
-                                      )
-                                    : _buildSpecialPrayersGrid(
-                                        context,
-                                        ref,
-                                        cache,
-                                        null,
-                                      ),
-                                loading: () => const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                                error: (e, st) => const Center(
-                                  child: Text('No special prayers available.'),
-                                ),
-                              ) ??
-                              const Center(
-                                child: Text('No special prayers available.'),
-                              );
-                        },
-                      ),
-                    ],
-                  ),
+                // 3. Today's Special Section - Independent loading/error handling
+                _buildSpecialPrayersSection(
+                  context,
+                  ref,
+                  asyncSpecialPrayers,
+                  cachedSpecialPrayers,
                 ),
               ],
             ),
@@ -536,7 +170,6 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Container(
-                // padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   boxShadow: [
@@ -596,6 +229,176 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
             ),
           ),
       ],
+    );
+  }
+
+  // 1. Banner Section - Independent loading/error handling
+  Widget _buildBannerSection(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<SpecialPooja>> asyncPoojas,
+    AsyncValue<List<SpecialPooja>> cachedPoojas,
+    PageController pageController,
+    int currentPage,
+  ) {
+    return asyncPoojas.when(
+      data: (poojas) {
+        if (poojas.isEmpty) {
+          return cachedPoojas.when(
+            data: (cache) => cache.isEmpty
+                ? _buildBannerErrorWidget('No special poojas available.')
+                : _buildBannerContent(
+                    context,
+                    ref,
+                    cache,
+                    pageController,
+                    currentPage,
+                  ),
+            loading: () => _buildBannerSkeleton(),
+            error: (e, st) =>
+                _buildBannerErrorWidget('Unable to load special poojas'),
+          );
+        }
+        return _buildBannerContent(
+          context,
+          ref,
+          poojas,
+          pageController,
+          currentPage,
+        );
+      },
+      loading: () => _buildBannerSkeleton(),
+      error: (e, st) {
+        return cachedPoojas.when(
+          data: (cache) => cache.isEmpty
+              ? _buildBannerErrorWidget('Unable to load special poojas')
+              : _buildBannerContent(
+                  context,
+                  ref,
+                  cache,
+                  pageController,
+                  currentPage,
+                ),
+          loading: () => _buildBannerSkeleton(),
+          error: (e, st) =>
+              _buildBannerErrorWidget('Unable to load special poojas'),
+        );
+      },
+    );
+  }
+
+  // 2. Weekly Poojas Section - Independent loading/error handling
+  Widget _buildWeeklyPoojasSection(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<SpecialPooja>> asyncWeeklyPoojas,
+    AsyncValue<List<SpecialPooja>> cachedWeeklyPoojas,
+  ) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 0.h, horizontal: 16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 24.h),
+          Text(
+            "ഇന്നത്തെ പൂജകൾ",
+            style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 12.h),
+          asyncWeeklyPoojas.when(
+            data: (poojas) {
+              if (poojas.isEmpty) {
+                return cachedWeeklyPoojas.when(
+                  data: (cache) => cache.isEmpty
+                      ? _buildWeeklyPoojasErrorWidget('No prayers available.')
+                      : _buildWeeklyPoojasList(context, ref, cache, null),
+                  loading: () => _buildWeeklyPoojasSkeleton(),
+                  error: (e, st) =>
+                      _buildWeeklyPoojasErrorWidget('Unable to load prayers'),
+                );
+              }
+              return _buildWeeklyPoojasList(
+                context,
+                ref,
+                poojas,
+                cachedWeeklyPoojas,
+              );
+            },
+            loading: () => _buildWeeklyPoojasSkeleton(),
+            error: (e, st) {
+              return cachedWeeklyPoojas.when(
+                data: (cache) => cache.isEmpty
+                    ? _buildWeeklyPoojasErrorWidget('Unable to load prayers')
+                    : _buildWeeklyPoojasList(context, ref, cache, null),
+                loading: () => _buildWeeklyPoojasSkeleton(),
+                error: (e, st) =>
+                    _buildWeeklyPoojasErrorWidget('Unable to load prayers'),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 3. Special Prayers Section - Independent loading/error handling
+  Widget _buildSpecialPrayersSection(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<SpecialPooja>> asyncSpecialPrayers,
+    AsyncValue<List<SpecialPooja>> cachedSpecialPrayers,
+  ) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.h, left: 16.w, right: 16.w),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(height: 24.h),
+          Text(
+            "പ്രത്യേക പൂജകൾ",
+            style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
+          ),
+          asyncSpecialPrayers.when(
+            data: (prayers) {
+              if (prayers.isEmpty) {
+                return cachedSpecialPrayers.when(
+                  data: (cache) => cache.isEmpty
+                      ? _buildSpecialPrayersErrorWidget(
+                          'No special prayers available.',
+                        )
+                      : _buildSpecialPrayersGrid(context, ref, cache, null),
+                  loading: () => _buildSpecialPrayersSkeleton(),
+                  error: (e, st) => _buildSpecialPrayersErrorWidget(
+                    'Unable to load special prayers',
+                  ),
+                );
+              }
+              return _buildSpecialPrayersGrid(
+                context,
+                ref,
+                prayers,
+                cachedSpecialPrayers,
+              );
+            },
+            loading: () => _buildSpecialPrayersSkeleton(),
+            error: (e, st) {
+              return cachedSpecialPrayers.when(
+                data: (cache) => cache.isEmpty
+                    ? _buildSpecialPrayersErrorWidget(
+                        'Unable to load special prayers',
+                      )
+                    : _buildSpecialPrayersGrid(context, ref, cache, null),
+                loading: () => _buildSpecialPrayersSkeleton(),
+                error: (e, st) => _buildSpecialPrayersErrorWidget(
+                  'Unable to load special prayers',
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -664,10 +467,14 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8.r),
                             child: Image.network(
-                              pooja.mediaUrl,
+                              _normalizeImageUrl(pooja.mediaUrl),
                               width: 134.w,
                               height: 80.h,
                               fit: BoxFit.cover,
+                              loadingBuilder: (context, child, progress) {
+                                if (progress == null) return child;
+                                return _buildShimmerBox(134.w, 80.h, 8.r);
+                              },
                               errorBuilder: (context, error, stackTrace) =>
                                   Container(
                                     decoration: BoxDecoration(
@@ -781,10 +588,14 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8.r),
                     child: Image.network(
-                      pooja.mediaUrl,
+                      _normalizeImageUrl(pooja.mediaUrl),
                       width: 146.w,
                       height: 80.h,
                       fit: BoxFit.cover,
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return _buildShimmerBox(146.w, 80.h, 8.r);
+                      },
                       errorBuilder: (context, error, stackTrace) => Container(
                         decoration: BoxDecoration(
                           color: Colors.grey[200],
@@ -847,4 +658,425 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
       },
     );
   }
+
+  // Helper methods for Banner Section
+  Widget _buildBannerContent(
+    BuildContext context,
+    WidgetRef ref,
+    List<SpecialPooja> poojas,
+    PageController pageController,
+    int currentPage,
+  ) {
+    return Column(
+      children: [
+        SizedBox(height: 50.h),
+        SizedBox(
+          width: 343.w,
+          height: 142.h,
+          child: PageView.builder(
+            itemCount: poojas.length,
+            controller: pageController,
+            onPageChanged: (i) =>
+                ref.read(specialBannerPageProvider.notifier).state = i,
+            itemBuilder: (context, index) {
+              final pooja = poojas[index];
+              final date = pooja.specialPoojaDates.isNotEmpty
+                  ? (pooja.specialPoojaDates.first.date.isNotEmpty
+                        ? pooja.specialPoojaDates.first.date
+                        : pooja.specialPoojaDates.first.malayalamDate)
+                  : '';
+              return Container(
+                height: 142.h,
+                margin: EdgeInsets.only(
+                  top: 0.h,
+                  bottom: 12.h,
+                  left: 8.w,
+                  right: 8.w,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.10),
+                      blurRadius: 4.r,
+                      offset: Offset(0.w, 4.h),
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8.r),
+                      child: Image.network(
+                        _normalizeImageUrl(pooja.bannerUrl),
+                        width: 343.w,
+                        height: 142.h,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) return child;
+                          return _buildShimmerBox(343.w, 142.h, 8.r);
+                        },
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.grey,
+                          width: 343.w,
+                          height: 142.h,
+                          child: const Icon(Icons.broken_image),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 12.w,
+                      top: 12.h,
+                      right: 12.w,
+                      bottom: 12.h,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                pooja.name,
+                                style: TextStyle(
+                                  fontFamily: 'NotoSansMalayalam',
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 20.sp,
+                                  color: Colors.white,
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.black.withOpacity(0.5),
+                                      blurRadius: 6.r,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                pooja.categoryName,
+                                style: TextStyle(
+                                  fontSize: 20.sp,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.black.withOpacity(0.4),
+                                      blurRadius: 4.r,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (pooja.captionsDesc.isNotEmpty) ...[
+                                SizedBox(height: 4.h),
+                                Text(
+                                  pooja.captionsDesc,
+                                  style: TextStyle(
+                                    fontSize: 12.sp,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w400,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black.withOpacity(0.3),
+                                        blurRadius: 3.r,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (date.isNotEmpty) ...[
+                            Text(
+                              date,
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w400,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 3.r,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            poojas.length >= 3 ? poojas.length : 3,
+            (index) => AnimatedContainer(
+              duration: Duration(milliseconds: 200),
+              margin: EdgeInsets.symmetric(horizontal: 4.w),
+              width: currentPage == index ? 35.w : 12.w,
+              height: 12.w,
+              decoration: BoxDecoration(
+                color: currentPage == index
+                    ? AppColors.selected
+                    : AppColors.unselected,
+                borderRadius: BorderRadius.circular(12.w),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBannerSkeleton() {
+    return Column(
+      children: [
+        SizedBox(height: 50.h),
+        Container(
+          width: 343.w,
+          height: 142.h,
+          margin: EdgeInsets.only(
+            top: 0.h,
+            bottom: 12.h,
+            left: 8.w,
+            right: 8.w,
+          ),
+          child: _buildShimmerBox(343.w, 142.h, 8.r),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            3,
+            (index) => Shimmer.fromColors(
+              baseColor: Colors.grey.shade300,
+              highlightColor: Colors.grey.shade100,
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 4.w),
+                width: 12.w,
+                height: 12.w,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.w),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBannerErrorWidget(String message) {
+    return Column(
+      children: [
+        SizedBox(height: 50.h),
+        Container(
+          width: 343.w,
+          height: 142.h,
+          margin: EdgeInsets.only(
+            top: 0.h,
+            bottom: 12.h,
+            left: 8.w,
+            right: 8.w,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, color: Colors.grey[600], size: 32.sp),
+                SizedBox(height: 8.h),
+                Text(
+                  message,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12.sp),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Helper methods for Weekly Poojas Section
+  Widget _buildWeeklyPoojasSkeleton() {
+    return SizedBox(
+      height: 190.h,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: 3,
+        separatorBuilder: (context, i) => SizedBox(width: 11.w),
+        itemBuilder: (context, index) {
+          return _buildPoojaCardShimmer(
+            width: 150.w,
+            height: 220.h,
+            imageHeight: 80.h,
+            radius: 12.r,
+            padding: 8.0,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildWeeklyPoojasErrorWidget(String message) {
+    return Container(
+      height: 190.h,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, color: Colors.grey[600], size: 32.sp),
+            SizedBox(height: 8.h),
+            Text(
+              message,
+              style: TextStyle(color: Colors.grey[600], fontSize: 12.sp),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper methods for Special Prayers Section
+  Widget _buildSpecialPrayersSkeleton() {
+    return GridView.builder(
+      padding: EdgeInsets.only(top: 14),
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 16.h,
+        crossAxisSpacing: 16.w,
+        mainAxisExtent: 200.h,
+      ),
+      itemCount: 4,
+      itemBuilder: (context, index) {
+        return _buildPoojaCardShimmer(
+          width: 163.w,
+          height: 200.h,
+          imageHeight: 80.h,
+          radius: 12.r,
+          padding: 8.0,
+        );
+      },
+    );
+  }
+
+  Widget _buildSpecialPrayersErrorWidget(String message) {
+    return Container(
+      height: 200.h,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, color: Colors.grey[600], size: 32.sp),
+            SizedBox(height: 8.h),
+            Text(
+              message,
+              style: TextStyle(color: Colors.grey[600], fontSize: 12.sp),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Ensures image URLs have a scheme; defaults to https
+String _normalizeImageUrl(String url) {
+  final String trimmed = (url).trim();
+  if (trimmed.isEmpty) return trimmed;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  return 'https://' + trimmed;
+}
+
+// Shimmer placeholder box
+Widget _buildShimmerBox(double width, double height, double radius) {
+  return Shimmer.fromColors(
+    baseColor: Colors.grey.shade300,
+    highlightColor: Colors.grey.shade100,
+    child: Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    ),
+  );
+}
+
+// Reusable shimmer skeleton matching the pooja card layout
+Widget _buildPoojaCardShimmer({
+  required double width,
+  required double height,
+  required double imageHeight,
+  required double radius,
+  required double padding,
+}) {
+  return Shimmer.fromColors(
+    baseColor: Colors.grey.shade300,
+    highlightColor: Colors.grey.shade100,
+    child: Container(
+      width: width,
+      height: height,
+      margin: EdgeInsets.only(bottom: 6.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(radius),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(padding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image placeholder
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8.r),
+                  child: Container(
+                    width: width - (padding * 2),
+                    height: imageHeight,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                // Title line
+                Container(
+                  width: width * 0.7,
+                  height: 12.h,
+                  color: Colors.white,
+                ),
+                SizedBox(height: 6.h),
+                // Subtitle line
+                Container(
+                  width: width * 0.5,
+                  height: 12.h,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+            // Price line
+            Container(width: width * 0.3, height: 14.h, color: Colors.white),
+          ],
+        ),
+      ),
+    ),
+  );
 }

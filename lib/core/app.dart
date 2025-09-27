@@ -3,29 +3,32 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'app_colors.dart';
+import 'navigation_provider.dart';
 import '../features/special/presentation/special_page.dart';
 import '../features/pooja/presentation/pooja_page.dart';
 import '../features/home/presentation/home_page.dart';
-import '../features/shop/presentation/shop_page.dart';
 import '../features/music/presentation/music_page.dart';
+import '../features/shop/cart/presentation/checkout_screen.dart';
+import '../features/shop/delivery/presentation/payment_method.dart';
+import '../features/shop/presentation/shopping_section.dart';
+import '../features/shop/providers/gesture_riverpod.dart';
+import '../features/home/providers/home_providers.dart';
+import '../features/auth/presentation/login_page.dart';
+import '../features/auth/presentation/register_page.dart';
+import '../features/auth/presentation/user_details_basic_page.dart';
+import '../features/auth/presentation/user_details_address_page.dart';
 
-class MainNavScreen extends StatefulWidget {
+class MainNavScreen extends ConsumerStatefulWidget {
   final Widget? drawerContent;
   const MainNavScreen({super.key, this.drawerContent});
 
   @override
-  State<MainNavScreen> createState() => _MainNavScreenState();
+  ConsumerState<MainNavScreen> createState() => _MainNavScreenState();
 }
 
-class _MainNavScreenState extends State<MainNavScreen> {
+class _MainNavScreenState extends ConsumerState<MainNavScreen> {
   int _selectedIndex = 2;
-  final List<Widget> _pages = [
-    SpecialPage(),
-    PoojaPage(),
-    HomePage(),
-    ShopPage(),
-    MusicPage(),
-  ];
+
   final List<String> _labels = [
     'പ്രത്യകം', // Special
     'പൂജ', // Pooja
@@ -33,6 +36,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
     'വിപണി', // Shop
     'സംഗീതം', // Music
   ];
+
   final List<String> _icons = [
     'assets/bottomNavBar/bn1.png',
     'assets/bottomNavBar/bn2.png',
@@ -42,7 +46,46 @@ class _MainNavScreenState extends State<MainNavScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final onTapCheckout = ref.watch(onclickCheckoutButton);
+    final onTapConformCheckout = ref.watch(onclickConformCheckoutButton);
+
+    final List<Widget> pages = [
+      const SpecialPage(),
+      const PoojaPage(),
+      const HomePage(),
+      onTapCheckout
+          ? const CheckoutScreen()
+          : onTapConformCheckout
+          ? const PaymentMethodScreen()
+          : const ShoppingSectionScreen(),
+      const MusicPage(),
+    ];
+
+    // Listen for navigation triggers
+    ref.listen(navigationTriggerProvider, (previous, next) async {
+      if (next != null) {
+        // If leaving Home tab (index 2), pause audio and reset play state
+        if (_selectedIndex == 2) {
+          final player = ref.read(audioPlayerProvider);
+          try {
+            await player.pause();
+          } catch (_) {}
+          ref.read(isPlayingProvider.notifier).state = false;
+        }
+        setState(() {
+          _selectedIndex = next;
+        });
+        // Reset the trigger
+        ref.read(navigationTriggerProvider.notifier).state = null;
+      }
+    });
+
     // Set status bar style to light content (white icons and text)
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
@@ -58,7 +101,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
       child: Scaffold(
         drawer: _selectedIndex == 2
             ? Drawer(
-                backgroundColor: Color(0xFFD9D9D9),
+                backgroundColor: const Color(0xFFD9D9D9),
                 width: 285.w,
                 child: Consumer(
                   builder: (context, ref, _) =>
@@ -70,13 +113,13 @@ class _MainNavScreenState extends State<MainNavScreen> {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              'assets/background.jpg',
+              'assets/backgroundimage.jpg',
               fit: BoxFit.cover,
               height: double.infinity,
               width: double.infinity,
               alignment: Alignment.topCenter,
             ),
-            _pages[_selectedIndex],
+            pages[_selectedIndex],
           ],
         ),
         bottomNavigationBar: Container(
@@ -96,7 +139,17 @@ class _MainNavScreenState extends State<MainNavScreen> {
             children: List.generate(_icons.length, (index) {
               final isSelected = _selectedIndex == index;
               return GestureDetector(
-                onTap: () => setState(() => _selectedIndex = index),
+                onTap: () async {
+                  // If leaving Home tab (index 2), pause audio and reset play state
+                  if (_selectedIndex == 2 && index != 2) {
+                    final player = ref.read(audioPlayerProvider);
+                    try {
+                      await player.pause();
+                    } catch (_) {}
+                    ref.read(isPlayingProvider.notifier).state = false;
+                  }
+                  setState(() => _selectedIndex = index);
+                },
                 behavior: HitTestBehavior.opaque,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -104,25 +157,17 @@ class _MainNavScreenState extends State<MainNavScreen> {
                     isSelected
                         ? Container(
                             width: 65.w,
-                            height: 50.h,
-
+                            height: 55.h, // increased to avoid overflow
                             decoration: BoxDecoration(
-                              color: AppColors
-                                  .selectedBackground, // white background
+                              color: AppColors.selectedBackground,
                               borderRadius: BorderRadius.circular(12.r),
                               border: Border.all(
-                                color: AppColors
-                                    .selectedBackground, // border color
+                                color: AppColors.selectedBackground,
                                 width: 1.w,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color.fromRGBO(
-                                    140,
-                                    0,
-                                    26,
-                                    0.16,
-                                  ), // shadow color rgba(140, 0, 26, 0.16)
+                                  color: const Color.fromRGBO(140, 0, 26, 0.16),
                                   offset: Offset(0, 4.h),
                                   blurRadius: 16.r,
                                 ),
@@ -133,17 +178,19 @@ class _MainNavScreenState extends State<MainNavScreen> {
                               children: [
                                 Image.asset(
                                   _icons[index],
-                                  width: 28.w,
-                                  height: 28.w,
+                                  width: 26.w,
+                                  height: 26.w,
                                   color: AppColors.selected,
                                 ),
-                                SizedBox(height: 2.h),
-                                Text(
-                                  _labels[index],
-                                  style: TextStyle(
-                                    fontSize: 13.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.selected,
+                                SizedBox(height: 1.h), // reduced spacing
+                                FittedBox(
+                                  child: Text(
+                                    _labels[index],
+                                    style: TextStyle(
+                                      fontSize: 12.sp, // reduced font size
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.selected,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -177,7 +224,14 @@ class App extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MainNavScreen(),
+      home: const LoginPage(),
+      routes: {
+        '/login': (_) => const LoginPage(),
+        '/register': (_) => const RegisterPage(),
+        '/user/basic': (_) => const UserDetailsBasicPage(),
+        '/user/address': (_) => const UserDetailsAddressPage(),
+        '/main': (_) => const MainNavScreen(),
+      },
       builder: (context, child) {
         ScreenUtil.init(context);
         return child!;

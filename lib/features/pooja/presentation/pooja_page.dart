@@ -371,7 +371,7 @@ class _CategoryCardState extends State<_CategoryCard> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.all(Radius.circular(10.r)),
                   child: Image.network(
-                    widget.category.mediaUrl,
+                    _normalizeImageUrl(widget.category.mediaUrl),
                     height: 102.h,
                     width: 131.w,
                     fit: BoxFit.cover,
@@ -422,4 +422,14 @@ class _CategoryCardState extends State<_CategoryCard> {
       ),
     );
   }
+}
+
+// Ensures image URLs have a scheme; defaults to https
+String _normalizeImageUrl(String url) {
+  final String trimmed = (url).trim();
+  if (trimmed.isEmpty) return trimmed;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  return 'https://' + trimmed;
 }
