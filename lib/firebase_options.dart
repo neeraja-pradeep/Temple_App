@@ -42,17 +42,17 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyAs3a1OCrtUx8C_6ja3vzswjBQPTZwFmjc',
-    appId: '1:799670961061:web:80834b77694f26e79bde4c',
+    appId: '1:799670961061:web:878ef8c37cb9ea789bde4c',
     messagingSenderId: '799670961061',
     projectId: 'temple-project-2d223',
     authDomain: 'temple-project-2d223.firebaseapp.com',
     storageBucket: 'temple-project-2d223.firebasestorage.app',
-    measurementId: 'G-TDRSDVSBWN',
+    measurementId: 'G-0ZSRHP2Y14',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyD1stOtrM-IPce0MOl3RHR6U5UxaxWmBkk',
-    appId: '1:799670961061:android:97845653ee75efdf9bde4c',
+    appId: '1:799670961061:android:20b987eb993677209bde4c',
     messagingSenderId: '799670961061',
     projectId: 'temple-project-2d223',
     storageBucket: 'temple-project-2d223.firebasestorage.app',
@@ -60,32 +60,33 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyA26ZtYBQuI85WchwiwH2ixBmHnA4oepCQ',
-    appId: '1:799670961061:ios:b64a82971f4aa50e9bde4c',
+    appId: '1:799670961061:ios:d150bffda859d0259bde4c',
     messagingSenderId: '799670961061',
     projectId: 'temple-project-2d223',
     storageBucket: 'temple-project-2d223.firebasestorage.app',
-    iosClientId: '799670961061-dbgulcqjfpn6r4h33a2vumne6jafnbhu.apps.googleusercontent.com',
-    iosBundleId: 'com.example.temple',
+    androidClientId: '799670961061-0emuo3s98iiq4c2thkcb0gel16ppe6bs.apps.googleusercontent.com',
+    iosClientId: '799670961061-8ekvg5ophtubg4fh49lq17f8mbc9i0bc.apps.googleusercontent.com',
+    iosBundleId: 'com.example.temple.in',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyA26ZtYBQuI85WchwiwH2ixBmHnA4oepCQ',
-    appId: '1:799670961061:ios:b64a82971f4aa50e9bde4c',
+    appId: '1:799670961061:ios:d150bffda859d0259bde4c',
     messagingSenderId: '799670961061',
     projectId: 'temple-project-2d223',
     storageBucket: 'temple-project-2d223.firebasestorage.app',
-    iosClientId: '799670961061-dbgulcqjfpn6r4h33a2vumne6jafnbhu.apps.googleusercontent.com',
-    iosBundleId: 'com.example.temple',
+    androidClientId: '799670961061-0emuo3s98iiq4c2thkcb0gel16ppe6bs.apps.googleusercontent.com',
+    iosClientId: '799670961061-8ekvg5ophtubg4fh49lq17f8mbc9i0bc.apps.googleusercontent.com',
+    iosBundleId: 'com.example.temple.in',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyAs3a1OCrtUx8C_6ja3vzswjBQPTZwFmjc',
-    appId: '1:799670961061:web:d58737df1f0ec6419bde4c',
+    appId: '1:799670961061:web:5b15ab83ef8094ef9bde4c',
     messagingSenderId: '799670961061',
     projectId: 'temple-project-2d223',
     authDomain: 'temple-project-2d223.firebaseapp.com',
     storageBucket: 'temple-project-2d223.firebasestorage.app',
-    measurementId: 'G-7NVFL8SQ00',
+    measurementId: 'G-FFGQ3RJ8MR',
   );
-
 }
