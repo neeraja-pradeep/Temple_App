@@ -1,6 +1,11 @@
+import 'dart:convert';
+import 'dart:developer';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+
 import '../../../core/services/firebase_auth_service.dart';
 
 // Form keys
@@ -269,15 +274,37 @@ class AuthController extends StateNotifier<bool> {
     }
   }
 
-  void _handleLoginSuccess(BuildContext context) {
+  void _handleLoginSuccess(BuildContext context) async {
     _setLoading(false);
-    if (context.mounted) {
-      FocusScope.of(context).unfocus();
+    if (!context.mounted) return;
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      final idToken = await user?.getIdToken();
+      log("idToken: $idToken");
+      final sessionInfo = ref.read(verificationIdProvider);
+      final otp = ref.read(loginOtpControllerProvider).text.trim();
+
+      if (sessionInfo != null && otp.isNotEmpty) {
+        final tokenData = await FirebaseTokenService.signInWithPhone(
+          sessionInfo,
+          otp,
+        );
+
+        log("idToken: ${tokenData['idToken']}");
+        log("refreshToken: ${tokenData['refreshToken']}");
+        log("expiresIn: ${tokenData["expiresIn"]}");
+      } else {
+        log("Could not fetch refreshToken because sessionInfo/otp is missing.");
+      }
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Login successful')));
-      // Navigate to main app
+
       Navigator.pushReplacementNamed(context, '/main');
+    } catch (e) {
+      _handleError(context, "Login failed: $e");
     }
   }
 
@@ -300,3 +327,63 @@ class AuthController extends StateNotifier<bool> {
 final authControllerProvider = StateNotifierProvider<AuthController, bool>(
   (ref) => AuthController(ref),
 );
+
+class FirebaseTokenService {
+  static const String apiKey =
+      "AIzaSyAs3a1OCrtUx8C_6ja3vzswjBQPTZwFmjc"; // replace with your key
+
+  static Future<Map<String, dynamic>> signInWithPhone(
+    String sessionInfo,
+    String otp,
+  ) async {
+    final url =
+        "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPhoneNumber?key=$apiKey";
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"code": otp, "sessionInfo": sessionInfo}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return {
+        "idToken": data["idToken"],
+        "refreshToken": data["refreshToken"],
+        "expiresIn": data["expiresIn"],
+        "localId": data["localId"],
+        "phoneNumber": data["phoneNumber"],
+      };
+    } else {
+      throw Exception(
+        "Failed to sign in: ${response.statusCode} ${response.body}",
+      );
+    }
+  }
+
+  static Future<Map<String, dynamic>> refreshIdToken(
+    String refreshToken,
+  ) async {
+    final url = "https://securetoken.googleapis.com/v1/token?key=$apiKey";
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {"Content-Type": "application/x-www-form-urlencoded"},
+      body: {"grant_type": "refresh_token", "refresh_token": refreshToken},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return {
+        "idToken": data["id_token"],
+        "refreshToken": data["refresh_token"],
+        "expiresIn": data["expires_in"],
+        "userId": data["user_id"],
+      };
+    } else {
+      throw Exception(
+        "Failed to refresh token: ${response.statusCode} ${response.body}",
+      );
+    }
+  }
+}
