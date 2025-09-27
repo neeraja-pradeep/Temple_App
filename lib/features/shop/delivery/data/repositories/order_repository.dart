@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:temple_app/core/constants/api_constants.dart';
+import '../../../../../core/services/token_storage_service.dart';
 
 class OrderLineModel {
   final int id;
@@ -67,12 +68,41 @@ class OrderRepository {
   final String baseUrl = ApiConstants.baseUrl;
 
   Future<OrderDetailModel> fetchOrderById(int orderId) async {
+    // Get authorization header with bearer token
+    final authHeader = TokenStorageService.getAuthorizationHeader();
+    if (authHeader == null) {
+      throw Exception(
+        'No valid authentication token found. Please login again.',
+      );
+    }
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': authHeader,
+    };
+
     final uri = Uri.parse("$baseUrl/ecommerce/orders/$orderId");
-    final response = await http.get(uri);
+
+    print('🌐 Making fetch order by ID API call to: $uri');
+    print('🔐 Authorization header: $authHeader');
+
+    final response = await http.get(uri, headers: headers);
+
+    print('📥 Fetch Order API Response Status: ${response.statusCode}');
+    print('📥 Fetch Order API Response Body: ${response.body}');
+
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(response.body);
       return OrderDetailModel.fromJson(data);
+    } else if (response.statusCode == 403) {
+      throw Exception(
+        'Access denied. You don\'t have permission to view this order.',
+      );
+    } else if (response.statusCode == 404) {
+      throw Exception('Order not found.');
+    } else {
+      throw Exception('Failed to fetch order: ${response.statusCode}');
     }
-    throw Exception('Failed to fetch order: ${response.statusCode}');
   }
 }

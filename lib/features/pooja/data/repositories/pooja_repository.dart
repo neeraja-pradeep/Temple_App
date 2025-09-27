@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:temple_app/features/pooja/data/models/malayalam_date_model.dart';
 import 'package:temple_app/features/pooja/data/models/pooja_model.dart';
 import '../models/pooja_category_model.dart';
+import '../../../../core/services/complete_token_service.dart';
 
 class PoojaRepository {
   final String baseUrl = 'http://templerun.click/api';
@@ -16,7 +17,24 @@ class PoojaRepository {
     final box = await Hive.openBox<PoojaCategory>(poojaCategoryBox);
 
     final url = Uri.parse('$baseUrl/booking/poojacategory/');
-    final response = await http.get(url);
+
+    // Get authorization header with bearer token (auto-refresh if needed)
+    final authHeader = await CompleteTokenService.getAuthorizationHeader();
+    if (authHeader == null) {
+      throw Exception(
+        'No valid authentication token found. Please login again.',
+      );
+    }
+
+    final headers = {'Accept': 'application/json', 'Authorization': authHeader};
+
+    print('🌐 Making pooja categories API call to: $url');
+    print('🔐 Authorization header: $authHeader');
+
+    final response = await http.get(url, headers: headers);
+
+    print('📥 Pooja Categories API Response Status: ${response.statusCode}');
+    print('📥 Pooja Categories API Response Body: ${response.body}');
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
@@ -43,9 +61,22 @@ class PoojaRepository {
     final url = Uri.parse(
       '$baseUrl/booking/poojas/?pooja_category_id=$categoryId',
     );
+
+    // Get authorization header with bearer token (auto-refresh if needed)
+    final authHeader = await CompleteTokenService.getAuthorizationHeader();
+    if (authHeader == null) {
+      throw Exception(
+        'No valid authentication token found. Please login again.',
+      );
+    }
+
+    final headers = {'Accept': 'application/json', 'Authorization': authHeader};
+
     print('🌐 API Call: $url');
+    print('🔐 Authorization header: $authHeader');
+
     final response = await http
-        .get(url)
+        .get(url, headers: headers)
         .timeout(
           const Duration(seconds: 10),
           onTimeout: () {
@@ -94,9 +125,25 @@ class PoojaRepository {
     final cached = box.get(date);
     if (cached != null) return cached;
 
-    final response = await http.get(
-      Uri.parse('$baseUrl/booking/malayalam-dates/?date=$date'),
-    );
+    final url = Uri.parse('$baseUrl/booking/malayalam-dates/?date=$date');
+
+    // Get authorization header with bearer token (auto-refresh if needed)
+    final authHeader = await CompleteTokenService.getAuthorizationHeader();
+    if (authHeader == null) {
+      throw Exception(
+        'No valid authentication token found. Please login again.',
+      );
+    }
+
+    final headers = {'Accept': 'application/json', 'Authorization': authHeader};
+
+    print('🌐 Making malayalam date API call to: $url');
+    print('🔐 Authorization header: $authHeader');
+
+    final response = await http.get(url, headers: headers);
+
+    print('📥 Malayalam Date API Response Status: ${response.statusCode}');
+    print('📥 Malayalam Date API Response Body: ${response.body}');
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);

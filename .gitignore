@@ -43,3 +43,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase API Keys and sensitive configuration
+lib/core/config/firebase_config.dart
+.env
+.env.local
+.env.production
+
+# Keep template files and documentation
+!lib/core/config/firebase_config.dart.template
+!lib/core/config/README.md

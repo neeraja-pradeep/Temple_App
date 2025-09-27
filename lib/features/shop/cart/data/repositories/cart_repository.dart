@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:temple_app/core/constants/api_constants.dart';
 import 'package:temple_app/features/shop/cart/data/model/cart_model.dart';
+import '../../../../../core/services/token_storage_service.dart';
 
 class CartRepository {
   final String baseUrl = ApiConstants.baseUrl;
@@ -18,14 +19,25 @@ class CartRepository {
   Future<bool> checkoutCart() async {
     try {
       final uri = Uri.parse("$baseUrl/ecommerce/checkout/");
+
+      // Get authorization header with bearer token
+      final authHeader = TokenStorageService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
       final headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
+        "Authorization": authHeader,
       };
 
       // Raw request log
       print("HTTP REQUEST → POST ${uri.toString()}");
       print("REQUEST HEADERS → ${headers.toString()}");
+      print("🔐 Authorization header: $authHeader");
 
       final response = await http.post(uri, headers: headers);
 
@@ -49,13 +61,24 @@ class CartRepository {
   Future<bool> pay() async {
     try {
       final uri = Uri.parse("$baseUrl/ecommerce/pay/");
+
+      // Get authorization header with bearer token
+      final authHeader = TokenStorageService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
       final headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
+        "Authorization": authHeader,
       };
 
       log("[PAYMENT] REQUEST → POST ${uri.toString()}");
       _logLarge("[PAYMENT] REQUEST HEADERS", headers.toString());
+      log("🔐 Authorization header: $authHeader");
 
       final response = await http.post(uri, headers: headers);
 
@@ -77,11 +100,22 @@ class CartRepository {
   Future<int?> payAndReturnOrderId() async {
     try {
       final uri = Uri.parse("$baseUrl/ecommerce/pay/");
+
+      // Get authorization header with bearer token
+      final authHeader = TokenStorageService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
       final headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
+        "Authorization": authHeader,
       };
       log("[PAYMENT] REQUEST (orderId) → POST ${uri.toString()}");
+      log("🔐 Authorization header: $authHeader");
       final response = await http.post(uri, headers: headers);
       log("[PAYMENT] RESPONSE (orderId) ← ${response.statusCode}");
       _logLarge("[PAYMENT] RESPONSE HEADERS", response.headers.toString());
@@ -167,12 +201,21 @@ class CartRepository {
 
   Future<bool> deleteCartItemByProductVariantId(String productVariantId) async {
     try {
+      // Get authorization header with bearer token
+      final authHeader = TokenStorageService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
       // 1️⃣ Fetch all cart items
       final fetchResponse = await http.get(
         Uri.parse("$baseUrl/ecommerce/cart/"),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
+          "Authorization": authHeader,
         },
       );
 
@@ -206,6 +249,7 @@ class CartRepository {
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
+          "Authorization": authHeader,
         },
       );
 
@@ -230,11 +274,20 @@ class CartRepository {
     required int quantity,
   }) async {
     try {
+      // Get authorization header with bearer token
+      final authHeader = TokenStorageService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
       final fetchResponse = await http.get(
         Uri.parse("$baseUrl/ecommerce/cart/"),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
+          "Authorization": authHeader,
         },
       );
 
@@ -273,6 +326,7 @@ class CartRepository {
           headers: {
             "Content-Type": "application/json",
             "Accept": "application/json",
+            "Authorization": authHeader,
           },
           body: jsonEncode({"quantity": newQuantity}),
         );
@@ -285,6 +339,7 @@ class CartRepository {
           headers: {
             "Content-Type": "application/json",
             "Accept": "application/json",
+            "Authorization": authHeader,
           },
           body: jsonEncode({
             "product_variant_id": productVariantId,
@@ -389,12 +444,21 @@ class CartRepository {
   Future<List<CartItem>> getinitStateCartFromAPi() async {
     final box = await _cartBox();
     try {
+      // Get authorization header with bearer token
+      final authHeader = TokenStorageService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
       // 1️⃣ Fetch from API
       final response = await http.get(
         Uri.parse("$baseUrl/ecommerce/cart/"),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
+          "Authorization": authHeader,
         },
       );
 

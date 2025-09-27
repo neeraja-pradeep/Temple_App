@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'special_pooja_model.dart';
 import 'package:hive/hive.dart';
+import '../../../core/services/complete_token_service.dart';
 
 class SpecialPrayerRepository {
   static const String _endpoint =
@@ -10,10 +11,28 @@ class SpecialPrayerRepository {
   Future<List<SpecialPooja>> fetchSpecialPrayers() async {
     try {
       final uri = Uri.parse(_endpoint);
-      final response = await http.get(
-        uri,
-        headers: const {'Accept': 'application/json'},
-      );
+
+      // Get authorization header with bearer token (auto-refresh if needed)
+      final authHeader = await CompleteTokenService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
+      final headers = {
+        'Accept': 'application/json',
+        'Authorization': authHeader,
+      };
+
+      print('🌐 Making special pooja API call to: $uri');
+      print('🔐 Authorization header: $authHeader');
+
+      final response = await http.get(uri, headers: headers);
+
+      print('📥 Special Pooja API Response Status: ${response.statusCode}');
+      print('📥 Special Pooja API Response Body: ${response.body}');
+
       if (response.statusCode != 200) {
         throw Exception(
           'Failed to load special prayers: ${response.statusCode}',

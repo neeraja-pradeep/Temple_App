@@ -63,7 +63,9 @@ class FirebaseAuthService {
       print('Creation Time: ${user.metadata.creationTime}');
       print('Last Sign In Time: ${user.metadata.lastSignInTime}');
       print('Provider Data: ${user.providerData}');
-      print('Refresh Token: ${user.refreshToken}');
+      print(
+        'Refresh Token: ${user.refreshToken ?? "Not available (Firebase handles internally)"}',
+      );
       print('Tenant ID: ${user.tenantId}');
       print('Multi Factor: ${user.multiFactor}');
     }

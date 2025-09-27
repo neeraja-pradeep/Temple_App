@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:temple_app/core/constants/api_constants.dart';
 import 'package:temple_app/features/shop/delivery/data/model/address_model.dart';
+import '../../../../../core/services/complete_token_service.dart';
 
 class AddressRepository {
   final String baseUrl = "${ApiConstants.baseUrl}/ecommerce/address/";
@@ -17,7 +18,27 @@ class AddressRepository {
   Future<List<AddressModel>> fetchAddresses() async {
     final box = await _openBox();
     try {
-      final response = await http.get(Uri.parse(baseUrl));
+      // Get authorization header with bearer token (auto-refresh if needed)
+      final authHeader = await CompleteTokenService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
+      final headers = {
+        'Accept': 'application/json',
+        'Authorization': authHeader,
+      };
+
+      print('🌐 Making fetch addresses API call to: $baseUrl');
+      print('🔐 Authorization header: $authHeader');
+
+      final response = await http.get(Uri.parse(baseUrl), headers: headers);
+
+      print('📥 Addresses API Response Status: ${response.statusCode}');
+      print('📥 Addresses API Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         final addresses = data.map((e) => AddressModel.fromJson(e)).toList();
@@ -58,11 +79,32 @@ class AddressRepository {
     };
 
     try {
+      // Get authorization header with bearer token (auto-refresh if needed)
+      final authHeader = await CompleteTokenService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
+      final headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": authHeader,
+      };
+
+      print('🌐 Making add address API call to: $baseUrl');
+      print('🔐 Authorization header: $authHeader');
+      print('📤 Request body: ${jsonEncode(payload)}');
+
       final response = await http.post(
         Uri.parse(baseUrl),
-        headers: {"Content-Type": "application/json"},
+        headers: headers,
         body: jsonEncode(payload),
       );
+
+      print('📥 Add Address API Response Status: ${response.statusCode}');
+      print('📥 Add Address API Response Body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final newAddress = AddressModel.fromJson(jsonDecode(response.body));
@@ -101,11 +143,32 @@ class AddressRepository {
     };
 
     try {
+      // Get authorization header with bearer token (auto-refresh if needed)
+      final authHeader = await CompleteTokenService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
+      final headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": authHeader,
+      };
+
+      print('🌐 Making update address API call to: $baseUrl${address.id}/');
+      print('🔐 Authorization header: $authHeader');
+      print('📤 Request body: ${jsonEncode(payload)}');
+
       final response = await http.patch(
         Uri.parse("$baseUrl${address.id}/"),
-        headers: {"Content-Type": "application/json"},
+        headers: headers,
         body: jsonEncode(payload),
       );
+
+      print('📥 Update Address API Response Status: ${response.statusCode}');
+      print('📥 Update Address API Response Body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 204) {
         final updatedAddress = AddressModel.fromJson(
@@ -134,11 +197,32 @@ class AddressRepository {
   Future<void> selectAddress(int id) async {
     final box = await _openBox();
     try {
+      // Get authorization header with bearer token (auto-refresh if needed)
+      final authHeader = await CompleteTokenService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
+      final headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": authHeader,
+      };
+
+      print('🌐 Making select address API call to: $baseUrl$id/');
+      print('🔐 Authorization header: $authHeader');
+      print('📤 Request body: ${jsonEncode({"id": id, "selection": true})}');
+
       final response = await http.patch(
         Uri.parse('$baseUrl$id/'),
-        headers: {"Content-Type": "application/json"},
+        headers: headers,
         body: jsonEncode({"id": id, "selection": true}),
       );
+
+      print('📥 Select Address API Response Status: ${response.statusCode}');
+      print('📥 Select Address API Response Body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 204) {
         final addresses = box.values.toList();
@@ -163,7 +247,30 @@ class AddressRepository {
   Future<void> deleteAddress(int id) async {
     final box = await _openBox();
     try {
-      final response = await http.delete(Uri.parse("$baseUrl$id/"));
+      // Get authorization header with bearer token (auto-refresh if needed)
+      final authHeader = await CompleteTokenService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
+      final headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": authHeader,
+      };
+
+      print('🌐 Making delete address API call to: $baseUrl$id/');
+      print('🔐 Authorization header: $authHeader');
+
+      final response = await http.delete(
+        Uri.parse("$baseUrl$id/"),
+        headers: headers,
+      );
+
+      print('📥 Delete Address API Response Status: ${response.statusCode}');
+      print('📥 Delete Address API Response Body: ${response.body}');
 
       // Check if response body contains an error message
       if (response.body.isNotEmpty) {
