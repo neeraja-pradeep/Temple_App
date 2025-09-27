@@ -22,3 +22,14 @@ subprojects {
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
+plugins {
+    id("com.android.application") apply false
+    id("org.jetbrains.kotlin.android") apply false
+
+    // ✅ Correctly declare the Google services plugin
+    id("com.google.gms.google-services") apply false
+
+}
+
+
+

@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "799670961061-m4p2mf0fnpepom4kgb5crsg4ke3theqq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nexotech.templeapp.in",
+            "certificate_hash": "4b2ef4b3e95a6356398474c0226ec09aa8adc617"
+          }
+        },
+        {
+          "client_id": "799670961061-r2u06qltnfouirg7frl0s1bvemoat158.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nexotech.templeapp.in",
+            "certificate_hash": "6bf32565d81c98c6359e0f86ed6ba6c5e1986e6e"
+          }
+        },
+        {
           "client_id": "799670961061-inulej0qs7q0t4ceop8irlqgnv7tqspg.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -31,10 +47,10 @@
               "client_type": 3
             },
             {
-              "client_id": "799670961061-8ekvg5ophtubg4fh49lq17f8mbc9i0bc.apps.googleusercontent.com",
+              "client_id": "799670961061-1bm8ob0j0m7mikcjc2f2t39gi2o2m6u6.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.temple.in"
+                "bundle_id": "com.example.templeApp"
               }
             }
           ]

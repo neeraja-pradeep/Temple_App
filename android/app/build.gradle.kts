@@ -1,13 +1,10 @@
 plugins {
     id("com.android.application")
-    // START: FlutterFire Configuration
+    id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
-    // END: FlutterFire Configuration
-    id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
 
 android {
     namespace = "com.example.temple_app"
@@ -25,7 +22,7 @@ android {
 
      defaultConfig {
         applicationId = "com.nexotech.templeapp.in"
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -38,6 +35,15 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+    dependencies {
+      implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
+
+      // Firebase SDKs you need
+     implementation("com.google.firebase:firebase-analytics")
+     implementation("com.google.firebase:firebase-auth")
+    }
+
+
 }
 
 flutter {
