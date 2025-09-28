@@ -43,6 +43,7 @@ android {
      implementation("com.google.firebase:firebase-auth")
      implementation("com.google.android.gms:play-services-auth:20.7.0")
      implementation("com.google.android.play:integrity:1.3.0")
+     implementation ("com.google.firebase:firebase-appcheck-debug:16.0.0-beta01")
     }
 
 
