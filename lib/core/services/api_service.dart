@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'token_storage_service.dart';
+import 'token_auto_refresh_service.dart';
 
 /// API Service for making authenticated requests
 class ApiService {
@@ -124,19 +125,26 @@ class ApiService {
     }
   }
 
-  /// Get authentication headers with bearer token
+  /// Get authentication headers with bearer token (auto-refresh if needed)
   static Future<Map<String, String>> _getAuthHeaders() async {
     final headers = <String, String>{};
 
-    // Get authorization header from token storage
-    final authHeader = TokenStorageService.getAuthorizationHeader();
-    if (authHeader != null) {
-      headers['Authorization'] = authHeader;
-      print('🔐 Using stored bearer token for authentication');
-    } else {
-      print('⚠️ No valid authentication token found');
+    try {
+      // Get valid token (auto-refresh if needed)
+      final token = await TokenAutoRefreshService.getValidToken();
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+        print('🔐 Using valid bearer token for authentication');
+      } else {
+        print('⚠️ No valid authentication token found');
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+    } catch (e) {
+      print('❌ Error getting valid token: $e');
       throw Exception(
-        'No valid authentication token found. Please login again.',
+        'Failed to get valid authentication token. Please login again.',
       );
     }
 
