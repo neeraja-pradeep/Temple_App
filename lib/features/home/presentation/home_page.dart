@@ -6,6 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:temple_app/core/app_colors.dart';
+import 'package:temple_app/core/services/fcm_token_service.dart';
+import 'package:temple_app/core/services/logout_service.dart';
 import 'package:temple_app/features/home/providers/home_providers.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -19,165 +21,293 @@ class HomePage extends ConsumerStatefulWidget {
 
     return profileAsync.when(
       data: (profile) {
-        return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(backgroundColor: Colors.white, radius: 30.w),
-                  SizedBox(width: 20.w),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
+        // Print profile details to console when drawer is opened
+        print('=== PROFILE DETAILS FROM DRAWER ===');
+        print('Name: ${profile.name}');
+        print('Phone: ${profile.phone}');
+        print('Email: ${profile.email}');
+        print('Date of Birth: ${profile.dob}');
+        print('Time: ${profile.time}');
+        print('Nakshatram: ${profile.nakshatram}');
+        print('Malayalam Date: ${profile.malayalamDate}');
+        print('=== END PROFILE DETAILS ===');
+
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFFDF8EF), // rgba(253, 248, 239, 1)
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(20.r),
+              bottomRight: Radius.circular(20.r),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header section with greeting and user info
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 10.h),
+                    Text(
+                      "നമസ്കാരം",
+                      style: TextStyle(
+                        fontFamily: "NotoSansMalayalam",
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600, // semibold
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      profile.name,
+                      style: TextStyle(
+                        fontFamily: "NotoSansMalayalam",
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      profile.nakshatram,
+                      style: TextStyle(
+                        fontFamily: "NotoSansMalayalam",
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 20.h),
+
+                // Divider
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  child: Container(height: 1.h, color: Colors.grey.shade300),
+                ),
+
+                SizedBox(height: 20.h),
+
+                // Main menu items
+                Expanded(
+                  child: Column(
                     children: [
-                      Text(
-                        "നമസ്കാരം",
-                        style: TextStyle(
-                          fontFamily: "NotoSansMalayalam",
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
+                      _buildMenuItem("Pooja Booking", () {}),
+                      SizedBox(height: 12.h),
+                      _buildMenuItem("Store Orders", () {}),
+                      SizedBox(height: 12.h),
+                      _buildMenuItem("Saved members list", () {}),
+                      SizedBox(height: 12.h),
+                      _buildMenuItem("Saved Addresses", () {}),
+
+                      SizedBox(height: 20.h),
+
+                      // Divider after the four main items
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
+                        child: Container(
+                          height: 1.h,
+                          color: Colors.grey.shade300,
                         ),
                       ),
-                      Text(
-                        profile.name,
-                        style: TextStyle(
-                          fontFamily: "NotoSansMalayalam",
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w300,
-                        ),
+
+                      const Spacer(),
+
+                      // Bottom menu items at the very bottom
+                      _buildMenuItem(
+                        "Contact Us",
+                        () {},
+                        fontWeight: FontWeight.w400,
                       ),
+                      SizedBox(height: 12.h),
+                      _buildMenuItem("Log out", () {
+                        _handleLogout(context, ref);
+                      }, fontWeight: FontWeight.w700),
                     ],
                   ),
-                ],
-              ),
-              SizedBox(height: 15.h),
-              Text(
-                "അക്കൗണ്ട് സെറ്റിംഗ്സ്",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
                 ),
-              ),
-              SizedBox(height: 6.h),
-              Divider(color: Colors.grey),
-              SizedBox(height: 6.h),
+              ],
+            ),
+          ),
+        );
+      },
+      error: (err, _) => Container(
+        padding: EdgeInsets.all(20.w),
+        child: Text(
+          "Error loading profile",
+          style: TextStyle(fontSize: 16.sp, color: Colors.red),
+        ),
+      ),
+      loading: () => Container(
+        padding: EdgeInsets.all(20.w),
+        child: const CircularProgressIndicator(),
+      ),
+    );
+  }
 
-              Text(
-                "ഹോം സ്ക്രീൻ",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "ദൈനംദിന പൂജ സമയങ്ങൾ",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "ക്ഷേത്ര ചടങ്ങുകൾ",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 6.h),
-              Divider(color: Colors.grey),
-              SizedBox(height: 6.h),
+  static Widget _buildMenuItem(
+    String title,
+    VoidCallback onTap, {
+    FontWeight? fontWeight,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 4.w),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: fontWeight ?? FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-              Text(
-                "പൂജ ബുക്ക് ചെയ്യുക",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "പ്രസാദം വാങ്ങുക",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "സംഭാവന ചെയ്യുക വിപണി",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 6.h),
-              Divider(color: Colors.grey),
-              SizedBox(height: 6.h),
+  /// Handle user logout
+  static Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
+    try {
+      // Show confirmation dialog
+      final shouldLogout = await _showLogoutConfirmationDialog(context);
+      if (!shouldLogout) return;
 
-              Text(
-                "പൗർണമി / അമാവാസ്യാ ദിവസം ",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "ഉത്സവങ്ങൾ",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "ഇന്ന് രാഹുകാലം",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "നക്ഷത്രം / ജാതകം (ഐച്ഛികം)",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 6.h),
-              Divider(color: Colors.grey),
-              SizedBox(height: 6.h),
+      // Show loading indicator
+      _showLogoutLoadingDialog(context);
 
-              Text(
-                "ഞങ്ങളെ ബന്ധപ്പെടുക",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w300,
+      // Get user info before logout (for debugging)
+      final userInfo = LogoutService.getUserInfoBeforeLogout();
+      print('=== USER INFO BEFORE LOGOUT ===');
+      print('User ID: ${userInfo['userId']}');
+      print('Phone: ${userInfo['phoneNumber']}');
+      print('Role: ${userInfo['userRole']}');
+      print('Has FCM Token: ${userInfo['hasFcmToken']}');
+      print('Is Authenticated: ${userInfo['isAuthenticated']}');
+      print('=== END USER INFO ===');
+
+      // Perform logout
+      final success = await LogoutService.logout(
+        ProviderScope.containerOf(context),
+      );
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+      }
+
+      if (success) {
+        // Show success message
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Logged out successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+
+        // Navigate to login page
+        if (context.mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/login',
+            (route) => false, // Remove all previous routes
+          );
+        }
+      } else {
+        // Show error message but still navigate to login
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Logout completed with some issues'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+
+        // Navigate to login page even if there were issues
+        if (context.mounted) {
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/login', (route) => false);
+        }
+      }
+    } catch (e) {
+      print('❌ Logout error: $e');
+
+      // Close loading dialog if still open
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+      }
+
+      // Show error message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Logout failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Show logout confirmation dialog
+  static Future<bool> _showLogoutConfirmationDialog(
+    BuildContext context,
+  ) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Logout'),
+              content: const Text('Are you sure you want to logout?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
                 ),
-              ),
-              Text(
-                "ക്ഷേത്രം വിവരങ്ങൾ",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w300,
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Logout'),
                 ),
-              ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+
+  /// Show logout loading dialog
+  static void _showLogoutLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text('Logging out...'),
             ],
           ),
         );
       },
-      error: (err, _) => const Text(""),
-      loading: () => const Text(""),
     );
   }
 }
@@ -193,9 +323,29 @@ class _HomePageState extends ConsumerState<HomePage>
     WidgetsBinding.instance.addObserver(this);
     player = ref.read(audioPlayerProvider);
 
-    _playerSub = player.playerStateStream.listen((state) {
-      ref.read(isPlayingProvider.notifier).state = state.playing;
-    });
+    _playerSub = player.playerStateStream.listen(
+      (state) {
+        ref.read(isPlayingProvider.notifier).state = state.playing;
+      },
+      onError: (error) {
+        print('❌ Audio player state error: $error');
+        ref.read(isPlayingProvider.notifier).state = false;
+      },
+    );
+
+    // Send FCM token to backend when user reaches home page
+    _sendFcmTokenToBackend();
+  }
+
+  /// Send FCM token to backend after user reaches home page
+  Future<void> _sendFcmTokenToBackend() async {
+    try {
+      print('=== HOME PAGE FCM TOKEN HANDLING ===');
+      await FcmTokenService.handleFcmTokenAfterLogin();
+      print('=== END HOME PAGE FCM TOKEN HANDLING ===');
+    } catch (e) {
+      print('❌ Error in home page FCM token handling: $e');
+    }
   }
 
   @override
@@ -312,34 +462,72 @@ class _HomePageState extends ConsumerState<HomePage>
               bottom: 10.h,
               left: 5.w,
               child: musicAsync.when(
-                data: (song) => IconButton(
-                  onPressed: () async {
-                    if (isPlaying) {
-                      await player.pause();
-                    } else {
-                      if (player.audioSource == null ||
-                          (player.audioSource is ProgressiveAudioSource &&
-                              (player.audioSource as ProgressiveAudioSource).uri
-                                      .toString() !=
-                                  song.streamUrl)) {
-                        await player.setUrl(song.streamUrl);
+                data: (song) {
+                  print('🎵 Song data received: ${song.streamUrl}');
+                  return IconButton(
+                    onPressed: () async {
+                      try {
+                        if (isPlaying) {
+                          await player.pause();
+                        } else {
+                          // Validate URL before setting
+                          print('🎵 Attempting to play: ${song.streamUrl}');
+                          if (song.streamUrl.isNotEmpty &&
+                              Uri.tryParse(song.streamUrl) != null) {
+                            // Convert HTTP to HTTPS for better security
+                            String audioUrl = song.streamUrl;
+                            if (audioUrl.startsWith('http://')) {
+                              audioUrl = audioUrl.replaceFirst(
+                                'http://',
+                                'https://',
+                              );
+                              print('🔄 Converted HTTP to HTTPS: $audioUrl');
+                            }
+
+                            if (player.audioSource == null ||
+                                (player.audioSource is ProgressiveAudioSource &&
+                                    (player.audioSource
+                                                as ProgressiveAudioSource)
+                                            .uri
+                                            .toString() !=
+                                        audioUrl)) {
+                              await player.setUrl(audioUrl);
+                            }
+                            await player.play();
+                          } else {
+                            print('❌ Invalid audio URL: ${song.streamUrl}');
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Invalid audio URL'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      } catch (e) {
+                        print('❌ Audio playback error: $e');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Audio playback failed: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
                       }
-                      await player.play();
-                    }
-                  },
-                  icon: isPlaying
-                      ? Image.asset(
-                          "assets/icons/sound.png",
-                          height: 24.h,
-                          width: 29.76.w,
-                        )
-                      : Image.asset(
-                          "assets/icons/mute.png",
-                          color: const Color.fromARGB(154, 255, 255, 255),
-                          height: 24.h,
-                          width: 29.76.w,
-                        ),
-                ),
+                    },
+                    icon: isPlaying
+                        ? Image.asset(
+                            "assets/icons/sound.png",
+                            height: 24.h,
+                            width: 29.76.w,
+                          )
+                        : Image.asset(
+                            "assets/icons/mute.png",
+                            color: const Color.fromARGB(154, 255, 255, 255),
+                            height: 24.h,
+                            width: 29.76.w,
+                          ),
+                  );
+                },
                 loading: () => const CircularProgressIndicator(),
                 error: (_, __) => const Icon(Icons.error),
               ),

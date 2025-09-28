@@ -1,0 +1,36 @@
+class FirebaseConfig {
+  // Firebase Web API Key - This should be loaded from environment variables
+  // For production, use environment variables or secure storage
+  static const String firebaseWebApiKey = "YOUR_FIREBASE_WEB_API_KEY_HERE";
+  
+  // Firebase project configuration
+  static const String projectId = "temple-project-2d223";
+  static const String authDomain = "temple-project-2d223.firebaseapp.com";
+  
+  /// Get Firebase Web API Key from secure storage
+  /// In production, this should load from environment variables
+  static String getFirebaseWebApiKey() {
+    // TODO: In production, load from environment variables
+    // Example: return Platform.environment['FIREBASE_WEB_API_KEY'] ?? firebaseWebApiKey;
+    return firebaseWebApiKey;
+  }
+  
+  /// Check if running in development mode
+  static bool get isDevelopment {
+    // You can add your own logic to detect development vs production
+    return true; // For now, always return true for development
+  }
+  
+  /// Get API key based on environment
+  static String getApiKey() {
+    if (isDevelopment) {
+      return firebaseWebApiKey;
+    } else {
+      // In production, load from secure environment variables
+      return getFirebaseWebApiKey();
+    }
+  }
+}
+
+
+

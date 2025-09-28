@@ -11,23 +11,28 @@
 import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:temple_app/core/hive/hive_init_provider.dart';
-import 'package:temple_app/core/services/token_storage_service.dart';
 import 'package:temple_app/features/shop/cart/data/repositories/cart_repository.dart';
+import 'package:temple_app/core/services/token_storage_service.dart';
 
 import 'core/app.dart';
+import 'core/services/notification_service.dart';
 import 'firebase_options.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   print(Firebase.app().options.projectId);
+
+  // FCM background handler (must be set before using messaging)
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   // Pass all uncaught "fatal" errors from the framework to Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -47,7 +52,10 @@ void main() async {
 
   // 🔐 Initialize Token Storage
   await TokenStorageService.init();
-  await Hive.openBox('authBox');
+
+  // 🔔 Initialize notifications (permissions, token log, handlers)
+  await NotificationService.instance.initialize();
+
   runApp(const ProviderScope(child: MyApp()));
 }
 

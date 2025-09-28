@@ -5,7 +5,6 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-
 android {
     namespace = "com.example.temple_app"
     compileSdk = flutter.compileSdkVersion
@@ -14,13 +13,12 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
-    }
+    kotlinOptions { jvmTarget = JavaVersion.VERSION_11.toString() }
 
-     defaultConfig {
+    defaultConfig {
         applicationId = "com.nexotech.templeapp.in"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
@@ -36,19 +34,20 @@ android {
         }
     }
     dependencies {
-      implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
+        implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
 
-      // Firebase SDKs you need
-     implementation("com.google.firebase:firebase-analytics")
-     implementation("com.google.firebase:firebase-auth")
-     implementation("com.google.android.gms:play-services-auth:20.7.0")
-     implementation("com.google.android.play:integrity:1.3.0")
-     implementation ("com.google.firebase:firebase-appcheck-debug:16.0.0-beta01")
+        // Firebase SDKs you need
+        implementation("com.google.firebase:firebase-analytics")
+        implementation("com.google.firebase:firebase-auth")
+        implementation("com.google.android.gms:play-services-auth:20.7.0")
+        implementation("com.google.android.play:integrity:1.3.0")
+        
+        // Core library desugaring for flutter_local_notifications
+        coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     }
-
-
 }
 
+flutter { source = "../.." }
 flutter {
     source = "../.."
 }
