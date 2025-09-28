@@ -8,22 +8,18 @@
 //   main.dart     - Entry point
 //
 // Add more features by following the same pattern in features/.
-import 'dart:developer';
 import 'dart:ui';
 
-// import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter/foundation.dart'; // for kDebugMode
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:temple_app/core/hive/hive_init_provider.dart';
 import 'package:temple_app/features/shop/cart/data/repositories/cart_repository.dart';
+import 'package:temple_app/core/services/token_storage_service.dart';
 
-// import 'package:temple_app/core/services/token_storage_service.dart';?
-// import 'package:firebase_app_check/firebase_app_check.dart';
 import 'core/app.dart';
 import 'firebase_options.dart';
 
@@ -50,8 +46,7 @@ void main() async {
   await HiveInitializer.init(); // 👈 register all adapters
 
   // 🔐 Initialize Token Storage
-  // await TokenStorageService.init();
-  // await initAppCheck();
+  await TokenStorageService.init();
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -83,17 +78,3 @@ class _MyAppState extends ConsumerState<MyApp> {
     );
   }
 }
-
-// Future<void> initAppCheck() async {
-  
-//   await FirebaseAppCheck.instance.activate(
-//     androidProvider: AndroidProvider.debug,
-//   );
-
-//   try {
-//     final debugToken = await FirebaseAppCheck.instance.getToken(true);
-//     log("🔥 Firebase App Check Debug Token: $debugToken");
-//   } catch (e, st) {
-//     log("❌ Firebase App Check getToken error: $e", stackTrace: st);
-//   }
-// }

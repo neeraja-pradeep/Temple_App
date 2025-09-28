@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'booking_pooja_model.dart';
 import 'cart_model.dart';
 import 'checkout_model.dart';
+import '../../../core/services/complete_token_service.dart';
 
 // Booking cart response model
 class BookingCartResponse {
@@ -38,10 +39,32 @@ class BookingRepository {
 
   Future<BookingPooja> getBookingPooja(int poojaId) async {
     try {
+      // Get authorization header with bearer token (auto-refresh if needed)
+      final authHeader = await CompleteTokenService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
+      final headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': authHeader,
+      };
+
+      print(
+        '🌐 Making get booking pooja API call to: $baseUrl/booking/poojas/$poojaId',
+      );
+      print('🔐 Authorization header: $authHeader');
+
       final response = await http.get(
         Uri.parse('$baseUrl/booking/poojas/$poojaId'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
       );
+
+      print('📥 Get Booking Pooja API Response Status: ${response.statusCode}');
+      print('📥 Get Booking Pooja API Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
@@ -92,12 +115,27 @@ class BookingRepository {
         );
       }
 
+      // Get authorization header with bearer token (auto-refresh if needed)
+      final authHeader = await CompleteTokenService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
+      final headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': authHeader,
+      };
+
       print('🌐 API Call - POST $baseUrl/booking/cart/');
+      print('🔐 Authorization header: $authHeader');
       print('📤 Request Payload: ${json.encode(requestBody)}');
 
       final response = await http.post(
         Uri.parse('$baseUrl/booking/cart/'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: json.encode(requestBody),
       );
 
@@ -120,11 +158,26 @@ class BookingRepository {
 
   Future<CartResponse> getCart() async {
     try {
+      // Get authorization header with bearer token (auto-refresh if needed)
+      final authHeader = await CompleteTokenService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
+      final headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': authHeader,
+      };
+
       print('🌐 API Call - GET $baseUrl/booking/cart/');
+      print('🔐 Authorization header: $authHeader');
 
       final response = await http.get(
         Uri.parse('$baseUrl/booking/cart/'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
       );
 
       print('📥 Response Status: ${response.statusCode}');
@@ -146,11 +199,26 @@ class BookingRepository {
 
   Future<CheckoutResponse> checkout() async {
     try {
+      // Get authorization header with bearer token (auto-refresh if needed)
+      final authHeader = await CompleteTokenService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
+      final headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': authHeader,
+      };
+
       print('🌐 API Call - POST $baseUrl/booking/checkout/');
+      print('🔐 Authorization header: $authHeader');
 
       final response = await http.post(
         Uri.parse('$baseUrl/booking/checkout/'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
       );
 
       print('📥 Response Status: ${response.statusCode}');

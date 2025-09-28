@@ -57,9 +57,24 @@ class LoginPage extends ConsumerWidget {
                       controller: phoneController,
                       hintText: 'Phone number',
                       keyboardType: TextInputType.phone,
-                      validator: (v) => (v == null || v.trim().length < 10)
-                          ? 'Enter valid phone'
-                          : null,
+                      prefixText: '+91 ',
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Enter phone number';
+                        }
+                        // Remove +91 prefix and spaces for validation
+                        String cleanNumber = v
+                            .replaceAll('+91', '')
+                            .replaceAll(' ', '')
+                            .trim();
+                        if (cleanNumber.length != 10) {
+                          return 'Enter valid 10-digit phone number';
+                        }
+                        if (!RegExp(r'^[0-9]+$').hasMatch(cleanNumber)) {
+                          return 'Phone number should contain only digits';
+                        }
+                        return null;
+                      },
                     ),
                     if (otpSent) ...[
                       SizedBox(height: 30.h),
@@ -116,16 +131,31 @@ class LoginPage extends ConsumerWidget {
                           onPressed: isLoading
                               ? null
                               : () {
-                                  if (otpSent) {
-                                    // Verify OTP
-                                    ref
-                                        .read(authControllerProvider.notifier)
-                                        .login(context);
-                                  } else {
-                                    // Send OTP
-                                    ref
-                                        .read(authControllerProvider.notifier)
-                                        .sendOTP(context, phoneController.text);
+                                  // Validate form before proceeding
+                                  if (formKey.currentState?.validate() ??
+                                      false) {
+                                    if (otpSent) {
+                                      // Verify OTP
+                                      ref
+                                          .read(authControllerProvider.notifier)
+                                          .login(context);
+                                    } else {
+                                      // Send OTP - format phone number with +91 country code
+                                      String cleanPhoneNumber = phoneController
+                                          .text
+                                          .replaceAll('+91', '')
+                                          .replaceAll(' ', '')
+                                          .trim();
+                                      // Add +91 prefix for Firebase
+                                      String formattedPhoneNumber =
+                                          '+91$cleanPhoneNumber';
+                                      ref
+                                          .read(authControllerProvider.notifier)
+                                          .sendOTP(
+                                            context,
+                                            formattedPhoneNumber,
+                                          );
+                                    }
                                   }
                                 },
                           style: ElevatedButton.styleFrom(
@@ -203,11 +233,13 @@ class _LabeledTextField extends StatelessWidget {
   final String hintText;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
+  final String? prefixText;
   const _LabeledTextField({
     required this.controller,
     required this.hintText,
     this.keyboardType,
     this.validator,
+    this.prefixText,
   });
 
   @override
@@ -223,6 +255,12 @@ class _LabeledTextField extends StatelessWidget {
           validator: validator,
           decoration: InputDecoration(
             hintText: hintText,
+            prefixText: prefixText,
+            prefixStyle: TextStyle(
+              color: Colors.black87,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w500,
+            ),
             filled: true,
             fillColor: AppColors.inputFieldColor,
             contentPadding: EdgeInsets.symmetric(
@@ -236,6 +274,14 @@ class _LabeledTextField extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
               borderSide: BorderSide(color: AppColors.selected, width: 1.2.w),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: BorderSide(color: Colors.red, width: 1.2.w),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.r),
+              borderSide: BorderSide(color: Colors.red, width: 1.2.w),
             ),
           ),
         ),

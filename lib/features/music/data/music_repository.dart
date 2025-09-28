@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'song_model.dart';
+import '../../../core/services/complete_token_service.dart';
 
 class MusicRepository {
   final String baseUrl = "http://templerun.click/api";
@@ -9,11 +10,27 @@ class MusicRepository {
   Future<List<SongItem>> fetchSongs() async {
     try {
       final url = Uri.parse('$baseUrl/song/songs/');
+
+      // Get authorization header with bearer token (auto-refresh if needed)
+      final authHeader = await CompleteTokenService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
+      final headers = {
+        'Accept': 'application/json',
+        'Authorization': authHeader,
+      };
+
       print('=== FETCHING SONGS ===');
       print('URL: $url');
+      print('🔐 Authorization header: $authHeader');
 
-      final response = await http.get(url);
+      final response = await http.get(url, headers: headers);
       print('Response status: ${response.statusCode}');
+      print('📥 Songs API Response Body: ${response.body}');
 
       if (response.statusCode != 200) {
         print('Failed to load songs: ${response.statusCode}');

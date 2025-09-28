@@ -1,12 +1,10 @@
-import 'dart:convert';
-import 'dart:developer';
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
-
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/services/firebase_auth_service.dart';
+import '../../../core/services/token_storage_service.dart';
+import '../../../core/services/signin_api_service.dart';
+import '../../../core/providers/token_provider.dart';
 
 // Form keys
 final loginFormKeyProvider = Provider<GlobalKey<FormState>>((ref) {
@@ -167,6 +165,9 @@ final verificationIdProvider = StateProvider<String?>((ref) => null);
 // Track if OTP has been sent
 final otpSentProvider = StateProvider<bool>((ref) => false);
 
+// Store signin response for navigation decisions
+final signinResponseProvider = StateProvider<SigninResponse?>((ref) => null);
+
 // Auth controller
 class AuthController extends StateNotifier<bool> {
   AuthController(this.ref) : super(false);
@@ -174,24 +175,48 @@ class AuthController extends StateNotifier<bool> {
   final Ref ref;
 
   Future<void> sendOTP(BuildContext context, String phoneNumber) async {
+    print('=== SENDING OTP ===');
+    print('Phone Number: $phoneNumber');
+
     _setLoading(true);
     try {
       await FirebaseAuthService.sendOTP(
         phoneNumber: phoneNumber,
         verificationCompleted: (PhoneAuthCredential credential) async {
+          print('=== AUTO VERIFICATION COMPLETED ===');
+          print('Credential Provider ID: ${credential.providerId}');
+          print('Credential Sign In Method: ${credential.signInMethod}');
+
           // Auto-verification completed
           final userCredential = await FirebaseAuth.instance
               .signInWithCredential(credential);
+
+          print(
+            'Auto-verification UserCredential: ${userCredential.user != null}',
+          );
           if (userCredential.user != null) {
+            print('Auto-verification successful!');
             _handleLoginSuccess(context);
           }
         },
         verificationFailed: (FirebaseAuthException e) {
+          print('=== VERIFICATION FAILED ===');
+          print('Error Code: ${e.code}');
+          print('Error Message: ${e.message}');
+          print('Error Details: ${e.toString()}');
           _handleError(context, 'Verification failed: ${e.message}');
         },
         codeSent: (String verificationId, int? resendToken) {
+          print('=== OTP CODE SENT ===');
+          print('Verification ID: $verificationId');
+          print('Resend Token: $resendToken');
+
           ref.read(verificationIdProvider.notifier).state = verificationId;
           ref.read(otpSentProvider.notifier).state = true;
+
+          // Save verification ID to storage
+          TokenStorageService.saveVerificationId(verificationId);
+
           _setLoading(false);
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -200,10 +225,14 @@ class AuthController extends StateNotifier<bool> {
           }
         },
         codeAutoRetrievalTimeout: (String verificationId) {
+          print('=== AUTO RETRIEVAL TIMEOUT ===');
+          print('Verification ID: $verificationId');
           ref.read(verificationIdProvider.notifier).state = verificationId;
         },
       );
     } catch (e) {
+      print('=== SEND OTP ERROR ===');
+      print('Error: $e');
       _handleError(context, 'Failed to send OTP: $e');
     }
   }
@@ -215,6 +244,10 @@ class AuthController extends StateNotifier<bool> {
       return;
     }
 
+    print('=== OTP VERIFICATION START ===');
+    print('Verification ID: $verificationId');
+    print('OTP: $otp');
+
     _setLoading(true);
     try {
       final userCredential = await FirebaseAuthService.verifyOTP(
@@ -222,12 +255,19 @@ class AuthController extends StateNotifier<bool> {
         otp: otp,
       );
 
+      print('=== OTP VERIFICATION RESULT ===');
+      print('UserCredential received: ${userCredential != null}');
+
       if (userCredential?.user != null) {
+        print('User authentication successful!');
         _handleLoginSuccess(context);
       } else {
+        print('User authentication failed - no user in credential');
         _handleError(context, 'Invalid OTP');
       }
     } catch (e) {
+      print('=== OTP VERIFICATION ERROR ===');
+      print('Error: $e');
       _handleError(context, 'OTP verification failed: $e');
     }
   }
@@ -263,8 +303,14 @@ class AuthController extends StateNotifier<bool> {
     final otp = otpController.text.trim();
 
     if (otp.isEmpty) {
-      // Send OTP first
-      await sendOTP(context, phoneNumber);
+      // Send OTP first - format phone number with +91 country code
+      String cleanPhoneNumber = phoneNumber
+          .replaceAll('+91', '')
+          .replaceAll(' ', '')
+          .trim();
+      // Add +91 prefix for Firebase
+      String formattedPhoneNumber = '+91$cleanPhoneNumber';
+      await sendOTP(context, formattedPhoneNumber);
     } else {
       // Verify OTP and proceed to user details
       await verifyOTP(context, otp);
@@ -275,36 +321,148 @@ class AuthController extends StateNotifier<bool> {
   }
 
   void _handleLoginSuccess(BuildContext context) async {
+    print('=== LOGIN SUCCESS HANDLER ===');
+
+    // Get current user and log additional session info
+    final currentUser = FirebaseAuthService.getCurrentUser();
+    if (currentUser != null) {
+      print('Current User ID: ${currentUser.uid}');
+      print('Current User Phone: ${currentUser.phoneNumber}');
+      print('Is Signed In: ${FirebaseAuthService.isSignedIn()}');
+
+      // Get fresh ID token
+      currentUser
+          .getIdToken(true)
+          .then((idToken) {
+            print('Fresh ID Token: $idToken');
+            if (idToken != null) {
+              TokenStorageService.saveIdToken(idToken);
+            }
+          })
+          .catchError((error) {
+            print('Error getting fresh ID Token: $error');
+          });
+
+      // Get fresh ID token result and update token controller
+      currentUser
+          .getIdTokenResult(true)
+          .then((idTokenResult) async {
+            print('Fresh ID Token Result:');
+            print('  Token: ${idTokenResult.token}');
+            print('  Auth Time: ${idTokenResult.authTime}');
+            print('  Expiration Time: ${idTokenResult.expirationTime}');
+            print('  Issued At Time: ${idTokenResult.issuedAtTime}');
+            print('  Sign In Provider: ${idTokenResult.signInProvider}');
+            print('  Claims: ${idTokenResult.claims}');
+
+            // Save token data first before calling signin API
+            if (idTokenResult.token != null) {
+              await TokenStorageService.saveAllAuthData(
+                idToken: idTokenResult.token!,
+                verificationId: ref.read(verificationIdProvider) ?? '',
+                refreshToken: currentUser.refreshToken ?? '',
+                userId: currentUser.uid,
+                phoneNumber: currentUser.phoneNumber ?? '',
+                tokenExpiry:
+                    idTokenResult.expirationTime ??
+                    DateTime.now().add(const Duration(hours: 1)),
+              );
+              print('💾 Token data saved before signin API call');
+            }
+
+            // Call signin API with stored token
+            final signinResponse = await _callSigninApi(
+              currentUser.phoneNumber ?? '',
+              context,
+            );
+
+            // Store signin response for navigation decisions
+            if (signinResponse != null) {
+              ref.read(signinResponseProvider.notifier).state = signinResponse;
+            }
+
+            // Update token controller with fresh data
+            if (idTokenResult.token != null) {
+              ref
+                  .read(tokenControllerProvider.notifier)
+                  .saveAuthData(
+                    idToken: idTokenResult.token!,
+                    verificationId: ref.read(verificationIdProvider) ?? '',
+                    refreshToken: currentUser.refreshToken ?? '',
+                    userId: currentUser.uid,
+                    phoneNumber: currentUser.phoneNumber ?? '',
+                    tokenExpiry:
+                        idTokenResult.expirationTime ??
+                        DateTime.now().add(const Duration(hours: 1)),
+                  );
+              print(
+                '🔄 Token controller updated with fresh authentication data',
+              );
+            }
+          })
+          .catchError((error) {
+            print('Error getting fresh ID Token Result: $error');
+          });
+    }
+
     _setLoading(false);
-    if (!context.mounted) return;
-
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      final idToken = await user?.getIdToken();
-      log("idToken: $idToken");
-      final sessionInfo = ref.read(verificationIdProvider);
-      final otp = ref.read(loginOtpControllerProvider).text.trim();
-
-      if (sessionInfo != null && otp.isNotEmpty) {
-        final tokenData = await FirebaseTokenService.signInWithPhone(
-          sessionInfo,
-          otp,
-        );
-
-        log("idToken: ${tokenData['idToken']}");
-        log("refreshToken: ${tokenData['refreshToken']}");
-        log("expiresIn: ${tokenData["expiresIn"]}");
-      } else {
-        log("Could not fetch refreshToken because sessionInfo/otp is missing.");
-      }
-
+    if (context.mounted) {
+      FocusScope.of(context).unfocus();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Login successful')));
 
-      Navigator.pushReplacementNamed(context, '/main');
+      // Handle navigation based on new user status
+      _handlePostLoginNavigation(context);
+    }
+  }
+
+  /// Call signin API after successful OTP verification
+  Future<SigninResponse?> _callSigninApi(
+    String phoneNumber,
+    BuildContext context,
+  ) async {
+    try {
+      print('=== CALLING SIGNIN API ===');
+      print('Phone Number: $phoneNumber');
+
+      final signinResponse = await SigninApiService.signin(phoneNumber);
+
+      print('=== SIGNIN API SUCCESS ===');
+      print('Message: ${signinResponse.message}');
+      print('Role: ${signinResponse.role}');
+      print('Phone Number: ${signinResponse.phoneNumber}');
+      print('New User: ${signinResponse.newUser}');
+
+      // Save user role to storage
+      await TokenStorageService.saveUserRole(signinResponse.role);
+
+      print('💾 User role saved: ${signinResponse.role}');
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Welcome! Role: ${signinResponse.role}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
+      // Return the signin response to handle navigation
+      return signinResponse;
     } catch (e) {
-      _handleError(context, "Login failed: $e");
+      print('=== SIGNIN API ERROR ===');
+      print('Error: $e');
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Signin API failed: $e'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return null;
     }
   }
 
@@ -322,68 +480,23 @@ class AuthController extends StateNotifier<bool> {
     state = value;
     ref.read(authLoadingProvider.notifier).state = value;
   }
+
+  /// Handle navigation after successful login based on new user status
+  void _handlePostLoginNavigation(BuildContext context) {
+    final signinResponse = ref.read(signinResponseProvider);
+
+    if (signinResponse != null && signinResponse.newUser) {
+      print('🆕 New user detected, navigating to user details flow');
+      // Navigate to user details basic page for new users
+      Navigator.pushReplacementNamed(context, '/user/basic');
+    } else {
+      print('👤 Existing user, navigating to main app');
+      // Navigate to main app for existing users
+      Navigator.pushReplacementNamed(context, '/main');
+    }
+  }
 }
 
 final authControllerProvider = StateNotifierProvider<AuthController, bool>(
   (ref) => AuthController(ref),
 );
-
-class FirebaseTokenService {
-  static const String apiKey =
-      "AIzaSyAs3a1OCrtUx8C_6ja3vzswjBQPTZwFmjc"; // replace with your key
-
-  static Future<Map<String, dynamic>> signInWithPhone(
-    String sessionInfo,
-    String otp,
-  ) async {
-    final url =
-        "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPhoneNumber?key=$apiKey";
-
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"code": otp, "sessionInfo": sessionInfo}),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return {
-        "idToken": data["idToken"],
-        "refreshToken": data["refreshToken"],
-        "expiresIn": data["expiresIn"],
-        "localId": data["localId"],
-        "phoneNumber": data["phoneNumber"],
-      };
-    } else {
-      throw Exception(
-        "Failed to sign in: ${response.statusCode} ${response.body}",
-      );
-    }
-  }
-
-  static Future<Map<String, dynamic>> refreshIdToken(
-    String refreshToken,
-  ) async {
-    final url = "https://securetoken.googleapis.com/v1/token?key=$apiKey";
-
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {"Content-Type": "application/x-www-form-urlencoded"},
-      body: {"grant_type": "refresh_token", "refresh_token": refreshToken},
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return {
-        "idToken": data["id_token"],
-        "refreshToken": data["refresh_token"],
-        "expiresIn": data["expires_in"],
-        "userId": data["user_id"],
-      };
-    } else {
-      throw Exception(
-        "Failed to refresh token: ${response.statusCode} ${response.body}",
-      );
-    }
-  }
-}
