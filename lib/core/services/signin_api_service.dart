@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
-import 'token_storage_service.dart';
+import 'complete_token_service.dart';
 
 /// Service for handling signin API calls
 class SigninApiService {
@@ -14,8 +14,8 @@ class SigninApiService {
 
     final body = {'phone': phoneNumber};
 
-    // Get authorization header with bearer token
-    final authHeader = TokenStorageService.getAuthorizationHeader();
+    // Get authorization header with bearer token (auto-refresh if needed)
+    final authHeader = await CompleteTokenService.getAuthorizationHeader();
     if (authHeader == null) {
       throw SigninException(
         'No valid authentication token found. Please login again.',
@@ -62,11 +62,13 @@ class SigninResponse {
   final String message;
   final String role;
   final String phoneNumber;
+  final bool newUser;
 
   SigninResponse({
     required this.message,
     required this.role,
     required this.phoneNumber,
+    required this.newUser,
   });
 
   factory SigninResponse.fromJson(Map<String, dynamic> json) {
@@ -74,16 +76,22 @@ class SigninResponse {
       message: json['message'] as String,
       role: json['role'] as String,
       phoneNumber: json['phone_number'] as String,
+      newUser: json['new_user'] as bool? ?? false,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'message': message, 'role': role, 'phone_number': phoneNumber};
+    return {
+      'message': message,
+      'role': role,
+      'phone_number': phoneNumber,
+      'new_user': newUser,
+    };
   }
 
   @override
   String toString() {
-    return 'SigninResponse(message: $message, role: $role, phoneNumber: $phoneNumber)';
+    return 'SigninResponse(message: $message, role: $role, phoneNumber: $phoneNumber, newUser: $newUser)';
   }
 }
 

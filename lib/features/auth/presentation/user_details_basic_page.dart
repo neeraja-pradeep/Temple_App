@@ -2,10 +2,74 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/core/app_colors.dart';
+import '../../../core/services/user_profile_api_service.dart';
 import '../providers/auth_providers.dart';
 
 class UserDetailsBasicPage extends ConsumerWidget {
   const UserDetailsBasicPage({super.key});
+
+  /// Handle continue button press - save basic details and navigate to address page
+  Future<void> _handleContinue(BuildContext context, WidgetRef ref) async {
+    final formKey = ref.read(userBasicFormKeyProvider);
+    final dobController = ref.read(userBasicDobControllerProvider);
+    final nakshatra = ref.read(userBasicNakshatraProvider);
+
+    // Validate form
+    if (!formKey.currentState!.validate()) {
+      return;
+    }
+
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Get nakshatram index from the list
+      final nakshatraList = ref.read(userBasicNakshatraListProvider);
+      final nakshatramIndex = nakshatraList.indexOf(nakshatra ?? '') + 1;
+
+      // Call profile update API
+      await UserProfileApiService.updateProfile(
+        dob: dobController.text.trim().isNotEmpty
+            ? dobController.text.trim()
+            : null,
+        time: "10:00:00", // Default time as per requirement
+        nakshatram: nakshatramIndex > 0 ? nakshatramIndex : null,
+      );
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop();
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Basic details saved successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to address page
+        Navigator.pushReplacementNamed(context, '/user/address');
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop();
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save details: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -180,10 +244,7 @@ class UserDetailsBasicPage extends ConsumerWidget {
                           width: 357.w,
                           height: 45.h,
                           child: ElevatedButton(
-                            onPressed: () => Navigator.pushReplacementNamed(
-                              context,
-                              '/user/address',
-                            ),
+                            onPressed: () => _handleContinue(context, ref),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.selected,
                               elevation: 6,

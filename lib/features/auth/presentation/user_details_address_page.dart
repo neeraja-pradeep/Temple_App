@@ -2,10 +2,84 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/core/app_colors.dart';
+import '../../shop/delivery/data/repositories/delivery_repository.dart';
+import '../../shop/delivery/data/model/address_model.dart';
 import '../providers/auth_providers.dart';
 
 class UserDetailsAddressPage extends ConsumerWidget {
   const UserDetailsAddressPage({super.key});
+
+  /// Handle continue button press - save address and navigate to main app
+  Future<void> _handleContinue(BuildContext context, WidgetRef ref) async {
+    final formKey = ref.read(userAddressFormKeyProvider);
+    final nameController = ref.read(userAddressNameControllerProvider);
+    final line1Controller = ref.read(userAddressLine1ControllerProvider);
+    final line2Controller = ref.read(userAddressLine2ControllerProvider);
+    final cityStateController = ref.read(
+      userAddressCityStateControllerProvider,
+    );
+    final pinController = ref.read(userAddressPinControllerProvider);
+
+    // Validate form
+    if (!formKey.currentState!.validate()) {
+      return;
+    }
+
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // Create address model
+      final address = AddressModel(
+        id: 0, // Backend will assign ID
+        name: nameController.text.trim(),
+        street: line1Controller.text.trim(),
+        city: line2Controller.text.trim(),
+        state: cityStateController.text.trim(),
+        country: "India",
+        pincode: pinController.text.trim(),
+        selection: true,
+        phonenumber: "", // Will be filled from user profile
+      );
+
+      // Add address using the delivery repository
+      final addressRepository = AddressRepository();
+      await addressRepository.addAddress(address);
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop();
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Address saved successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to main app
+        Navigator.pushReplacementNamed(context, '/main');
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop();
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save address: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,23 +136,41 @@ class UserDetailsAddressPage extends ConsumerWidget {
                               controller: nameController,
                               hintText: 'Name',
                               keyboardType: TextInputType.name,
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Enter your name'
+                                  : null,
                             ),
                             _LabeledTextField(
                               controller: line1Controller,
                               hintText: 'Address line 01',
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Enter address line 01'
+                                  : null,
                             ),
                             _LabeledTextField(
                               controller: line2Controller,
                               hintText: 'Address line 02',
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Enter address line 02'
+                                  : null,
                             ),
                             _LabeledTextField(
                               controller: cityStateController,
                               hintText: 'City, State',
+                              validator: (v) => (v == null || v.trim().isEmpty)
+                                  ? 'Enter city and state'
+                                  : null,
                             ),
                             _LabeledTextField(
                               controller: pinController,
                               hintText: 'PIN Code',
                               keyboardType: TextInputType.number,
+                              validator: (v) =>
+                                  (v == null ||
+                                      v.trim().isEmpty ||
+                                      !RegExp(r'^[0-9]{6}$').hasMatch(v.trim()))
+                                  ? 'Enter valid 6-digit PIN code'
+                                  : null,
                             ),
                           ],
                         ),
@@ -131,10 +223,7 @@ class UserDetailsAddressPage extends ConsumerWidget {
                           width: 357.w,
                           height: 45.h,
                           child: ElevatedButton(
-                            onPressed: () => Navigator.pushReplacementNamed(
-                              context,
-                              '/main',
-                            ),
+                            onPressed: () => _handleContinue(context, ref),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.selected,
                               elevation: 6,
@@ -176,10 +265,12 @@ class _LabeledTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
   final TextInputType? keyboardType;
+  final String? Function(String?)? validator;
   const _LabeledTextField({
     required this.controller,
     required this.hintText,
     this.keyboardType,
+    this.validator,
   });
 
   @override
@@ -192,6 +283,7 @@ class _LabeledTextField extends StatelessWidget {
         child: TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          validator: validator,
           decoration: InputDecoration(
             hintText: hintText,
             filled: true,

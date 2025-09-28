@@ -165,6 +165,9 @@ final verificationIdProvider = StateProvider<String?>((ref) => null);
 // Track if OTP has been sent
 final otpSentProvider = StateProvider<bool>((ref) => false);
 
+// Store signin response for navigation decisions
+final signinResponseProvider = StateProvider<SigninResponse?>((ref) => null);
+
 // Auth controller
 class AuthController extends StateNotifier<bool> {
   AuthController(this.ref) : super(false);
@@ -362,7 +365,15 @@ class AuthController extends StateNotifier<bool> {
             }
 
             // Call signin API with stored token
-            await _callSigninApi(currentUser.phoneNumber ?? '', context);
+            final signinResponse = await _callSigninApi(
+              currentUser.phoneNumber ?? '',
+              context,
+            );
+
+            // Store signin response for navigation decisions
+            if (signinResponse != null) {
+              ref.read(signinResponseProvider.notifier).state = signinResponse;
+            }
 
             // Update token controller with fresh data
             if (idTokenResult.token != null) {
@@ -394,13 +405,17 @@ class AuthController extends StateNotifier<bool> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Login successful')));
-      // Navigate to main app
-      Navigator.pushReplacementNamed(context, '/main');
+
+      // Handle navigation based on new user status
+      _handlePostLoginNavigation(context);
     }
   }
 
   /// Call signin API after successful OTP verification
-  Future<void> _callSigninApi(String phoneNumber, BuildContext context) async {
+  Future<SigninResponse?> _callSigninApi(
+    String phoneNumber,
+    BuildContext context,
+  ) async {
     try {
       print('=== CALLING SIGNIN API ===');
       print('Phone Number: $phoneNumber');
@@ -411,6 +426,7 @@ class AuthController extends StateNotifier<bool> {
       print('Message: ${signinResponse.message}');
       print('Role: ${signinResponse.role}');
       print('Phone Number: ${signinResponse.phoneNumber}');
+      print('New User: ${signinResponse.newUser}');
 
       // Save user role to storage
       await TokenStorageService.saveUserRole(signinResponse.role);
@@ -425,6 +441,9 @@ class AuthController extends StateNotifier<bool> {
           ),
         );
       }
+
+      // Return the signin response to handle navigation
+      return signinResponse;
     } catch (e) {
       print('=== SIGNIN API ERROR ===');
       print('Error: $e');
@@ -437,6 +456,7 @@ class AuthController extends StateNotifier<bool> {
           ),
         );
       }
+      return null;
     }
   }
 
@@ -453,6 +473,21 @@ class AuthController extends StateNotifier<bool> {
   void _setLoading(bool value) {
     state = value;
     ref.read(authLoadingProvider.notifier).state = value;
+  }
+
+  /// Handle navigation after successful login based on new user status
+  void _handlePostLoginNavigation(BuildContext context) {
+    final signinResponse = ref.read(signinResponseProvider);
+
+    if (signinResponse != null && signinResponse.newUser) {
+      print('🆕 New user detected, navigating to user details flow');
+      // Navigate to user details basic page for new users
+      Navigator.pushReplacementNamed(context, '/user/basic');
+    } else {
+      print('👤 Existing user, navigating to main app');
+      // Navigate to main app for existing users
+      Navigator.pushReplacementNamed(context, '/main');
+    }
   }
 }
 
