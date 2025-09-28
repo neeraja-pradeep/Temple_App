@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/token_storage_service.dart';
 import '../../../core/services/signin_api_service.dart';
+import '../../../core/services/fcm_token_service.dart';
 import '../../../core/providers/token_provider.dart';
 
 // Form keys
@@ -278,6 +279,23 @@ class AuthController extends StateNotifier<bool> {
     ref.read(loginOtpControllerProvider).clear();
   }
 
+  /// Reset all auth state (useful when navigating to login page)
+  void resetAllAuthState() {
+    print('🔄 Resetting all auth state...');
+
+    // Reset OTP state
+    resetOTPState();
+
+    // Reset other auth states
+    ref.read(signinResponseProvider.notifier).state = null;
+    ref.read(authLoadingProvider.notifier).state = false;
+
+    // Clear phone controller
+    ref.read(loginPhoneControllerProvider).clear();
+
+    print('✅ All auth state reset successfully');
+  }
+
   Future<void> login(BuildContext context) async {
     final formKey = ref.read(loginFormKeyProvider);
     final otpController = ref.read(loginOtpControllerProvider);
@@ -412,6 +430,9 @@ class AuthController extends StateNotifier<bool> {
         context,
       ).showSnackBar(const SnackBar(content: Text('Login successful')));
 
+      // Send FCM token to backend after successful login
+      _sendFcmTokenAfterLogin();
+
       // Handle navigation based on new user status
       _handlePostLoginNavigation(context);
     }
@@ -479,6 +500,17 @@ class AuthController extends StateNotifier<bool> {
   void _setLoading(bool value) {
     state = value;
     ref.read(authLoadingProvider.notifier).state = value;
+  }
+
+  /// Send FCM token to backend after successful login
+  Future<void> _sendFcmTokenAfterLogin() async {
+    try {
+      print('=== AUTH CONTROLLER FCM TOKEN HANDLING ===');
+      await FcmTokenService.handleFcmTokenAfterLogin();
+      print('=== END AUTH CONTROLLER FCM TOKEN HANDLING ===');
+    } catch (e) {
+      print('❌ Error in auth controller FCM token handling: $e');
+    }
   }
 
   /// Handle navigation after successful login based on new user status

@@ -4,11 +4,25 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/core/app_colors.dart';
 import '../providers/auth_providers.dart';
 
-class LoginPage extends ConsumerWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends ConsumerState<LoginPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Reset auth state when login page is initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(authControllerProvider.notifier).resetAllAuthState();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final formKey = ref.watch(loginFormKeyProvider);
     final phoneController = ref.watch(loginPhoneControllerProvider);
     final otpController = ref.watch(loginOtpControllerProvider);

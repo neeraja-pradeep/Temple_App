@@ -6,6 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:temple_app/core/app_colors.dart';
+import 'package:temple_app/core/services/fcm_token_service.dart';
+import 'package:temple_app/core/services/logout_service.dart';
 import 'package:temple_app/features/home/providers/home_providers.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -129,8 +131,7 @@ class HomePage extends ConsumerStatefulWidget {
                       ),
                       SizedBox(height: 12.h),
                       _buildMenuItem("Log out", () {
-                        // Add logout functionality here
-                        Navigator.of(context).pushReplacementNamed('/login');
+                        _handleLogout(context, ref);
                       }, fontWeight: FontWeight.w700),
                     ],
                   ),
@@ -178,6 +179,137 @@ class HomePage extends ConsumerStatefulWidget {
       ),
     );
   }
+
+  /// Handle user logout
+  static Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
+    try {
+      // Show confirmation dialog
+      final shouldLogout = await _showLogoutConfirmationDialog(context);
+      if (!shouldLogout) return;
+
+      // Show loading indicator
+      _showLogoutLoadingDialog(context);
+
+      // Get user info before logout (for debugging)
+      final userInfo = LogoutService.getUserInfoBeforeLogout();
+      print('=== USER INFO BEFORE LOGOUT ===');
+      print('User ID: ${userInfo['userId']}');
+      print('Phone: ${userInfo['phoneNumber']}');
+      print('Role: ${userInfo['userRole']}');
+      print('Has FCM Token: ${userInfo['hasFcmToken']}');
+      print('Is Authenticated: ${userInfo['isAuthenticated']}');
+      print('=== END USER INFO ===');
+
+      // Perform logout
+      final success = await LogoutService.logout(
+        ProviderScope.containerOf(context),
+      );
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+      }
+
+      if (success) {
+        // Show success message
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Logged out successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+
+        // Navigate to login page
+        if (context.mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/login',
+            (route) => false, // Remove all previous routes
+          );
+        }
+      } else {
+        // Show error message but still navigate to login
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Logout completed with some issues'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+
+        // Navigate to login page even if there were issues
+        if (context.mounted) {
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/login', (route) => false);
+        }
+      }
+    } catch (e) {
+      print('❌ Logout error: $e');
+
+      // Close loading dialog if still open
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close loading dialog
+      }
+
+      // Show error message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Logout failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Show logout confirmation dialog
+  static Future<bool> _showLogoutConfirmationDialog(
+    BuildContext context,
+  ) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Logout'),
+              content: const Text('Are you sure you want to logout?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Logout'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+
+  /// Show logout loading dialog
+  static void _showLogoutLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text('Logging out...'),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _HomePageState extends ConsumerState<HomePage>
@@ -200,6 +332,20 @@ class _HomePageState extends ConsumerState<HomePage>
         ref.read(isPlayingProvider.notifier).state = false;
       },
     );
+
+    // Send FCM token to backend when user reaches home page
+    _sendFcmTokenToBackend();
+  }
+
+  /// Send FCM token to backend after user reaches home page
+  Future<void> _sendFcmTokenToBackend() async {
+    try {
+      print('=== HOME PAGE FCM TOKEN HANDLING ===');
+      await FcmTokenService.handleFcmTokenAfterLogin();
+      print('=== END HOME PAGE FCM TOKEN HANDLING ===');
+    } catch (e) {
+      print('❌ Error in home page FCM token handling: $e');
+    }
   }
 
   @override

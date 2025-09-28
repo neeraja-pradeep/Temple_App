@@ -160,4 +160,55 @@ class ApiService {
       'verificationId': TokenStorageService.getVerificationId(),
     };
   }
+
+  /// Send FCM token to backend
+  static Future<Map<String, dynamic>> sendFcmToken(String fcmToken) async {
+    const endpoint = '/auth/fcm-token/';
+    final data = {'fcm_token': fcmToken};
+
+    print('=== SENDING FCM TOKEN ===');
+    print('📤 FCM Token: $fcmToken');
+    print('📤 Request Body: $data');
+    print('=== END FCM TOKEN REQUEST ===');
+
+    try {
+      final response = await post(endpoint, data);
+
+      print('=== FCM TOKEN RESPONSE ===');
+      print('📥 Response: $response');
+      print('=== END FCM TOKEN RESPONSE ===');
+
+      return response;
+    } catch (e) {
+      print('=== FCM TOKEN ERROR ===');
+      print('❌ Error: $e');
+      print('=== END FCM TOKEN ERROR ===');
+      rethrow;
+    }
+  }
+
+  /// Logout user from backend
+  static Future<Map<String, dynamic>> logout() async {
+    const endpoint = '/auth/logout/';
+
+    print('=== LOGOUT REQUEST ===');
+    print('🌐 Making POST request to: $baseUrl$endpoint');
+    print('=== END LOGOUT REQUEST ===');
+
+    try {
+      final response = await post(endpoint, {});
+
+      print('=== LOGOUT RESPONSE ===');
+      print('📥 Response Status: ${response['status'] ?? 'Success'}');
+      print('📥 Response: $response');
+      print('=== END LOGOUT RESPONSE ===');
+
+      return response;
+    } catch (e) {
+      print('=== LOGOUT ERROR ===');
+      print('❌ Error: $e');
+      print('=== END LOGOUT ERROR ===');
+      rethrow;
+    }
+  }
 }
