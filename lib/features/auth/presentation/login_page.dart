@@ -140,15 +140,21 @@ class LoginPage extends ConsumerWidget {
                                           .read(authControllerProvider.notifier)
                                           .login(context);
                                     } else {
-                                      // Send OTP - clean the phone number before sending
+                                      // Send OTP - format phone number with +91 country code
                                       String cleanPhoneNumber = phoneController
                                           .text
                                           .replaceAll('+91', '')
                                           .replaceAll(' ', '')
                                           .trim();
+                                      // Add +91 prefix for Firebase
+                                      String formattedPhoneNumber =
+                                          '+91$cleanPhoneNumber';
                                       ref
                                           .read(authControllerProvider.notifier)
-                                          .sendOTP(context, cleanPhoneNumber);
+                                          .sendOTP(
+                                            context,
+                                            formattedPhoneNumber,
+                                          );
                                     }
                                   }
                                 },

@@ -303,8 +303,14 @@ class AuthController extends StateNotifier<bool> {
     final otp = otpController.text.trim();
 
     if (otp.isEmpty) {
-      // Send OTP first
-      await sendOTP(context, phoneNumber);
+      // Send OTP first - format phone number with +91 country code
+      String cleanPhoneNumber = phoneNumber
+          .replaceAll('+91', '')
+          .replaceAll(' ', '')
+          .trim();
+      // Add +91 prefix for Firebase
+      String formattedPhoneNumber = '+91$cleanPhoneNumber';
+      await sendOTP(context, formattedPhoneNumber);
     } else {
       // Verify OTP and proceed to user details
       await verifyOTP(context, otp);
