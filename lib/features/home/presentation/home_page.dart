@@ -191,9 +191,15 @@ class _HomePageState extends ConsumerState<HomePage>
     WidgetsBinding.instance.addObserver(this);
     player = ref.read(audioPlayerProvider);
 
-    _playerSub = player.playerStateStream.listen((state) {
-      ref.read(isPlayingProvider.notifier).state = state.playing;
-    });
+    _playerSub = player.playerStateStream.listen(
+      (state) {
+        ref.read(isPlayingProvider.notifier).state = state.playing;
+      },
+      onError: (error) {
+        print('❌ Audio player state error: $error');
+        ref.read(isPlayingProvider.notifier).state = false;
+      },
+    );
   }
 
   @override
@@ -310,34 +316,72 @@ class _HomePageState extends ConsumerState<HomePage>
               bottom: 10.h,
               left: 5.w,
               child: musicAsync.when(
-                data: (song) => IconButton(
-                  onPressed: () async {
-                    if (isPlaying) {
-                      await player.pause();
-                    } else {
-                      if (player.audioSource == null ||
-                          (player.audioSource is ProgressiveAudioSource &&
-                              (player.audioSource as ProgressiveAudioSource).uri
-                                      .toString() !=
-                                  song.streamUrl)) {
-                        await player.setUrl(song.streamUrl);
+                data: (song) {
+                  print('🎵 Song data received: ${song.streamUrl}');
+                  return IconButton(
+                    onPressed: () async {
+                      try {
+                        if (isPlaying) {
+                          await player.pause();
+                        } else {
+                          // Validate URL before setting
+                          print('🎵 Attempting to play: ${song.streamUrl}');
+                          if (song.streamUrl.isNotEmpty &&
+                              Uri.tryParse(song.streamUrl) != null) {
+                            // Convert HTTP to HTTPS for better security
+                            String audioUrl = song.streamUrl;
+                            if (audioUrl.startsWith('http://')) {
+                              audioUrl = audioUrl.replaceFirst(
+                                'http://',
+                                'https://',
+                              );
+                              print('🔄 Converted HTTP to HTTPS: $audioUrl');
+                            }
+
+                            if (player.audioSource == null ||
+                                (player.audioSource is ProgressiveAudioSource &&
+                                    (player.audioSource
+                                                as ProgressiveAudioSource)
+                                            .uri
+                                            .toString() !=
+                                        audioUrl)) {
+                              await player.setUrl(audioUrl);
+                            }
+                            await player.play();
+                          } else {
+                            print('❌ Invalid audio URL: ${song.streamUrl}');
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Invalid audio URL'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      } catch (e) {
+                        print('❌ Audio playback error: $e');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Audio playback failed: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
                       }
-                      await player.play();
-                    }
-                  },
-                  icon: isPlaying
-                      ? Image.asset(
-                          "assets/icons/sound.png",
-                          height: 24.h,
-                          width: 29.76.w,
-                        )
-                      : Image.asset(
-                          "assets/icons/mute.png",
-                          color: const Color.fromARGB(154, 255, 255, 255),
-                          height: 24.h,
-                          width: 29.76.w,
-                        ),
-                ),
+                    },
+                    icon: isPlaying
+                        ? Image.asset(
+                            "assets/icons/sound.png",
+                            height: 24.h,
+                            width: 29.76.w,
+                          )
+                        : Image.asset(
+                            "assets/icons/mute.png",
+                            color: const Color.fromARGB(154, 255, 255, 255),
+                            height: 24.h,
+                            width: 29.76.w,
+                          ),
+                  );
+                },
                 loading: () => const CircularProgressIndicator(),
                 error: (_, __) => const Icon(Icons.error),
               ),
