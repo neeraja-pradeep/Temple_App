@@ -19,165 +19,163 @@ class HomePage extends ConsumerStatefulWidget {
 
     return profileAsync.when(
       data: (profile) {
-        return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(backgroundColor: Colors.white, radius: 30.w),
-                  SizedBox(width: 20.w),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
+        // Print profile details to console when drawer is opened
+        print('=== PROFILE DETAILS FROM DRAWER ===');
+        print('Name: ${profile.name}');
+        print('Phone: ${profile.phone}');
+        print('Email: ${profile.email}');
+        print('Date of Birth: ${profile.dob}');
+        print('Time: ${profile.time}');
+        print('Nakshatram: ${profile.nakshatram}');
+        print('Malayalam Date: ${profile.malayalamDate}');
+        print('=== END PROFILE DETAILS ===');
+
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFFDF8EF), // rgba(253, 248, 239, 1)
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(20.r),
+              bottomRight: Radius.circular(20.r),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header section with greeting and user info
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 10.h),
+                    Text(
+                      "നമസ്കാരം",
+                      style: TextStyle(
+                        fontFamily: "NotoSansMalayalam",
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600, // semibold
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      profile.name,
+                      style: TextStyle(
+                        fontFamily: "NotoSansMalayalam",
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      profile.nakshatram,
+                      style: TextStyle(
+                        fontFamily: "NotoSansMalayalam",
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 20.h),
+
+                // Divider
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  child: Container(height: 1.h, color: Colors.grey.shade300),
+                ),
+
+                SizedBox(height: 20.h),
+
+                // Main menu items
+                Expanded(
+                  child: Column(
                     children: [
-                      Text(
-                        "നമസ്കാരം",
-                        style: TextStyle(
-                          fontFamily: "NotoSansMalayalam",
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
+                      _buildMenuItem("Pooja Booking", () {}),
+                      SizedBox(height: 12.h),
+                      _buildMenuItem("Store Orders", () {}),
+                      SizedBox(height: 12.h),
+                      _buildMenuItem("Saved members list", () {}),
+                      SizedBox(height: 12.h),
+                      _buildMenuItem("Saved Addresses", () {}),
+
+                      SizedBox(height: 20.h),
+
+                      // Divider after the four main items
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
+                        child: Container(
+                          height: 1.h,
+                          color: Colors.grey.shade300,
                         ),
                       ),
-                      Text(
-                        profile.name,
-                        style: TextStyle(
-                          fontFamily: "NotoSansMalayalam",
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w300,
-                        ),
+
+                      const Spacer(),
+
+                      // Bottom menu items at the very bottom
+                      _buildMenuItem(
+                        "Contact Us",
+                        () {},
+                        fontWeight: FontWeight.w400,
                       ),
+                      SizedBox(height: 12.h),
+                      _buildMenuItem("Log out", () {
+                        // Add logout functionality here
+                        Navigator.of(context).pushReplacementNamed('/login');
+                      }, fontWeight: FontWeight.w700),
                     ],
                   ),
-                ],
-              ),
-              SizedBox(height: 15.h),
-              Text(
-                "അക്കൗണ്ട് സെറ്റിംഗ്സ്",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
                 ),
-              ),
-              SizedBox(height: 6.h),
-              Divider(color: Colors.grey),
-              SizedBox(height: 6.h),
-
-              Text(
-                "ഹോം സ്ക്രീൻ",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "ദൈനംദിന പൂജ സമയങ്ങൾ",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "ക്ഷേത്ര ചടങ്ങുകൾ",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 6.h),
-              Divider(color: Colors.grey),
-              SizedBox(height: 6.h),
-
-              Text(
-                "പൂജ ബുക്ക് ചെയ്യുക",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "പ്രസാദം വാങ്ങുക",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "സംഭാവന ചെയ്യുക വിപണി",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 6.h),
-              Divider(color: Colors.grey),
-              SizedBox(height: 6.h),
-
-              Text(
-                "പൗർണമി / അമാവാസ്യാ ദിവസം ",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "ഉത്സവങ്ങൾ",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "ഇന്ന് രാഹുകാലം",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "നക്ഷത്രം / ജാതകം (ഐച്ഛികം)",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 6.h),
-              Divider(color: Colors.grey),
-              SizedBox(height: 6.h),
-
-              Text(
-                "ഞങ്ങളെ ബന്ധപ്പെടുക",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
-              Text(
-                "ക്ഷേത്രം വിവരങ്ങൾ",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontFamily: "NotoSansMalayalam",
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
-      error: (err, _) => const Text(""),
-      loading: () => const Text(""),
+      error: (err, _) => Container(
+        padding: EdgeInsets.all(20.w),
+        child: Text(
+          "Error loading profile",
+          style: TextStyle(fontSize: 16.sp, color: Colors.red),
+        ),
+      ),
+      loading: () => Container(
+        padding: EdgeInsets.all(20.w),
+        child: const CircularProgressIndicator(),
+      ),
+    );
+  }
+
+  static Widget _buildMenuItem(
+    String title,
+    VoidCallback onTap, {
+    FontWeight? fontWeight,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 4.w),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: fontWeight ?? FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

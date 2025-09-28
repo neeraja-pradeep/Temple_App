@@ -101,7 +101,9 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
       child: Scaffold(
         drawer: _selectedIndex == 2
             ? Drawer(
-                backgroundColor: const Color(0xFFD9D9D9),
+                backgroundColor: const Color(
+                  0xFFFDF8EF,
+                ), // rgba(253, 248, 239, 1)
                 width: 285.w,
                 child: Consumer(
                   builder: (context, ref, _) =>
