@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:developer';
+
 import 'package:http/http.dart' as http;
-import 'package:flutter/foundation.dart';
+
 import 'complete_token_service.dart';
 
 /// Service for handling signin API calls
@@ -28,9 +30,9 @@ class SigninApiService {
       'Authorization': authHeader,
     };
 
-    debugPrint('🌐 Making signin API call to: $url');
-    debugPrint('📤 Request body: $body');
-    debugPrint('🔐 Authorization header: $authHeader');
+    log('🌐 Making signin API call to: $url');
+    log('📤 Request body: $body');
+    log('🔐 Authorization header: $authHeader');
 
     try {
       final response = await http.post(
@@ -39,8 +41,8 @@ class SigninApiService {
         body: jsonEncode(body),
       );
 
-      debugPrint('📥 Signin API Response Status: ${response.statusCode}');
-      debugPrint('📥 Signin API Response Body: ${response.body}');
+      log('📥 Signin API Response Status: ${response.statusCode}');
+      log('📥 Signin API Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body) as Map<String, dynamic>;
@@ -51,7 +53,7 @@ class SigninApiService {
         );
       }
     } catch (e) {
-      debugPrint('❌ Signin API Error: $e');
+      log('❌ Signin API Error: $e');
       throw SigninException('Failed to signin: $e');
     }
   }
@@ -76,7 +78,7 @@ class SigninResponse {
       message: json['message'] as String,
       role: json['role'] as String,
       phoneNumber: json['phone_number'] as String,
-      newUser: json['new_user'] as bool? ?? false,
+      newUser: json['new_user'] as bool,
     );
   }
 
@@ -95,6 +97,7 @@ class SigninResponse {
   }
 }
 
+
 /// Exception for signin API errors
 class SigninException implements Exception {
   final String message;
@@ -104,3 +107,4 @@ class SigninException implements Exception {
   @override
   String toString() => 'SigninException: $message';
 }
+//

@@ -967,7 +967,7 @@ class BookingPage extends ConsumerWidget {
                     ],
                   ),
                 )
-                .toList(),
+                ,
 
             // Add new user option
             _buildAddNewUserOption(context, ref, userLists),
@@ -1233,7 +1233,7 @@ class BookingPage extends ConsumerWidget {
                   if (agentCode.isNotEmpty) ...[
                     SizedBox(height: 4.h),
                     Text(
-                      '$agentCode',
+                      agentCode,
                       style: TextStyle(
                         fontSize: 11.sp,
                         color: Colors.grey[600],
@@ -1713,7 +1713,7 @@ class BookingPage extends ConsumerWidget {
                             return SizedBox(
                               height: 40.h,
                               child: DropdownButtonFormField<int>(
-                                value: selectedNakshatram,
+                                initialValue: selectedNakshatram,
                                 isExpanded: true,
                                 items: nakshatramOptions
                                     .map(
@@ -2272,7 +2272,7 @@ class BookingPage extends ConsumerWidget {
                             return SizedBox(
                               height: 40.h,
                               child: DropdownButtonFormField<int>(
-                                value: selectedNakshatram,
+                                initialValue: selectedNakshatram,
                                 isExpanded: true,
                                 items: nakshatramOptions
                                     .map(

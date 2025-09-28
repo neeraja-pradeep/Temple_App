@@ -23,7 +23,7 @@ class SongItem {
     final songData = json['song'] ?? json;
 
     // Helper function to add https:// protocol if missing
-    String? _addProtocol(String? url) {
+    String? addProtocol(String? url) {
       if (url == null || url.isEmpty) return url;
       if (url.startsWith('http://') || url.startsWith('https://')) {
         return url;
@@ -43,8 +43,8 @@ class SongItem {
       streamUrl: songData['stream_url'],
       duration: songData['duration'],
       uploadedAt: songData['uploaded_at'],
-      media: _addProtocol(songData['media']),
-      homeMedia: _addProtocol(songData['home_media']),
+      media: addProtocol(songData['media']),
+      homeMedia: addProtocol(songData['home_media']),
     );
   }
 
