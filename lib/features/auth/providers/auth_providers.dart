@@ -239,6 +239,22 @@ class AuthController extends StateNotifier<bool> {
     }
   }
 
+  void resetAllAuthState() {
+    print('🔄 Resetting all auth state...');
+
+    // Reset OTP state
+    resetOTPState();
+
+    // Reset other auth states
+    ref.read(signinResponseProvider.notifier).state = null;
+    ref.read(authLoadingProvider.notifier).state = false;
+
+    // Clear phone controller
+    ref.read(loginPhoneControllerProvider).clear();
+
+    print('✅ All auth state reset successfully');
+  }
+
   Future<void> verifyOTP(BuildContext context, String otp) async {
     final verificationId = ref.read(verificationIdProvider);
     if (verificationId == null) {
@@ -321,59 +337,60 @@ class AuthController extends StateNotifier<bool> {
       }
     }
   }
-void _handleLoginSuccess(BuildContext context) async {
-  print('=== LOGIN SUCCESS HANDLER ===');
 
-  final currentUser = FirebaseAuthService.getCurrentUser();
-  if (currentUser != null) {
-    print('Current User ID: ${currentUser.uid}');
-    print('Current User Phone: ${currentUser.phoneNumber}');
-    print('Is Signed In: ${FirebaseAuthService.isSignedIn()}');
+  void _handleLoginSuccess(BuildContext context) async {
+    print('=== LOGIN SUCCESS HANDLER ===');
 
-    try {
-      final idTokenResult = await currentUser.getIdTokenResult(true);
+    final currentUser = FirebaseAuthService.getCurrentUser();
+    if (currentUser != null) {
+      print('Current User ID: ${currentUser.uid}');
+      print('Current User Phone: ${currentUser.phoneNumber}');
+      print('Is Signed In: ${FirebaseAuthService.isSignedIn()}');
 
-      if (idTokenResult.token != null) {
-        await TokenStorageService.saveAllAuthData(
-          idToken: idTokenResult.token!,
-          verificationId: ref.read(verificationIdProvider) ?? '',
-          refreshToken: currentUser.refreshToken ?? '',
-          userId: currentUser.uid,
-          phoneNumber: currentUser.phoneNumber ?? '',
-          tokenExpiry: idTokenResult.expirationTime ??
-              DateTime.now().add(const Duration(hours: 1)),
-        );
-        print('💾 Token data saved before signin API call');
-      }
+      try {
+        final idTokenResult = await currentUser.getIdTokenResult(true);
 
-      // 👉 Call signin API and wait for response
-      final signinResponse = await _callSigninApi(
-        currentUser.phoneNumber ?? '',
-        context,
-      );
+        if (idTokenResult.token != null) {
+          await TokenStorageService.saveAllAuthData(
+            idToken: idTokenResult.token!,
+            verificationId: ref.read(verificationIdProvider) ?? '',
+            refreshToken: currentUser.refreshToken ?? '',
+            userId: currentUser.uid,
+            phoneNumber: currentUser.phoneNumber ?? '',
+            tokenExpiry:
+                idTokenResult.expirationTime ??
+                DateTime.now().add(const Duration(hours: 1)),
+          );
+          print('💾 Token data saved before signin API call');
+        }
 
-      if (signinResponse != null) {
-        ref.read(signinResponseProvider.notifier).state = signinResponse;
-      }
-
-      _setLoading(false);
-
-      if (context.mounted) {
-        FocusScope.of(context).unfocus();
-        ScaffoldMessenger.of(
+        // 👉 Call signin API and wait for response
+        final signinResponse = await _callSigninApi(
+          currentUser.phoneNumber ?? '',
           context,
-        ).showSnackBar(const SnackBar(content: Text('Login successful')));
+        );
 
-        // 👉 Navigate AFTER API response is saved
-        _handlePostLoginNavigation(context);
+        if (signinResponse != null) {
+          ref.read(signinResponseProvider.notifier).state = signinResponse;
+        }
+
+        _setLoading(false);
+
+        if (context.mounted) {
+          FocusScope.of(context).unfocus();
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Login successful')));
+
+          // 👉 Navigate AFTER API response is saved
+          _handlePostLoginNavigation(context);
+        }
+      } catch (e) {
+        print('Error in login success handler: $e');
+        _handleError(context, 'Unexpected error: $e');
       }
-    } catch (e) {
-      print('Error in login success handler: $e');
-      _handleError(context, 'Unexpected error: $e');
     }
   }
-}
-
 
   /// Call signin API after successful OTP verification
   Future<SigninResponse?> _callSigninApi(
@@ -442,15 +459,19 @@ void _handleLoginSuccess(BuildContext context) async {
   /// Handle navigation after successful login based on new user status
   void _handlePostLoginNavigation(BuildContext context) {
     final signinResponse = ref.read(signinResponseProvider);
-    log("====================== _handlePostLoginNavigation=============================");
-log("signinResponse =============== : ${signinResponse?.newUser??"dfsdfsdf"}");
- if (signinResponse != null && signinResponse.newUser) {
-    print('🆕 New user detected, navigating to user details flow');
-    Navigator.pushReplacementNamed(context, '/user/basic');
-  } else {
-    print('👤 Existing user, navigating to main app');
-    Navigator.pushReplacementNamed(context, '/main');
-  }
+    log(
+      "====================== _handlePostLoginNavigation=============================",
+    );
+    log(
+      "signinResponse =============== : ${signinResponse?.newUser ?? "dfsdfsdf"}",
+    );
+    if (signinResponse != null && signinResponse.newUser) {
+      print('🆕 New user detected, navigating to user details flow');
+      Navigator.pushReplacementNamed(context, '/user/basic');
+    } else {
+      print('👤 Existing user, navigating to main app');
+      Navigator.pushReplacementNamed(context, '/main');
+    }
   }
 }
 
