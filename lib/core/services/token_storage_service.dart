@@ -11,6 +11,7 @@ class TokenStorageService {
   static const String _phoneNumberKey = 'phone_number';
   static const String _tokenExpiryKey = 'token_expiry';
   static const String _userRoleKey = 'user_role';
+  static const String _fcmTokenKey = 'fcm_token';
 
   static Box<String>? _box;
 
@@ -59,6 +60,12 @@ class TokenStorageService {
   static Future<void> saveUserRole(String userRole) async {
     await _ensureBoxOpen();
     await _box!.put(_userRoleKey, userRole);
+  }
+
+  /// Save FCM Token
+  static Future<void> saveFcmToken(String fcmToken) async {
+    await _ensureBoxOpen();
+    await _box!.put(_fcmTokenKey, fcmToken);
   }
 
   /// Save all authentication data at once
@@ -123,6 +130,12 @@ class TokenStorageService {
   static String? getUserRole() {
     final userRole = _box?.get(_userRoleKey);
     return userRole;
+  }
+
+  /// Get FCM Token
+  static String? getFcmToken() {
+    final token = _box?.get(_fcmTokenKey);
+    return token;
   }
 
   /// Get Token Expiry Time

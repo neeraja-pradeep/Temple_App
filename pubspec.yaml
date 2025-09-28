@@ -38,6 +38,8 @@ dependencies:
   firebase_auth: ^6.1.0
   flutter_svg: ^2.2.1
   # firebase_app_check: ^0.4.1
+  firebase_messaging: 16.0.2
+  flutter_local_notifications: ^17.2.3
   # ------------------------
   # UI & Design
   # ------------------------
