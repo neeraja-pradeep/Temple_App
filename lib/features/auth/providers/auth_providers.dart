@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/signin_api_service.dart';
 import '../../../core/services/token_storage_service.dart';
+import 'auth_state_provider.dart';
 
 // Form keys
 final loginFormKeyProvider = Provider<GlobalKey<FormState>>((ref) {
@@ -381,6 +382,9 @@ class AuthController extends StateNotifier<bool> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('Login successful')));
+
+          // Set authenticated state
+          ref.read(authStateProvider.notifier).setAuthenticated();
 
           // 👉 Navigate AFTER API response is saved
           _handlePostLoginNavigation(context);
