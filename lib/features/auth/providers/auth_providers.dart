@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
+import 'package:temple_app/widgets/mytext.dart';
 
 import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/signin_api_service.dart';
@@ -421,8 +423,8 @@ class AuthController extends StateNotifier<bool> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Welcome! Role: ${signinResponse.role}'),
-            backgroundColor: Colors.green,
+            content: WText( text: 'Welcome, ${signinResponse.message}',color: cWhite,),
+            backgroundColor: primaryThemeColor,
           ),
         );
       }
@@ -435,9 +437,9 @@ class AuthController extends StateNotifier<bool> {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Signin API failed: $e'),
-            backgroundColor: Colors.orange,
+            SnackBar(
+            content: WText( text: 'Signin failed',color: cWhite,),
+            backgroundColor: primaryThemeColor,
           ),
         );
       }

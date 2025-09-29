@@ -8,6 +8,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:temple_app/core/app_colors.dart';
 import 'package:temple_app/core/services/fcm_token_service.dart';
 import 'package:temple_app/core/services/logout_service.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/features/home/providers/home_providers.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -145,7 +146,7 @@ class HomePage extends ConsumerStatefulWidget {
         padding: EdgeInsets.all(20.w),
         child: Text(
           "Error loading profile",
-          style: TextStyle(fontSize: 16.sp, color: Colors.red),
+          style: TextStyle(fontSize: 16.sp, color: primaryThemeColor),
         ),
       ),
       loading: () => Container(
@@ -234,7 +235,7 @@ class HomePage extends ConsumerStatefulWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Logout completed with some issues'),
-              backgroundColor: Colors.orange,
+              backgroundColor: primaryThemeColor,
             ),
           );
         }
@@ -259,7 +260,7 @@ class HomePage extends ConsumerStatefulWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Logout failed: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: primaryThemeColor,
           ),
         );
       }
@@ -499,7 +500,7 @@ class _HomePageState extends ConsumerState<HomePage>
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Invalid audio URL'),
-                                backgroundColor: Colors.red,
+                                backgroundColor: primaryThemeColor,
                               ),
                             );
                           }
@@ -509,7 +510,7 @@ class _HomePageState extends ConsumerState<HomePage>
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Audio playback failed: $e'),
-                            backgroundColor: Colors.red,
+                            backgroundColor: primaryThemeColor,
                           ),
                         );
                       }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/core/app_colors.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
 import '../../shop/delivery/data/repositories/delivery_repository.dart';
 import '../../shop/delivery/data/model/address_model.dart';
 import '../providers/auth_providers.dart';
@@ -74,7 +75,7 @@ class UserDetailsAddressPage extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save address: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: primaryThemeColor,
           ),
         );
       }

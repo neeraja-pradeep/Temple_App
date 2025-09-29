@@ -106,7 +106,7 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
         widget.address == null
             ? "Failed to add address"
             : "Failed to update address",
-        bgColor: Colors.red,
+        bgColor: primaryThemeColor,
       );
     }
   }
@@ -171,12 +171,12 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
                   width: 60.w,
                   height: 60.w,
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: primaryThemeColor.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.error_outline,
-                    color: Colors.red,
+                    color: primaryThemeColor,
                     size: 30.sp,
                   ),
                 ),

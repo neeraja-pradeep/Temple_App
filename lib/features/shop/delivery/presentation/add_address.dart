@@ -79,7 +79,7 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
       Navigator.pop(context);
       showToast("Address added successfully", bgColor: Colors.green);
     } catch (e) {
-      showToast("Failed to add address", bgColor: Colors.red);
+      showToast("Failed to add address", bgColor: primaryThemeColor);
     }
   }
 

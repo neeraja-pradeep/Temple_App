@@ -6,11 +6,13 @@ import 'package:temple_app/core/app_buttonStyles.dart';
 import 'package:temple_app/core/app_calender.dart';
 import 'package:temple_app/core/app_colors.dart';
 import 'package:temple_app/core/app_dropdown.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
+import 'package:temple_app/features/booking/presentation/booking_page.dart';
+import 'package:temple_app/features/booking/providers/booking_page_providers.dart';
 import 'package:temple_app/features/pooja/data/models/pooja_category_model.dart';
 import 'package:temple_app/features/pooja/providers/pooja_providers.dart';
 import 'package:temple_app/widgets/pooja_page_skeleton.dart';
-import 'package:temple_app/features/booking/presentation/booking_page.dart';
-import 'package:temple_app/features/booking/providers/booking_page_providers.dart';
+
 
 class PoojaPage extends ConsumerStatefulWidget {
   const PoojaPage({super.key});
@@ -23,20 +25,15 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
   int? selectedCategoryId;
   int? selectedPoojaId;
 
-  // Provider for tracking selected date from calendar
-  late final StateProvider<String?> selectedDateProvider;
-
-  // Store the current Malayalam date
   String? currentMalayalamDate;
 
+  // ✅ Scroll controller
+  final ScrollController _scrollController = ScrollController();
+
   @override
-  void initState() {
-    super.initState();
-    // Initialize with tomorrow's date
-    final tomorrow = DateTime.now().add(const Duration(days: 1));
-    selectedDateProvider = StateProvider<String?>(
-      (ref) => tomorrow.toIso8601String().split('T')[0],
-    );
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _refreshData(WidgetRef ref) async {
@@ -67,11 +64,24 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
         ? ref.watch(poojasByCategoryProvider(selectedCategoryId!))
         : null;
 
-    // Watch Malayalam date provider to get the current Malayalam date
     final malayalamDateAsync = ref.watch(malayalamDateProvider);
     malayalamDateAsync.whenData((malayalamDate) {
       currentMalayalamDate = malayalamDate.malayalamDate;
     });
+
+    // ✅ Watch selectedDateProvider
+    final selectedDate = ref.watch(selectedDateProvider);
+
+    // ✅ Auto-scroll when button becomes visible
+    if (selectedDate != null && _scrollController.hasClients) {
+      Future.microtask(() {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOut,
+        );
+      });
+    }
 
     return Stack(
       children: [
@@ -80,7 +90,9 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
           color: AppColors.selected,
           onRefresh: () => _refreshData(ref),
           child: SingleChildScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.only(bottom: 100.h), // ✅ reserve space
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -119,8 +131,6 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                                     selectedCategoryId = god.id;
                                     selectedPoojaId = null;
                                   });
-
-                                  // Test the API call directly
                                   _testApiCall(god.id);
                                 },
                               ),
@@ -145,7 +155,6 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                     ),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.only(top: 3, left: 14, right: 10),
                   child: SizedBox(
@@ -169,15 +178,6 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                             ]
                           : poojasAsync!.when(
                               data: (poojas) {
-                                print(
-                                  '🔍 Poojas loaded for category $selectedCategoryId:',
-                                );
-                                print('   Number of poojas: ${poojas.length}');
-                                for (var pooja in poojas) {
-                                  print(
-                                    '   - ID: ${pooja.id}, Name: ${pooja.name}, Price: ${pooja.price}',
-                                  );
-                                }
                                 return poojas
                                     .map(
                                       (pooja) => DropdownMenuItem<int>(
@@ -200,9 +200,6 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                                     .toList();
                               },
                               error: (err, _) {
-                                print(
-                                  '❌ Error loading poojas for category $selectedCategoryId: $err',
-                                );
                                 return [
                                   DropdownMenuItem<int>(
                                     value: null,
@@ -222,9 +219,6 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                                 ];
                               },
                               loading: () {
-                                print(
-                                  '⏳ Loading poojas for category $selectedCategoryId...',
-                                );
                                 return [
                                   DropdownMenuItem<int>(
                                     value: null,
@@ -252,7 +246,6 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                     ),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.only(left: 18, top: 18),
                   child: Text(
@@ -264,70 +257,58 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                     ),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.all(16),
-                  child: MalayalamCalendar(
-                    onDateSelected: (date) {
-                      ref.read(selectedDateProvider.notifier).state = date;
-                    },
-                  ),
+                  child: MalayalamCalendar(),
                 ),
                 SizedBox(height: 50.h),
               ],
             ),
           ),
         ),
-        // book button
-        Positioned(
-          left: 14.w,
-          bottom: 10.h,
-          child: ElevatedButton(
-            onPressed: () {
-              // Check if both category and pooja are selected
-              if (selectedCategoryId == null || selectedPoojaId == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please select a god and pooja first'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-                return;
-              }
 
-              // Get the selected date from calendar
-              final selectedDate = ref.read(selectedDateProvider);
-              if (selectedDate == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please select a date first'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-                return;
-              }
+        // ✅ Book button fixed at bottom
+        Consumer(
+          builder: (context, ref, _) {
+            final selectedDate = ref.watch(selectedDateProvider);
 
-              // Set the selected date in the booking page provider
-              ref.read(selectedCalendarDateProvider.notifier).state =
-                  selectedDate;
+            if (selectedDate == null) return const SizedBox.shrink();
 
-              // Navigate to booking page
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BookingPage(
-                    poojaId: selectedPoojaId!,
-                    userId: 2, // Use same user ID as SpecialPage
-                    source: 'pooja', // Indicate this is from PoojaPage
-                    malayalamDate:
-                        currentMalayalamDate, // Pass the Malayalam date
-                  ),
-                ),
-              );
-            },
-            style: AppButtonStyles.submitButtom,
-            child: Text("ബുക്ക്"),
-          ),
+            return Positioned(
+              left: 14.w,
+              bottom: 10.h,
+              child: ElevatedButton(
+                onPressed: () {
+                  if (selectedCategoryId == null || selectedPoojaId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please select a god and pooja first'),
+                        backgroundColor: primaryThemeColor,
+                      ),
+                    );
+                    return;
+                  }
+
+                  ref.read(selectedCalendarDateProvider.notifier).state =
+                      selectedDate;
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BookingPage(
+                        poojaId: selectedPoojaId!,
+                        userId: 2,
+                        source: 'pooja',
+                        malayalamDate: currentMalayalamDate,
+                      ),
+                    ),
+                  );
+                },
+                style: AppButtonStyles.submitButtom,
+                child: const Text("ബുക്ക്"),
+              ),
+            );
+          },
         ),
       ],
     );

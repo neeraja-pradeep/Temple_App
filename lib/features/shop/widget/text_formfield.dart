@@ -85,14 +85,14 @@ class TextFormFiledWithoutColorEight extends StatelessWidget {
                     borderSide: BorderSide(
                       width: 1,
                       style: BorderStyle.solid,
-                      color: Colors.red,
+                      color: primaryThemeColor,
                     ),
                   ),
                   focusedErrorBorder: const OutlineInputBorder(
                     borderSide: BorderSide(
                       width: 1,
                       style: BorderStyle.solid,
-                      color: Colors.red,
+                      color: primaryThemeColor,
                     ),
                   ),
                   enabledBorder:  OutlineInputBorder(

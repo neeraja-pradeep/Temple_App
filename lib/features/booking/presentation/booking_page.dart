@@ -1,16 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'dart:convert';
 import 'package:temple_app/core/app_colors.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/features/booking/presentation/pooja_summary_page.dart';
 import 'package:temple_app/widgets/custom_calendar_picker.dart';
-import '../providers/booking_provider.dart';
-import '../providers/user_list_provider.dart';
+
 import '../data/booking_pooja_model.dart';
+import '../data/nakshatram_model.dart';
 import '../data/user_list_model.dart';
 import '../providers/booking_page_providers.dart';
-import '../data/nakshatram_model.dart';
+import '../providers/booking_provider.dart';
+import '../providers/user_list_provider.dart';
 
 // Import providers from separate file to avoid circular imports
 
@@ -39,6 +42,7 @@ class BookingPage extends ConsumerWidget {
           return true;
         },
         child: Scaffold(
+          backgroundColor:cWhite,
           extendBodyBehindAppBar: true,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
@@ -87,7 +91,7 @@ class BookingPage extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64.sp, color: Colors.red),
+                  Icon(Icons.error_outline, size: 64.sp, color: primaryThemeColor),
                   SizedBox(height: 16.h),
                   Text(
                     'Failed to load pooja details',
@@ -536,7 +540,7 @@ class BookingPage extends ConsumerWidget {
                           ),
                           child: Text(
                             'Error loading users: $error',
-                            style: TextStyle(color: Colors.red),
+                            style: TextStyle(color: primaryThemeColor),
                           ),
                         ),
                       );
@@ -733,7 +737,7 @@ class BookingPage extends ConsumerWidget {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(errorMsg),
-                                    backgroundColor: Colors.orange,
+                                    backgroundColor: primaryThemeColor,
                                   ),
                                 );
                                 return;
@@ -856,7 +860,7 @@ class BookingPage extends ConsumerWidget {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(errorMsg),
-                                      backgroundColor: Colors.red,
+                                      backgroundColor: primaryThemeColor,
                                     ),
                                   );
                                 }
@@ -879,7 +883,7 @@ class BookingPage extends ConsumerWidget {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(errorMsg),
-                                    backgroundColor: Colors.red,
+                                    backgroundColor: primaryThemeColor,
                                   ),
                                 );
                               }
@@ -1001,7 +1005,7 @@ class BookingPage extends ConsumerWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('പ്രധാന ഉപയോക്താവിനെ നീക്കാൻ കഴിയില്ല'),
-                  backgroundColor: Colors.orange,
+                  backgroundColor: primaryThemeColor,
                 ),
               );
               return;
@@ -1350,7 +1354,7 @@ class BookingPage extends ConsumerWidget {
                                       content: Text(
                                         'പ്രധാന ഉപയോക്താവിനെ നീക്കാൻ കഴിയില്ല',
                                       ),
-                                      backgroundColor: Colors.orange,
+                                      backgroundColor: primaryThemeColor,
                                     ),
                                   );
                                   return;
@@ -1921,7 +1925,7 @@ class BookingPage extends ConsumerWidget {
                                       content: Text(
                                         '⚠️ Please select a Nakshatram',
                                       ),
-                                      backgroundColor: Colors.orange,
+                                      backgroundColor: primaryThemeColor,
                                       duration: Duration(seconds: 2),
                                       behavior: SnackBarBehavior.floating,
                                       shape: RoundedRectangleBorder(
@@ -2011,7 +2015,7 @@ class BookingPage extends ConsumerWidget {
                                     content: Text(
                                       '❌ Failed to add user: ${e.toString()}',
                                     ),
-                                    backgroundColor: Colors.red,
+                                    backgroundColor: primaryThemeColor,
                                     duration: Duration(seconds: 4),
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
@@ -2033,7 +2037,7 @@ class BookingPage extends ConsumerWidget {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('⚠️ Please enter a name'),
-                                  backgroundColor: Colors.orange,
+                                  backgroundColor: primaryThemeColor,
                                   duration: Duration(seconds: 2),
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(
@@ -2493,7 +2497,7 @@ class BookingPage extends ConsumerWidget {
                                           content: Text(
                                             '⚠️ Please select a Nakshatram',
                                           ),
-                                          backgroundColor: Colors.orange,
+                                          backgroundColor: primaryThemeColor,
                                           duration: Duration(seconds: 2),
                                           behavior: SnackBarBehavior.floating,
                                           shape: RoundedRectangleBorder(
@@ -2629,7 +2633,7 @@ class BookingPage extends ConsumerWidget {
                                         content: Text(
                                           '❌ Failed to update user: ${e.toString()}',
                                         ),
-                                        backgroundColor: Colors.red,
+                                        backgroundColor: primaryThemeColor,
                                         duration: Duration(seconds: 4),
                                         behavior: SnackBarBehavior.floating,
                                         shape: RoundedRectangleBorder(
