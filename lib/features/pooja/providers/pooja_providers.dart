@@ -11,6 +11,9 @@ final poojaCategoriesProvider = FutureProvider<List<PoojaCategory>>((ref) async 
   return await repo.fetchPoojaCategories();
 });
 
+// Holds the selected date (ISO string) or null
+final selectedDateProvider = StateProvider<String?>((ref) => null);
+
 final poojasByCategoryProvider =
     FutureProvider.family<List<Pooja>, int>((ref, categoryId) async {
   final repo = ref.read(repositoryProvider);

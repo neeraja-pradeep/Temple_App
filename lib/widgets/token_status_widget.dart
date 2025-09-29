@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:temple_app/core/services/token_auto_refresh_service.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
 
 /// Debug widget to show token status (for development/testing)
 class TokenStatusWidget extends StatefulWidget {
@@ -45,7 +46,7 @@ class _TokenStatusWidgetState extends State<TokenStatusWidget> {
           content: Text(
             success ? 'Token refreshed successfully' : 'Token refresh failed',
           ),
-          backgroundColor: success ? Colors.green : Colors.red,
+          backgroundColor: success ? Colors.transparent : primaryThemeColor,
         ),
       );
     }
@@ -72,11 +73,11 @@ class _TokenStatusWidgetState extends State<TokenStatusWidget> {
 
     Color statusColor;
     if (isExpired) {
-      statusColor = Colors.red;
+      statusColor = primaryThemeColor;
     } else if (needsRefresh) {
-      statusColor = Colors.orange;
+      statusColor = primaryThemeColor;
     } else {
-      statusColor = Colors.green;
+      statusColor = primaryThemeColor;
     }
 
     return Card(
@@ -179,8 +180,8 @@ class TokenStatusFAB extends StatelessWidget {
           ),
         );
       },
-      child: const Icon(Icons.security),
       tooltip: 'Token Status',
+      child: const Icon(Icons.security),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/core/app_colors.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
 import '../providers/auth_providers.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -291,11 +292,11 @@ class _LabeledTextField extends StatelessWidget {
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(color: Colors.red, width: 1.2.w),
+              borderSide: BorderSide(color: primaryThemeColor, width: 1.2.w),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10.r),
-              borderSide: BorderSide(color: Colors.red, width: 1.2.w),
+              borderSide: BorderSide(color: primaryThemeColor, width: 1.2.w),
             ),
           ),
         ),

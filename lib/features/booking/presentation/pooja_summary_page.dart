@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/core/app_colors.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/features/booking/presentation/pooja_confirmed_page.dart';
 import '../../booking/data/cart_model.dart';
 import '../../booking/providers/booking_provider.dart';
@@ -238,7 +239,7 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 64.sp, color: Colors.red),
+                    Icon(Icons.error_outline, size: 64.sp, color: primaryThemeColor),
                     SizedBox(height: 16.h),
                     Text(
                       'Failed to load cart',

@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/core/app_colors.dart';
-import '../../shop/delivery/data/repositories/delivery_repository.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
+
 import '../../shop/delivery/data/model/address_model.dart';
+import '../../shop/delivery/data/repositories/delivery_repository.dart';
 import '../providers/auth_providers.dart';
 
 class UserDetailsAddressPage extends ConsumerWidget {
   const UserDetailsAddressPage({super.key});
 
   /// Handle continue button press - save address and navigate to main app
-  Future<void> _handleContinue(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleContinue(BuildContext context, WidgetRef ref,) async {
     final formKey = ref.read(userAddressFormKeyProvider);
     final nameController = ref.read(userAddressNameControllerProvider);
     final line1Controller = ref.read(userAddressLine1ControllerProvider);
@@ -43,7 +45,7 @@ class UserDetailsAddressPage extends ConsumerWidget {
         country: "India",
         pincode: pinController.text.trim(),
         selection: true,
-        phonenumber: "", // Will be filled from user profile
+        phonenumber: ref.read(phoneNumberProvider)??'', // Will be filled from user profile
       );
 
       // Add address using the delivery repository
@@ -58,7 +60,7 @@ class UserDetailsAddressPage extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Address saved successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: primaryThemeColor,
           ),
         );
 
@@ -73,8 +75,8 @@ class UserDetailsAddressPage extends ConsumerWidget {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save address: $e'),
-            backgroundColor: Colors.red,
+            content: Text('Failed to save address: '),
+            backgroundColor: primaryThemeColor,
           ),
         );
       }

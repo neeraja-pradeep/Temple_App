@@ -94,11 +94,11 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
       if (widget.address == null) {
         // Add
         await ref.read(addressListProvider.notifier).addAddress(newAddress);
-        showToast("Address added successfully", bgColor: Colors.green);
+        showToast("Address added successfully", bgColor: primaryThemeColor);
       } else {
         // Edit
         await ref.read(addressListProvider.notifier).updateAddress(newAddress);
-        showToast("Address updated successfully", bgColor: Colors.green);
+        showToast("Address updated successfully", bgColor: primaryThemeColor);
       }
       Navigator.pop(context);
     } catch (e) {
@@ -106,7 +106,7 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
         widget.address == null
             ? "Failed to add address"
             : "Failed to update address",
-        bgColor: Colors.red,
+        bgColor: primaryThemeColor,
       );
     }
   }
@@ -125,7 +125,7 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
           .deleteAddress(widget.address!.id);
 
       if (!mounted) return;
-      showToast("Address deleted successfully", bgColor: Colors.green);
+      showToast("Address deleted successfully", bgColor: primaryThemeColor);
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
@@ -171,12 +171,12 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
                   width: 60.w,
                   height: 60.w,
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: primaryThemeColor.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.error_outline,
-                    color: Colors.red,
+                    color: primaryThemeColor,
                     size: 30.sp,
                   ),
                 ),

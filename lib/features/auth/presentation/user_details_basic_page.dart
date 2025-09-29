@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/core/app_colors.dart';
+import 'package:temple_app/core/theme/color/colors.dart';
+
 import '../../../core/services/user_profile_api_service.dart';
 import '../providers/auth_providers.dart';
 
@@ -48,7 +50,7 @@ class UserDetailsBasicPage extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Basic details saved successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: primaryThemeColor,
           ),
         );
 
@@ -64,7 +66,7 @@ class UserDetailsBasicPage extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save details: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: primaryThemeColor,
           ),
         );
       }
@@ -186,8 +188,15 @@ class UserDetailsBasicPage extends ConsumerWidget {
                                             ),
                                           )
                                           .toList(),
-                                      onChanged:
-                                          null, // Made non-selectable for UI purposes
+                                      onChanged: (value) {
+                                        ref
+                                                .read(
+                                                  userBasicNakshatraProvider
+                                                      .notifier,
+                                                )
+                                                .state =
+                                            value;
+                                      },
                                     ),
                                   ),
                                 ),
