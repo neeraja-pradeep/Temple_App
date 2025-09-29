@@ -174,8 +174,11 @@ class TokenStorageService {
   /// Get Authorization Header for API calls
   static String? getAuthorizationHeader() {
     final token = getIdToken();
+     final expired = isTokenExpired();
+    print('Token: $token, expired: $expired');
     if (token != null && !isTokenExpired()) {
       final header = 'Bearer $token';
+       print('-----------------------Authorization header: $header');
       return header;
     }
     return null;

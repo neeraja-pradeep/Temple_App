@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/core/app_colors.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
+import 'package:temple_app/features/auth/providers/nakshatra_service.dart';
 
 import '../../../core/services/user_profile_api_service.dart';
 import '../providers/auth_providers.dart';
@@ -171,34 +172,44 @@ class UserDetailsBasicPage extends ConsumerWidget {
                                     color: AppColors.inputFieldColor,
                                     borderRadius: BorderRadius.circular(10.r),
                                   ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      value: nakshatra,
-                                      hint: const Text('Nakshatram'),
-                                      isExpanded: true,
-                                      icon: const Icon(
-                                        Icons.keyboard_arrow_down,
-                                      ),
-                                      items: ref
-                                          .read(userBasicNakshatraListProvider)
-                                          .map(
-                                            (e) => DropdownMenuItem(
-                                              value: e,
-                                              child: Text(e),
-                                            ),
-                                          )
-                                          .toList(),
-                                      onChanged: (value) {
-                                        ref
-                                                .read(
-                                                  userBasicNakshatraProvider
-                                                      .notifier,
-                                                )
-                                                .state =
-                                            value;
-                                      },
-                                    ),
-                                  ),
+                                  child: Consumer(
+  builder: (context, ref, _) {
+    final nakshatraAsync = ref.watch(userNakshatraListProvider);
+
+    return nakshatraAsync.when(
+      data: (nakshatraList) {
+        return Align(
+          alignment: Alignment.center,
+          child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: nakshatraList.contains(ref.watch(userBasicNakshatraProvider))
+                ? ref.watch(userBasicNakshatraProvider)
+                : null, 
+            hint: const Text('Nakshatram'),
+            isExpanded: true,
+            icon: const Icon(Icons.keyboard_arrow_down),
+            items: nakshatraList
+                .map(
+                  (e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(e),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) {
+              ref.read(userBasicNakshatraProvider.notifier).state = value;
+              print('Selected Nakshatra: $value');
+            },
+          ),
+                    ),
+        );
+      },
+      loading: () => const CircularProgressIndicator(),
+      error: (e, _) => Text('Failed to load Nakshatras: $e'),
+    );
+  },
+)
+
                                 ),
                               ),
                             ),

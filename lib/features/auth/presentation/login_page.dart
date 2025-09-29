@@ -122,20 +122,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                     ],
                     if (!otpSent)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {},
-                          child: Text(
-                            'Forgot your password?',
-                            style: TextStyle(
-                              color: AppColors.selected,
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
+                      // Align(
+                      //   alignment: Alignment.centerRight,
+                      //   child: TextButton(
+                      //     onPressed: () {},
+                      //     child: Text(
+                      //       'Forgot your password?',
+                      //       style: TextStyle(
+                      //         color: AppColors.selected,
+                      //         fontSize: 14.sp,
+                      //         fontWeight: FontWeight.w600,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                     SizedBox(height: 20.h),
                     Align(
                       alignment: Alignment.center,
@@ -197,22 +197,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                     ),
                     SizedBox(height: 30.h),
-                    Center(
-                      child: TextButton(
-                        onPressed: () => Navigator.pushReplacementNamed(
-                          context,
-                          '/register',
-                        ),
-                        child: Text(
-                          'Create new account',
-                          style: TextStyle(
-                            color: Colors.black87,
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 30.h),
+                    // Center(
+                    //   child: TextButton(
+                    //     onPressed: () => Navigator.pushReplacementNamed(
+                    //       context,
+                    //       '/register',
+                    //     ),
+                    //     child: Text(
+                    //       'Create new account',
+                    //       style: TextStyle(
+                    //         color: Colors.black87,
+                    //         fontSize: 12.sp,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    // SizedBox(height: 30.h),
                     Center(
                       child: Text(
                         'Or continue with',

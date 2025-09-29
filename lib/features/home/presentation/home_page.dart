@@ -358,6 +358,7 @@ class _HomePageState extends ConsumerState<HomePage>
 
   @override
   void dispose() {
+     player.stop();
     WidgetsBinding.instance.removeObserver(this);
     _playerSub.cancel(); // cancel stream
     super.dispose();
