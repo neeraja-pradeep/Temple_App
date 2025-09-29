@@ -110,7 +110,7 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                 categoriesAsync.when(
                   data: (gods) {
                     return Padding(
-                      padding: const EdgeInsets.only(left: 5),
+                      padding: EdgeInsets.only(left: 5),
                       child: SizedBox(
                         height: 152.h,
                         child: ListView.builder(
@@ -334,70 +334,74 @@ class _CategoryCardState extends State<_CategoryCard> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: widget.onTap,
-      child: Card(
-        color: Colors.white,
-        elevation: 5,
-        shape: RoundedRectangleBorder(
-          side: widget.isSelected
-              ? BorderSide(width: 1.2, color: AppColors.selected)
-              : BorderSide.none,
-          borderRadius: BorderRadius.circular(10.r),
-        ),
-        child: SizedBox(
-          width: 142.w,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.all(Radius.circular(10.r)),
-                  child: Image.network(
-                    _normalizeImageUrl(widget.category.mediaUrl),
-                    height: 102.h,
-                    width: 131.w,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Shimmer.fromColors(
-                        baseColor: Colors.grey.shade300,
-                        highlightColor: Colors.grey.shade100,
-                        child: Container(
-                          height: 102.h,
-                          width: 131.w,
-                          decoration: BoxDecoration(
-                            color: Colors.grey,
-                            borderRadius: BorderRadius.circular(10.r),
+      child: Padding(
+        padding: EdgeInsets.all(8.0.h),
+        child: Material(
+          clipBehavior: Clip.none,
+          color: Colors.white,
+          elevation: widget.isSelected ? 5 : 0,
+          shape: RoundedRectangleBorder(
+            side: widget.isSelected
+                ? BorderSide(width: 1.2, color: AppColors.selected)
+                : BorderSide.none,
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: SizedBox(
+            width: 142.w,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.all(Radius.circular(10.r)),
+                    child: Image.network(
+                      _normalizeImageUrl(widget.category.mediaUrl),
+                      height: 102.h,
+                      width: 131.w,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey.shade100,
+                          child: Container(
+                            height: 102.h,
+                            width: 131.w,
+                            decoration: BoxDecoration(
+                              color: Colors.grey,
+                              borderRadius: BorderRadius.circular(10.r),
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return Shimmer.fromColors(
-                        baseColor: Colors.grey.shade300,
-                        highlightColor: Colors.grey.shade100,
-                        child: Container(
-                          height: 102.h,
-                          width: 131.w,
-                          decoration: BoxDecoration(
-                            color: Colors.grey,
-                            borderRadius: BorderRadius.circular(10.r),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey.shade100,
+                          child: Container(
+                            height: 102.h,
+                            width: 131.w,
+                            decoration: BoxDecoration(
+                              color: Colors.grey,
+                              borderRadius: BorderRadius.circular(10.r),
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                widget.category.name,
-                style: TextStyle(
-                  fontFamily: "NotoSansMalayalam",
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w700,
+                SizedBox(height: 8.h),
+                Text(
+                  widget.category.name,
+                  style: TextStyle(
+                    fontFamily: "NotoSansMalayalam",
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
