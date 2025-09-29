@@ -20,6 +20,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:temple_app/core/hive/hive_init_provider.dart';
 import 'package:temple_app/features/shop/cart/data/repositories/cart_repository.dart';
 import 'package:temple_app/core/services/token_storage_service.dart';
+import 'package:temple_app/core/services/token_auto_refresh_service.dart';
 
 import 'core/app.dart';
 import 'core/services/notification_service.dart';
@@ -55,6 +56,9 @@ Future<void> main() async {
 
   // 🔔 Initialize notifications (permissions, token log, handlers)
   await NotificationService.instance.initialize();
+
+  // 🔄 Start automatic token refresh monitoring
+  TokenAutoRefreshService.startTokenMonitoring();
 
   runApp(const ProviderScope(child: MyApp()));
 }

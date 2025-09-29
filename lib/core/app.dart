@@ -17,6 +17,9 @@ import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/register_page.dart';
 import '../features/auth/presentation/user_details_basic_page.dart';
 import '../features/auth/presentation/user_details_address_page.dart';
+import '../features/auth/presentation/splash_screen.dart';
+import '../features/auth/providers/auth_state_provider.dart';
+import '../core/services/auth_state_checker.dart';
 
 class MainNavScreen extends ConsumerStatefulWidget {
   final Widget? drawerContent;
@@ -215,29 +218,43 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
   }
 }
 
-class App extends StatelessWidget {
+class App extends ConsumerWidget {
   const App({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
+
     return MaterialApp(
       title: 'Temple App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const LoginPage(),
+      home: _getHomeWidget(authState),
       routes: {
         '/login': (_) => const LoginPage(),
         '/register': (_) => const RegisterPage(),
         '/user/basic': (_) => const UserDetailsBasicPage(),
         '/user/address': (_) => const UserDetailsAddressPage(),
         '/main': (_) => const MainNavScreen(),
+        '/splash': (_) => const SplashScreen(),
       },
       builder: (context, child) {
         ScreenUtil.init(context);
         return child!;
       },
     );
+  }
+
+  Widget _getHomeWidget(AuthState authState) {
+    switch (authState) {
+      case AuthState.checking:
+        return const SplashScreen();
+      case AuthState.authenticated:
+        return const MainNavScreen();
+      case AuthState.notAuthenticated:
+        return const LoginPage();
+    }
   }
 }

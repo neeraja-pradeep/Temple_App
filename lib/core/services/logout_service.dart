@@ -2,7 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:temple_app/core/services/api_service.dart';
 import 'package:temple_app/core/services/token_storage_service.dart';
 import 'package:temple_app/core/services/firebase_auth_service.dart';
+import 'package:temple_app/core/services/token_auto_refresh_service.dart';
 import 'package:temple_app/features/auth/providers/auth_providers.dart';
+import 'package:temple_app/features/auth/providers/auth_state_provider.dart';
 
 /// Service to handle user logout operations
 class LogoutService {
@@ -20,9 +22,15 @@ class LogoutService {
       // Step 3: Clear all stored data from Hive
       await _clearAllStoredData();
 
-      // Step 4: Reset auth state providers
+      // Step 4: Stop token auto-refresh monitoring
+      TokenAutoRefreshService.stopTokenMonitoring();
+
+      // Step 5: Reset auth state providers
       if (container != null) {
         _resetAuthStateProviders(container);
+
+        // Set auth state to not authenticated
+        container.read(authStateProvider.notifier).setNotAuthenticated();
       }
 
       print('✅ Logout completed successfully');
