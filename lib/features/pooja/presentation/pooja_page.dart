@@ -110,7 +110,7 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                 categoriesAsync.when(
                   data: (gods) {
                     return Padding(
-                      padding: const EdgeInsets.only(left: 14),
+                      padding: const EdgeInsets.only(left: 5),
                       child: SizedBox(
                         height: 152.h,
                         child: ListView.builder(

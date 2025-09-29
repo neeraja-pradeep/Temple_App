@@ -46,7 +46,7 @@ class _TokenStatusWidgetState extends State<TokenStatusWidget> {
           content: Text(
             success ? 'Token refreshed successfully' : 'Token refresh failed',
           ),
-          backgroundColor: success ? Colors.green : primaryThemeColor,
+          backgroundColor: success ? Colors.transparent : primaryThemeColor,
         ),
       );
     }
@@ -77,7 +77,7 @@ class _TokenStatusWidgetState extends State<TokenStatusWidget> {
     } else if (needsRefresh) {
       statusColor = primaryThemeColor;
     } else {
-      statusColor = Colors.green;
+      statusColor = primaryThemeColor;
     }
 
     return Card(

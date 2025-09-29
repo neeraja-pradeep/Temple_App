@@ -77,7 +77,7 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
     try {
       await ref.read(addressListProvider.notifier).addAddress(newAddress);
       Navigator.pop(context);
-      showToast("Address added successfully", bgColor: Colors.green);
+      showToast("Address added successfully", bgColor: primaryThemeColor);
     } catch (e) {
       showToast("Failed to add address", bgColor: primaryThemeColor);
     }

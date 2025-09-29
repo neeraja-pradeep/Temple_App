@@ -1998,7 +1998,7 @@ class BookingPage extends ConsumerWidget {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text('✅ User added successfully!'),
-                                    backgroundColor: Colors.green,
+                                    backgroundColor: primaryThemeColor,
                                     duration: Duration(seconds: 3),
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(
@@ -2611,7 +2611,7 @@ class BookingPage extends ConsumerWidget {
                                         content: Text(
                                           '✅ User updated successfully!',
                                         ),
-                                        backgroundColor: Colors.green,
+                                        backgroundColor: primaryThemeColor,
                                         duration: Duration(seconds: 3),
                                         behavior: SnackBarBehavior.floating,
                                         shape: RoundedRectangleBorder(

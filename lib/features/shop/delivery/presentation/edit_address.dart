@@ -94,11 +94,11 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
       if (widget.address == null) {
         // Add
         await ref.read(addressListProvider.notifier).addAddress(newAddress);
-        showToast("Address added successfully", bgColor: Colors.green);
+        showToast("Address added successfully", bgColor: primaryThemeColor);
       } else {
         // Edit
         await ref.read(addressListProvider.notifier).updateAddress(newAddress);
-        showToast("Address updated successfully", bgColor: Colors.green);
+        showToast("Address updated successfully", bgColor: primaryThemeColor);
       }
       Navigator.pop(context);
     } catch (e) {
@@ -125,7 +125,7 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
           .deleteAddress(widget.address!.id);
 
       if (!mounted) return;
-      showToast("Address deleted successfully", bgColor: Colors.green);
+      showToast("Address deleted successfully", bgColor: primaryThemeColor);
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;

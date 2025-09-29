@@ -173,6 +173,7 @@ final otpSentProvider = StateProvider<bool>((ref) => false);
 // Store signin response for navigation decisions
 final signinResponseProvider = StateProvider<SigninResponse?>((ref) => null);
 
+final phoneNumberProvider = StateProvider<String?>((ref) => null);
 // Auth controller
 class AuthController extends StateNotifier<bool> {
   AuthController(this.ref) : super(false);
@@ -182,7 +183,7 @@ class AuthController extends StateNotifier<bool> {
   Future<void> sendOTP(BuildContext context, String phoneNumber) async {
     print('=== SENDING OTP ===');
     print('Phone Number: $phoneNumber');
-
+ref.read(phoneNumberProvider.notifier).state = phoneNumber;
     _setLoading(true);
     try {
       await FirebaseAuthService.sendOTP(
@@ -381,9 +382,9 @@ class AuthController extends StateNotifier<bool> {
 
         if (context.mounted) {
           FocusScope.of(context).unfocus();
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Login successful')));
+          // ScaffoldMessenger.of(
+          //   context,
+          // ).showSnackBar(const SnackBar(content: Text('Login successful')));
 
           // Set authenticated state
           ref.read(authStateProvider.notifier).setAuthenticated();
@@ -423,7 +424,7 @@ class AuthController extends StateNotifier<bool> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: WText( text: 'Welcome, ${signinResponse.message}',color: cWhite,),
+            content: WText( text: 'O T P verified',color: cWhite, fontWeight: FontWeight.bold,),
             backgroundColor: primaryThemeColor,
           ),
         );

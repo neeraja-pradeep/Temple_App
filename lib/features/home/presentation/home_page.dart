@@ -217,7 +217,7 @@ class HomePage extends ConsumerStatefulWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Logged out successfully'),
-              backgroundColor: Colors.green,
+              backgroundColor: primaryThemeColor,
             ),
           );
         }

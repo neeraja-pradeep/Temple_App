@@ -50,7 +50,7 @@ class UserDetailsBasicPage extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Basic details saved successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: primaryThemeColor,
           ),
         );
 
