@@ -5,6 +5,7 @@ import 'package:temple_app/core/services/firebase_auth_service.dart';
 import 'package:temple_app/core/services/token_auto_refresh_service.dart';
 import 'package:temple_app/features/auth/providers/auth_providers.dart';
 import 'package:temple_app/features/auth/providers/auth_state_provider.dart';
+import 'package:temple_app/features/home/providers/home_providers.dart';
 
 /// Service to handle user logout operations
 class LogoutService {
@@ -139,6 +140,19 @@ class LogoutService {
       container.read(loginPhoneControllerProvider).clear();
       container.read(loginOtpControllerProvider).clear();
 
+      // Reset form keys to prevent GlobalKey conflicts
+      // Note: AutoDisposeProvider will automatically dispose when not in use
+      // but we can force refresh by invalidating the providers
+      container.invalidate(loginFormKeyProvider);
+      container.invalidate(registerFormKeyProvider);
+      container.invalidate(userBasicFormKeyProvider);
+      container.invalidate(userAddressFormKeyProvider);
+
+      // Invalidate profile and other cached data to ensure fresh data on next login
+      container.invalidate(profileProvider);
+      container.invalidate(godCategoriesProvider);
+      container.invalidate(songProvider);
+
       print('✅ Auth state providers reset successfully');
       print('📋 Reset providers:');
       print('   - otpSentProvider: false');
@@ -146,6 +160,10 @@ class LogoutService {
       print('   - signinResponseProvider: null');
       print('   - authLoadingProvider: false');
       print('   - Text controllers cleared');
+      print('   - Form keys invalidated to prevent GlobalKey conflicts');
+      print(
+        '   - Profile and cached data invalidated for fresh fetch on next login',
+      );
     } catch (e) {
       print('❌ Failed to reset auth state providers: $e');
     }

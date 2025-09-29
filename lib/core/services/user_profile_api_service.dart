@@ -10,6 +10,7 @@ class UserProfileApiService {
 
   /// Update user profile with basic details
   static Future<ProfileUpdateResponse> updateProfile({
+    String? name,
     String? email,
     String? dob,
     String? time,
@@ -19,6 +20,7 @@ class UserProfileApiService {
 
     // Build request body with only provided fields
     final Map<String, dynamic> body = {};
+    if (name != null && name.isNotEmpty) body['name'] = name;
     if (email != null && email.isNotEmpty) body['email'] = email;
     if (dob != null && dob.isNotEmpty) body['DOB'] = dob;
     if (time != null && time.isNotEmpty) body['time'] = time;
@@ -115,4 +117,3 @@ class ProfileUpdateException implements Exception {
   @override
   String toString() => 'ProfileUpdateException: $message';
 }
-

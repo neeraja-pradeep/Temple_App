@@ -11,22 +11,28 @@ import '../../../core/services/signin_api_service.dart';
 import '../../../core/services/token_storage_service.dart';
 import 'auth_state_provider.dart';
 
-// Form keys
-final loginFormKeyProvider = Provider<GlobalKey<FormState>>((ref) {
+// Form keys - using AutoDisposeProvider to prevent GlobalKey conflicts
+final loginFormKeyProvider = AutoDisposeProvider<GlobalKey<FormState>>((ref) {
   return GlobalKey<FormState>();
 });
 
-final registerFormKeyProvider = Provider<GlobalKey<FormState>>((ref) {
+final registerFormKeyProvider = AutoDisposeProvider<GlobalKey<FormState>>((
+  ref,
+) {
   return GlobalKey<FormState>();
 });
 
 // User basic details form key
-final userBasicFormKeyProvider = Provider<GlobalKey<FormState>>((ref) {
+final userBasicFormKeyProvider = AutoDisposeProvider<GlobalKey<FormState>>((
+  ref,
+) {
   return GlobalKey<FormState>();
 });
 
 // User address details form key
-final userAddressFormKeyProvider = Provider<GlobalKey<FormState>>((ref) {
+final userAddressFormKeyProvider = AutoDisposeProvider<GlobalKey<FormState>>((
+  ref,
+) {
   return GlobalKey<FormState>();
 });
 
@@ -174,6 +180,7 @@ final otpSentProvider = StateProvider<bool>((ref) => false);
 final signinResponseProvider = StateProvider<SigninResponse?>((ref) => null);
 
 final phoneNumberProvider = StateProvider<String?>((ref) => null);
+
 // Auth controller
 class AuthController extends StateNotifier<bool> {
   AuthController(this.ref) : super(false);
@@ -183,7 +190,7 @@ class AuthController extends StateNotifier<bool> {
   Future<void> sendOTP(BuildContext context, String phoneNumber) async {
     print('=== SENDING OTP ===');
     print('Phone Number: $phoneNumber');
-ref.read(phoneNumberProvider.notifier).state = phoneNumber;
+    ref.read(phoneNumberProvider.notifier).state = phoneNumber;
     _setLoading(true);
     try {
       await FirebaseAuthService.sendOTP(
@@ -424,7 +431,11 @@ ref.read(phoneNumberProvider.notifier).state = phoneNumber;
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: WText( text: 'O T P verified',color: cWhite, fontWeight: FontWeight.bold,),
+            content: WText(
+              text: 'O T P verified',
+              color: cWhite,
+              fontWeight: FontWeight.bold,
+            ),
             backgroundColor: primaryThemeColor,
           ),
         );
@@ -438,8 +449,8 @@ ref.read(phoneNumberProvider.notifier).state = phoneNumber;
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-            content: WText( text: 'Signin failed',color: cWhite,),
+          SnackBar(
+            content: WText(text: 'Signin failed', color: cWhite),
             backgroundColor: primaryThemeColor,
           ),
         );

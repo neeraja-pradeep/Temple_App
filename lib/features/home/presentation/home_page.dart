@@ -221,16 +221,14 @@ class HomePage extends ConsumerStatefulWidget {
             ),
           );
         }
-
-        // Navigate to login page
+        // Navigate explicitly to login and clear stack
         if (context.mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            '/login',
-            (route) => false, // Remove all previous routes
-          );
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/login', (route) => false);
         }
       } else {
-        // Show error message but still navigate to login
+        // Show error message
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -239,8 +237,7 @@ class HomePage extends ConsumerStatefulWidget {
             ),
           );
         }
-
-        // Navigate to login page even if there were issues
+        // Navigate to login even if there were issues
         if (context.mounted) {
           Navigator.of(
             context,
@@ -358,7 +355,7 @@ class _HomePageState extends ConsumerState<HomePage>
 
   @override
   void dispose() {
-     player.stop();
+    player.stop();
     WidgetsBinding.instance.removeObserver(this);
     _playerSub.cancel(); // cancel stream
     super.dispose();

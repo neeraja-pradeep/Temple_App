@@ -14,6 +14,7 @@ class UserDetailsBasicPage extends ConsumerWidget {
   /// Handle continue button press - save basic details and navigate to address page
   Future<void> _handleContinue(BuildContext context, WidgetRef ref) async {
     final formKey = ref.read(userBasicFormKeyProvider);
+    final nameController = ref.read(userBasicNameControllerProvider);
     final dobController = ref.read(userBasicDobControllerProvider);
     final nakshatra = ref.read(userBasicNakshatraProvider);
 
@@ -36,6 +37,9 @@ class UserDetailsBasicPage extends ConsumerWidget {
 
       // Call profile update API
       await UserProfileApiService.updateProfile(
+        name: nameController.text.trim().isNotEmpty
+            ? nameController.text.trim()
+            : null,
         dob: dobController.text.trim().isNotEmpty
             ? dobController.text.trim()
             : null,
@@ -173,43 +177,64 @@ class UserDetailsBasicPage extends ConsumerWidget {
                                     borderRadius: BorderRadius.circular(10.r),
                                   ),
                                   child: Consumer(
-  builder: (context, ref, _) {
-    final nakshatraAsync = ref.watch(userNakshatraListProvider);
+                                    builder: (context, ref, _) {
+                                      final nakshatraAsync = ref.watch(
+                                        userNakshatraListProvider,
+                                      );
 
-    return nakshatraAsync.when(
-      data: (nakshatraList) {
-        return Align(
-          alignment: Alignment.center,
-          child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            value: nakshatraList.contains(ref.watch(userBasicNakshatraProvider))
-                ? ref.watch(userBasicNakshatraProvider)
-                : null, 
-            hint: const Text('Nakshatram'),
-            isExpanded: true,
-            icon: const Icon(Icons.keyboard_arrow_down),
-            items: nakshatraList
-                .map(
-                  (e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(e),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) {
-              ref.read(userBasicNakshatraProvider.notifier).state = value;
-              print('Selected Nakshatra: $value');
-            },
-          ),
-                    ),
-        );
-      },
-      loading: () => const CircularProgressIndicator(),
-      error: (e, _) => Text('Failed to load Nakshatras: $e'),
-    );
-  },
-)
-
+                                      return nakshatraAsync.when(
+                                        data: (nakshatraList) {
+                                          return Align(
+                                            alignment: Alignment.center,
+                                            child: DropdownButtonHideUnderline(
+                                              child: DropdownButton<String>(
+                                                value:
+                                                    nakshatraList.contains(
+                                                      ref.watch(
+                                                        userBasicNakshatraProvider,
+                                                      ),
+                                                    )
+                                                    ? ref.watch(
+                                                        userBasicNakshatraProvider,
+                                                      )
+                                                    : null,
+                                                hint: const Text('Nakshatram'),
+                                                isExpanded: true,
+                                                icon: const Icon(
+                                                  Icons.keyboard_arrow_down,
+                                                ),
+                                                items: nakshatraList
+                                                    .map(
+                                                      (e) => DropdownMenuItem(
+                                                        value: e,
+                                                        child: Text(e),
+                                                      ),
+                                                    )
+                                                    .toList(),
+                                                onChanged: (value) {
+                                                  ref
+                                                          .read(
+                                                            userBasicNakshatraProvider
+                                                                .notifier,
+                                                          )
+                                                          .state =
+                                                      value;
+                                                  print(
+                                                    'Selected Nakshatra: $value',
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        loading: () =>
+                                            const CircularProgressIndicator(),
+                                        error: (e, _) => Text(
+                                          'Failed to load Nakshatras: $e',
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             ),

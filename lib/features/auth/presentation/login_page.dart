@@ -136,7 +136,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       //     ),
                       //   ),
                       // ),
-                    SizedBox(height: 20.h),
+                      SizedBox(height: 20.h),
                     Align(
                       alignment: Alignment.center,
                       child: SizedBox(
@@ -213,13 +213,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     //   ),
                     // ),
                     // SizedBox(height: 30.h),
-                    Center(
-                      child: Text(
-                        'Or continue with',
-                        style: TextStyle(
-                          color: AppColors.selected,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w600,
+                    SizedBox(height: 30.h),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 50.0),
+                      child: Center(
+                        child: Text(
+                          'Or continue with',
+                          style: TextStyle(
+                            color: AppColors.selected,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
