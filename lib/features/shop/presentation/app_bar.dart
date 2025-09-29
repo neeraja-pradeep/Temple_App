@@ -16,6 +16,7 @@ class AppBarSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartItems = ref.watch(cartProviders);
     log("Cart items>>>>>>>>>>>>>>>>: $cartItems");
+    ///sdfffffffffffffff
 
     return Expanded(
       flex: 1,
