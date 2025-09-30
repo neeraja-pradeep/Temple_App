@@ -29,9 +29,9 @@ class ShopCategorySection extends ConsumerWidget {
                 final isSelected = selectedIndex == index;
                 return GestureDetector(
                   onTap: () {
-                    final current = ref.read(selectedCategoryIndexProvider);
+                    // 👇 no more toggle, always stick to category
                     ref.read(selectedCategoryIndexProvider.notifier).state =
-                        (current == index) ? null : index;
+                        index;
                     ref.read(selectedIndexCatProvider.notifier).state = index;
                   },
                   child: Container(

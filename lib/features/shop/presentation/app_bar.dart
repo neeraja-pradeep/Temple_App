@@ -26,11 +26,8 @@ class AppBarSection extends ConsumerWidget {
           // Left side logo
           Padding(
             padding: EdgeInsets.only(left: 10.w, top: 5.h),
-            child: SvgPicture.asset(
-              'assets/svg/Group 6.svg',
-              fit: BoxFit.contain,
-              height: 30.h,
-              width: 30.w,
+            child: SizedBox(
+              
             ),
           ),
 

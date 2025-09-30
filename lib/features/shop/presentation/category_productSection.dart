@@ -15,6 +15,7 @@ class CategoryProductGridSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fetchCategoryProducts = ref.watch(categoryProductProvider);
+    final selectedCategoryName = ref.watch(selectedCategoryNameProvider);
     final cartItems = ref.watch(cartProviders);
 
     return Expanded(
@@ -28,7 +29,7 @@ class CategoryProductGridSection extends ConsumerWidget {
             Padding(
               padding: EdgeInsets.only(left: 10.w, top: 5.h, bottom: 6.h),
               child: WText(
-                text: "Common Pooja items",
+                text: "$selectedCategoryName ",
                 color: cBlack,
                 fontSize: 11.sp,
                 fontWeight: FontWeight.bold,
