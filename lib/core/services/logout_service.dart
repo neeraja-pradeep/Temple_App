@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:temple_app/core/services/api_service.dart';
 import 'package:temple_app/core/services/token_storage_service.dart';
 import 'package:temple_app/core/services/firebase_auth_service.dart';
@@ -6,6 +7,7 @@ import 'package:temple_app/core/services/token_auto_refresh_service.dart';
 import 'package:temple_app/features/auth/providers/auth_providers.dart';
 import 'package:temple_app/features/auth/providers/auth_state_provider.dart';
 import 'package:temple_app/features/home/providers/home_providers.dart';
+import 'package:temple_app/features/shop/cart/providers/cart_provider.dart';
 
 /// Service to handle user logout operations
 class LogoutService {
@@ -84,8 +86,39 @@ class LogoutService {
     try {
       print('🗑️ Clearing all stored data...');
 
-      // Clear all tokens and user data
+      // Clear all tokens and user data (auth box)
       await TokenStorageService.clearAllTokens();
+
+      // Explicitly delete known Hive boxes (close → delete) to avoid stale caches
+      final List<String> boxNames = <String>[
+        'auth_tokens',
+        'cartBox',
+        'addressBox',
+        'productBox',
+        'categoryBox',
+        'variantBox',
+        'storeCategory',
+        'specialPoojas',
+        'weeklyPoojas',
+        'specialPrayers',
+      ];
+
+      for (final name in boxNames) {
+        try {
+          if (Hive.isBoxOpen(name)) {
+            print('📦 Closing open box: ' + name);
+            await Hive.box(name).close();
+          }
+          print('🗑️ Deleting box from disk: ' + name);
+          await Hive.deleteBoxFromDisk(name);
+        } catch (e) {
+          print('⚠️ Failed deleting box ' + name + ': ' + e.toString());
+        }
+      }
+
+      // Wipe ALL Hive data from disk (every box, including caches like cart, addresses, etc.)
+      print('🧹 Deleting all Hive boxes from disk...');
+      await Hive.deleteFromDisk();
 
       print('✅ All stored data cleared');
       print('📋 Cleared data includes:');
@@ -97,6 +130,7 @@ class LogoutService {
       print('   - User role');
       print('   - FCM token');
       print('   - Token expiry');
+      print('   - All Hive boxes and cached feature data');
     } catch (e) {
       print('❌ Failed to clear stored data: $e');
       rethrow;
@@ -152,6 +186,9 @@ class LogoutService {
       container.invalidate(profileProvider);
       container.invalidate(godCategoriesProvider);
       container.invalidate(songProvider);
+
+      // Also reset cart and related caches in memory
+      container.invalidate(cartProviders);
 
       print('✅ Auth state providers reset successfully');
       print('📋 Reset providers:');
