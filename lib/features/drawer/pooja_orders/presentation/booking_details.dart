@@ -13,7 +13,16 @@ class BookingDetails extends ConsumerStatefulWidget {
 }
 
 class _BookingDetailsState extends ConsumerState<BookingDetails> {
-  String selectedFilter = "upcoming"; // default tab
+  String selectedFilter = "Upcoming"; // default tab must match API
+
+  @override
+  void initState() {
+    super.initState();
+    // Trigger initial fetch for the default filter after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.refresh(bookingOrdersProvider(selectedFilter));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,14 +66,12 @@ class _BookingDetailsState extends ConsumerState<BookingDetails> {
           children: [
             Text(
               "Pooja Booking Details",
-              style: TextStyle(
-                fontFamily: "Poppins",
-                fontSize: 16.sp),
+              style: TextStyle(fontFamily: "Poppins", fontSize: 16.sp),
             ),
             SizedBox(height: 10.h),
             // Filter buttons
             Container(
-              width: 343,
+              width: double.infinity,
               height: 50,
               padding: const EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
@@ -74,9 +81,11 @@ class _BookingDetailsState extends ConsumerState<BookingDetails> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildFilterButton("upcoming"),
-                  _buildFilterButton("completed"),
-                  _buildFilterButton("cancelled"),
+                  Expanded(child: _buildFilterButton("Upcoming")),
+                  SizedBox(width: 8.w),
+                  Expanded(child: _buildFilterButton("completed")),
+                  SizedBox(width: 8.w),
+                  Expanded(child: _buildFilterButton("cancelled")),
                 ],
               ),
             ),
@@ -92,7 +101,9 @@ class _BookingDetailsState extends ConsumerState<BookingDetails> {
                     itemCount: orders.length,
                     itemBuilder: (context, index) {
                       final booking = orders[index];
-                      return OrderCard(booking: booking); // use the expandable card
+                      return OrderCard(
+                        booking: booking,
+                      ); // use the expandable card
                     },
                   );
                 },
@@ -110,21 +121,30 @@ class _BookingDetailsState extends ConsumerState<BookingDetails> {
     final isSelected = selectedFilter == filter;
     return GestureDetector(
       onTap: () {
-        setState(() {
-          selectedFilter = filter;
-        });
+        if (selectedFilter == filter) return;
+        setState(() => selectedFilter = filter);
+        // Force refresh for the new filter
+        ref.refresh(bookingOrdersProvider(selectedFilter));
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.selectedBackground : Colors.transparent,
-          borderRadius: BorderRadius.circular(10.r),
-        ),
-        child: Text(
-          filter[0].toUpperCase() + filter.substring(1),
-          style: TextStyle(
-            color: isSelected ? AppColors.selected : Colors.black,
-            fontWeight: FontWeight.w500,
+      child: Align(
+        alignment: Alignment.center,
+        child: Container(
+          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.selectedBackground
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            filter[0].toUpperCase() + filter.substring(1),
+            style: TextStyle(
+              color: isSelected ? AppColors.selected : Colors.black,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
           ),
         ),
       ),
