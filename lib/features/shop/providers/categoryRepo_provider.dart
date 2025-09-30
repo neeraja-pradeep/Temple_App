@@ -11,6 +11,12 @@ final categoriesProvider = FutureProvider<List<StoreCategory>>((ref) async {
   return ref.read(categoryRepositoryProvider).fetchCategories();
 });
 
+// Example for a refreshable provider
+final refreshCategoriesProvider = FutureProvider<List<StoreCategory>>((ref) async {
+  return ref.read(categoryRepositoryProvider).fetchCategories(forceRefresh: true);
+});
+
+
 // PRODUCT
 final categoryProductRepositoryProvider = Provider(
   (ref) => CategoryProductRepository(),

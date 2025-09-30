@@ -84,7 +84,7 @@ class UserDetailsBasicPage extends ConsumerWidget {
     final nameController = ref.watch(userBasicNameControllerProvider);
     final phoneController = ref.watch(userBasicPhoneControllerProvider);
     final dobController = ref.watch(userBasicDobControllerProvider);
-    final nakshatra = ref.watch(userBasicNakshatraProvider);
+    // final nakshatra = ref.watch(userBasicNakshatraProvider);
 
     return Scaffold(
       body: Stack(
