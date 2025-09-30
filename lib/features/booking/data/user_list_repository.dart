@@ -171,6 +171,41 @@ class UserListRepository {
     }
   }
 
+  Future<bool> deleteUser(int userId) async {
+    try {
+      // Get authorization header with bearer token (auto-refresh if needed)
+      final authHeader = await CompleteTokenService.getAuthorizationHeader();
+      if (authHeader == null) {
+        throw Exception(
+          'No valid authentication token found. Please login again.',
+        );
+      }
+
+      final headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': authHeader,
+      };
+
+      print(
+        '🌐 Making delete user API call to: $baseUrl/user/user-lists/$userId/',
+      );
+      print('🔐 Authorization header: $authHeader');
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/user/user-lists/$userId/'),
+        headers: headers,
+      );
+
+      print('📥 Delete User API Response Status: ${response.statusCode}');
+      print('📥 Delete User API Response Body: ${response.body}');
+
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      throw Exception('Failed to delete user: $e');
+    }
+  }
+
   Future<List<NakshatramOption>> getNakshatrams() async {
     try {
       // Get authorization header with bearer token (auto-refresh if needed)

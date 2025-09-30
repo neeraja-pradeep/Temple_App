@@ -2894,8 +2894,58 @@ class BookingPage extends ConsumerWidget {
 
                         // Delete button
                         TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
+                          onPressed: () async {
+                            try {
+                              final repo = ref.read(userListRepositoryProvider);
+                              final ok = await repo.deleteUser(user.id);
+                              if (ok) {
+                                // Remove from local state immediately
+                                final currentVisibleUsers = ref.read(
+                                  visibleUsersProvider(userId),
+                                );
+                                final currentSelectedUsers = ref.read(
+                                  selectedUsersProvider(userId),
+                                );
+
+                                ref
+                                    .read(visibleUsersProvider(userId).notifier)
+                                    .state = currentVisibleUsers
+                                    .where((u) => u.id != user.id)
+                                    .toList();
+                                ref
+                                    .read(
+                                      selectedUsersProvider(userId).notifier,
+                                    )
+                                    .state = currentSelectedUsers
+                                    .where((u) => u.id != user.id)
+                                    .toList();
+
+                                // Refresh server list so underlying sheet updates
+                                ref.invalidate(userListsProvider);
+
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('✅ User deleted'),
+                                    backgroundColor: primaryThemeColor,
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('❌ Failed to delete user'),
+                                    backgroundColor: primaryThemeColor,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('❌ Delete error: $e'),
+                                  backgroundColor: primaryThemeColor,
+                                ),
+                              );
+                            }
                           },
                           child: Text(
                             'ഡിലീറ്റ്',

@@ -12,6 +12,7 @@ class UserProfileApiService {
   static Future<ProfileUpdateResponse> updateProfile({
     String? name,
     String? email,
+    String? phone,
     String? dob,
     String? time,
     int? nakshatram,
@@ -22,6 +23,7 @@ class UserProfileApiService {
     final Map<String, dynamic> body = {};
     if (name != null && name.isNotEmpty) body['name'] = name;
     if (email != null && email.isNotEmpty) body['email'] = email;
+    if (phone != null && phone.isNotEmpty) body['phone'] = phone;
     if (dob != null && dob.isNotEmpty) body['DOB'] = dob;
     if (time != null && time.isNotEmpty) body['time'] = time;
     if (nakshatram != null) body['nakshatram'] = nakshatram;

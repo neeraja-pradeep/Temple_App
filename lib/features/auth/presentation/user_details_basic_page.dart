@@ -7,6 +7,8 @@ import 'package:temple_app/features/auth/providers/nakshatra_service.dart';
 
 import '../../../core/services/user_profile_api_service.dart';
 import '../providers/auth_providers.dart';
+import '../../home/providers/home_providers.dart';
+import '../../../core/services/token_storage_service.dart';
 
 class UserDetailsBasicPage extends ConsumerWidget {
   const UserDetailsBasicPage({super.key});
@@ -40,6 +42,7 @@ class UserDetailsBasicPage extends ConsumerWidget {
         name: nameController.text.trim().isNotEmpty
             ? nameController.text.trim()
             : null,
+        phone: TokenStorageService.getPhoneNumber(),
         dob: dobController.text.trim().isNotEmpty
             ? dobController.text.trim()
             : null,
@@ -50,6 +53,9 @@ class UserDetailsBasicPage extends ConsumerWidget {
       // Close loading dialog
       if (context.mounted) {
         Navigator.of(context).pop();
+
+        // Invalidate cached profile so Home drawer shows fresh data
+        ref.invalidate(profileProvider);
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -84,6 +90,10 @@ class UserDetailsBasicPage extends ConsumerWidget {
     final nameController = ref.watch(userBasicNameControllerProvider);
     final phoneController = ref.watch(userBasicPhoneControllerProvider);
     final dobController = ref.watch(userBasicDobControllerProvider);
+    // Autofill phone from saved token storage (already set earlier)
+    // Ensure it has a value before building
+    phoneController.text =
+        TokenStorageService.getPhoneNumber() ?? phoneController.text;
     // final nakshatra = ref.watch(userBasicNakshatraProvider);
 
     return Scaffold(
@@ -134,15 +144,7 @@ class UserDetailsBasicPage extends ConsumerWidget {
                                   ? 'Enter your name'
                                   : null,
                             ),
-                            _LabeledTextField(
-                              controller: phoneController,
-                              hintText: 'Phone',
-                              keyboardType: TextInputType.phone,
-                              validator: (v) =>
-                                  (v == null || v.trim().length < 10)
-                                  ? 'Enter valid phone'
-                                  : null,
-                            ),
+                            // Phone input removed entirely as requested
                             _LabeledTextField(
                               controller: dobController,
                               hintText: 'Date of Birth',
@@ -247,41 +249,7 @@ class UserDetailsBasicPage extends ConsumerWidget {
                   Column(
                     children: [
                       SizedBox(height: 20.h),
-                      Align(
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: 357.w,
-                          height: 35.h,
-                          child: TextButton(
-                            onPressed: () => Navigator.pushReplacementNamed(
-                              context,
-                              '/user/address',
-                            ),
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                            ),
-                            child: Container(
-                              height: 35.h,
-                              width: 357.w,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF2E7DA),
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                              child: Text(
-                                'Skip',
-                                style: TextStyle(
-                                  color: Colors.black54,
-                                  fontSize: 12.sp,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      // Removed Skip; all fields are mandatory for new users
                       SizedBox(height: 16.h),
                       Align(
                         alignment: Alignment.center,

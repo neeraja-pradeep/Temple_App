@@ -484,16 +484,19 @@ class AuthController extends StateNotifier<bool> {
   void _handlePostLoginNavigation(BuildContext context) {
     final signinResponse = ref.read(signinResponseProvider);
     log(
-      "====================== _handlePostLoginNavigation=============================",
+      '====================== _handlePostLoginNavigation =============================',
     );
-    log(
-      "signinResponse =============== : ${signinResponse?.newUser ?? "dfsdfsdf"}",
-    );
+    log('signinResponse.newUser: ${signinResponse?.newUser}');
 
-    // Don't navigate manually - let the auth state provider handle it
-    // The App widget will automatically rebuild and show the correct screen
-    // based on the auth state change
-    print('✅ Auth state set to authenticated, app will rebuild automatically');
+    // If new user, take them to details flow; else go to main
+    if (signinResponse?.newUser == true) {
+      // Replace the stack so user cannot go back to login
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil('/user/basic', (route) => false);
+    } else {
+      Navigator.of(context).pushNamedAndRemoveUntil('/main', (route) => false);
+    }
   }
 }
 

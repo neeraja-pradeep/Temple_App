@@ -64,6 +64,14 @@ final updateUserProvider =
       return await repository.updateUser(params.userId, params.userData);
     });
 
+final deleteUserProvider = FutureProvider.family<bool, int>((
+  ref,
+  userId,
+) async {
+  final repository = ref.read(userListRepositoryProvider);
+  return await repository.deleteUser(userId);
+});
+
 final nakshatramsProvider = FutureProvider<List<NakshatramOption>>((ref) async {
   final repository = ref.read(userListRepositoryProvider);
   return await repository.getNakshatrams();
