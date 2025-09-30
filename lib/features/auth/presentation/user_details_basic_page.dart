@@ -33,9 +33,48 @@ class UserDetailsBasicPage extends ConsumerWidget {
     );
 
     try {
-      // Get nakshatram index from the list
-      final nakshatraList = ref.read(userBasicNakshatraListProvider);
-      final nakshatramIndex = nakshatraList.indexOf(nakshatra ?? '') + 1;
+      // Ensure nakshatram is selected (mandatory)
+      if ((nakshatra == null) || nakshatra.trim().isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select your Nakshatram')),
+          );
+        }
+        return;
+      }
+
+      // Get nakshatram ID from the API list
+      final nakshatraListAsync = ref.read(userNakshatraListProvider);
+      final nakshatraList = nakshatraListAsync.when(
+        data: (list) => list,
+        loading: () => <Map<String, dynamic>>[],
+        error: (_, __) => <Map<String, dynamic>>[],
+      );
+
+      Map<String, dynamic> selectedNakshatra;
+      try {
+        selectedNakshatra = nakshatraList.firstWhere(
+          (Map<String, dynamic> item) => item['name'] == nakshatra,
+        );
+      } catch (e) {
+        selectedNakshatra = {'id': 0, 'name': ''};
+      }
+      final nakshatramId = selectedNakshatra['id'] as int;
+
+      // Console logs for cross-checking nakshatram payload
+      debugPrint('🧭 Selected Nakshatram name: $nakshatra');
+      debugPrint('🧭 Resolved Nakshatram ID from API: $nakshatramId');
+      final previewBody = {
+        if (nameController.text.trim().isNotEmpty)
+          'name': nameController.text.trim(),
+        'email': '',
+        'DOB': dobController.text.trim().isNotEmpty
+            ? dobController.text.trim()
+            : null,
+        'time': '10:00:00',
+        'nakshatram': nakshatramId > 0 ? nakshatramId : null,
+      };
+      debugPrint('🧾 Profile update preview body: ' + previewBody.toString());
 
       // Call profile update API
       await UserProfileApiService.updateProfile(
@@ -47,7 +86,8 @@ class UserDetailsBasicPage extends ConsumerWidget {
             ? dobController.text.trim()
             : null,
         time: "10:00:00", // Default time as per requirement
-        nakshatram: nakshatramIndex > 0 ? nakshatramIndex : null,
+        // Always pass resolved ID; guard above ensures selection exists
+        nakshatram: nakshatramId,
       );
 
       // Close loading dialog
@@ -191,10 +231,12 @@ class UserDetailsBasicPage extends ConsumerWidget {
                                             child: DropdownButtonHideUnderline(
                                               child: DropdownButton<String>(
                                                 value:
-                                                    nakshatraList.contains(
-                                                      ref.watch(
-                                                        userBasicNakshatraProvider,
-                                                      ),
+                                                    nakshatraList.any(
+                                                      (item) =>
+                                                          item['name'] ==
+                                                          ref.watch(
+                                                            userBasicNakshatraProvider,
+                                                          ),
                                                     )
                                                     ? ref.watch(
                                                         userBasicNakshatraProvider,
@@ -208,8 +250,11 @@ class UserDetailsBasicPage extends ConsumerWidget {
                                                 items: nakshatraList
                                                     .map(
                                                       (e) => DropdownMenuItem(
-                                                        value: e,
-                                                        child: Text(e),
+                                                        value:
+                                                            e['name'] as String,
+                                                        child: Text(
+                                                          e['name'] as String,
+                                                        ),
                                                       ),
                                                     )
                                                     .toList(),

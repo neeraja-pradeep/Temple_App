@@ -103,9 +103,11 @@ class HomePage extends ConsumerStatefulWidget {
                     children: [
                       _buildMenuItem("Pooja Booking", () {
                         Navigator.push(
-                          context, 
-                          MaterialPageRoute(builder: (context) => BookingDetails())
-                          );
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BookingDetails(),
+                          ),
+                        );
                       }),
                       SizedBox(height: 12.h),
                       _buildMenuItem("Store Orders", () {}),
@@ -227,12 +229,16 @@ class HomePage extends ConsumerStatefulWidget {
             ),
           );
         }
-        // Don't navigate manually - let the auth state provider handle it
-        // The App widget will automatically rebuild and show the login screen
-        // based on the auth state change
-        print(
-          '✅ Auth state set to not authenticated, app will rebuild automatically',
-        );
+        // Explicitly navigate to login and clear back stack
+        if (context.mounted) {
+          // Invalidate providers that may hold user-scoped caches
+          ref.invalidate(godCategoriesProvider);
+          ref.invalidate(profileProvider);
+          ref.invalidate(songProvider);
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/login', (route) => false);
+        }
       } else {
         // Show error message
         if (context.mounted) {
@@ -243,12 +249,14 @@ class HomePage extends ConsumerStatefulWidget {
             ),
           );
         }
-        // Don't navigate manually - let the auth state provider handle it
-        // The App widget will automatically rebuild and show the login screen
-        // based on the auth state change
-        print(
-          '✅ Auth state set to not authenticated, app will rebuild automatically',
-        );
+        if (context.mounted) {
+          ref.invalidate(godCategoriesProvider);
+          ref.invalidate(profileProvider);
+          ref.invalidate(songProvider);
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/login', (route) => false);
+        }
       }
     } catch (e) {
       print('❌ Logout error: $e');

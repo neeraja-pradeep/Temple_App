@@ -12,7 +12,7 @@ class UserDetailsAddressPage extends ConsumerWidget {
   const UserDetailsAddressPage({super.key});
 
   /// Handle continue button press - save address and navigate to main app
-  Future<void> _handleContinue(BuildContext context, WidgetRef ref,) async {
+  Future<void> _handleContinue(BuildContext context, WidgetRef ref) async {
     final formKey = ref.read(userAddressFormKeyProvider);
     final nameController = ref.read(userAddressNameControllerProvider);
     final line1Controller = ref.read(userAddressLine1ControllerProvider);
@@ -45,7 +45,9 @@ class UserDetailsAddressPage extends ConsumerWidget {
         country: "India",
         pincode: pinController.text.trim(),
         selection: true,
-        phonenumber: ref.read(phoneNumberProvider)??'', // Will be filled from user profile
+        phonenumber:
+            ref.read(phoneNumberProvider) ??
+            '', // Will be filled from user profile
       );
 
       // Add address using the delivery repository
@@ -179,46 +181,10 @@ class UserDetailsAddressPage extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  // Buttons at the bottom
+                  // Button at the bottom
                   Column(
                     children: [
                       SizedBox(height: 20.h),
-                      Align(
-                        alignment: Alignment.center,
-                        child: SizedBox(
-                          width: 357.w,
-                          height: 35.h,
-                          child: TextButton(
-                            onPressed: () => Navigator.pushReplacementNamed(
-                              context,
-                              '/main',
-                            ),
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                            ),
-                            child: Container(
-                              height: 35.h,
-                              width: 357.w,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF2E7DA),
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                              child: Text(
-                                'Skip',
-                                style: TextStyle(
-                                  color: Colors.black54,
-                                  fontSize: 12.sp,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
                       Align(
                         alignment: Alignment.center,
                         child: SizedBox(

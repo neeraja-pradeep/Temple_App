@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:temple_app/core/providers/token_provider.dart';
 import 'package:temple_app/core/services/api_service.dart';
 import 'package:temple_app/core/services/token_storage_service.dart';
 import 'package:temple_app/core/services/firebase_auth_service.dart';
 import 'package:temple_app/core/services/token_auto_refresh_service.dart';
+import 'package:temple_app/core/providers/token_provider.dart' as tp;
 import 'package:temple_app/features/auth/providers/auth_providers.dart';
 import 'package:temple_app/features/auth/providers/auth_state_provider.dart';
 import 'package:temple_app/features/home/providers/home_providers.dart';
@@ -162,7 +164,7 @@ class LogoutService {
       container.read(otpSentProvider.notifier).state = false;
 
       // Reset verification ID
-      container.read(verificationIdProvider.notifier).state = null;
+      container.read(tp.verificationIdProvider.notifier).state = null;
 
       // Reset signin response
       container.read(signinResponseProvider.notifier).state = null;
@@ -189,6 +191,15 @@ class LogoutService {
 
       // Also reset cart and related caches in memory
       container.invalidate(cartProviders);
+
+      // Invalidate token-related providers to drop any cached headers/tokens
+      container.invalidate(tp.isAuthenticatedProvider);
+      container.invalidate(tp.idTokenProvider);
+      container.invalidate(tp.verificationIdProvider);
+      container.invalidate(tp.userIdProvider);
+      container.invalidate(tp.phoneNumberProvider);
+      container.invalidate(tp.userRoleProvider);
+      container.invalidate(tp.authorizationHeaderProvider);
 
       print('✅ Auth state providers reset successfully');
       print('📋 Reset providers:');

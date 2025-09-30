@@ -97,65 +97,90 @@ class TokenStorageService {
 
   /// Get ID Token (Bearer Token)
   static String? getIdToken() {
-    print('🔍 Getting ID token from storage...');
-    print('🔍 Box is open: ${_box?.isOpen}');
-    print('🔍 Box keys: ${_box?.keys.toList()}');
-
-    final token = _box?.get(_idTokenKey);
-    print(
-      '🔍 Retrieved ID token from storage: ${token != null ? '${token.substring(0, 20)}...' : 'null'}',
-    );
-    return token;
+    try {
+      if (_box == null || !_box!.isOpen) return null;
+      return _box!.get(_idTokenKey);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Get Verification ID (Session ID)
   static String? getVerificationId() {
-    final verificationId = _box?.get(_verificationIdKey);
-    return verificationId;
+    try {
+      if (_box == null || !_box!.isOpen) return null;
+      return _box!.get(_verificationIdKey);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Get Refresh Token
   static String? getRefreshToken() {
-    final refreshToken = _box?.get(_refreshTokenKey);
-    return refreshToken;
+    try {
+      if (_box == null || !_box!.isOpen) return null;
+      return _box!.get(_refreshTokenKey);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Get User ID
   static String? getUserId() {
-    final userId = _box?.get(_userIdKey);
-    return userId;
+    try {
+      if (_box == null || !_box!.isOpen) return null;
+      return _box!.get(_userIdKey);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Get Phone Number
   static String? getPhoneNumber() {
-    final phoneNumber = _box?.get(_phoneNumberKey);
-    return phoneNumber;
+    try {
+      if (_box == null || !_box!.isOpen) return null;
+      return _box!.get(_phoneNumberKey);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Get User Role
   static String? getUserRole() {
-    final userRole = _box?.get(_userRoleKey);
-    return userRole;
+    try {
+      if (_box == null || !_box!.isOpen) return null;
+      return _box!.get(_userRoleKey);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Get FCM Token
   static String? getFcmToken() {
-    final token = _box?.get(_fcmTokenKey);
-    return token;
+    try {
+      if (_box == null || !_box!.isOpen) return null;
+      return _box!.get(_fcmTokenKey);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Get Token Expiry Time
   static DateTime? getTokenExpiry() {
-    final expiryString = _box?.get(_tokenExpiryKey);
-    if (expiryString != null) {
-      try {
-        final expiry = DateTime.parse(expiryString);
-        return expiry;
-      } catch (e) {
-        return null;
+    try {
+      if (_box == null || !_box!.isOpen) return null;
+      final expiryString = _box!.get(_tokenExpiryKey);
+      if (expiryString != null) {
+        try {
+          return DateTime.parse(expiryString);
+        } catch (_) {
+          return null;
+        }
       }
+      return null;
+    } catch (_) {
+      return null;
     }
-    return null;
   }
 
   /// Check if token is expired

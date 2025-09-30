@@ -39,6 +39,9 @@ class BookingService {
 }
 
 final bookingOrdersProvider =
-    FutureProvider.family<List<Booking>, String>((ref, filter) async {
-  return BookingService.fetchOrders(ref, filter);
-});
+    AutoDisposeFutureProvider.family<List<Booking>, String>((
+      ref,
+      filter,
+    ) async {
+      return BookingService.fetchOrders(ref, filter);
+    });
