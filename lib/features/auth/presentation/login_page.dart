@@ -23,6 +23,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   @override
+  void dispose() {
+    // Clean up any resources if needed
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final formKey = ref.watch(loginFormKeyProvider);
     final phoneController = ref.watch(loginPhoneControllerProvider);

@@ -1,5 +1,4 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:flutter/foundation.dart';
 
 /// Secure token storage service using Hive
 class TokenStorageService {
@@ -98,7 +97,14 @@ class TokenStorageService {
 
   /// Get ID Token (Bearer Token)
   static String? getIdToken() {
+    print('🔍 Getting ID token from storage...');
+    print('🔍 Box is open: ${_box?.isOpen}');
+    print('🔍 Box keys: ${_box?.keys.toList()}');
+
     final token = _box?.get(_idTokenKey);
+    print(
+      '🔍 Retrieved ID token from storage: ${token != null ? '${token.substring(0, 20)}...' : 'null'}',
+    );
     return token;
   }
 
@@ -155,10 +161,17 @@ class TokenStorageService {
   /// Check if token is expired
   static bool isTokenExpired() {
     final expiry = getTokenExpiry();
-    if (expiry == null) return true;
+    if (expiry == null) {
+      print('🔍 Token expiry is null, considering expired');
+      return true;
+    }
 
-    final isExpired = DateTime.now().isAfter(expiry);
-    debugPrint('🔍 Token expired: $isExpired (expires at: $expiry)');
+    final now = DateTime.now();
+    final isExpired = now.isAfter(expiry);
+    print('🔍 Token expired check:');
+    print('   Current time: $now');
+    print('   Token expires: $expiry');
+    print('   Is expired: $isExpired');
     return isExpired;
   }
 
@@ -174,11 +187,11 @@ class TokenStorageService {
   /// Get Authorization Header for API calls
   static String? getAuthorizationHeader() {
     final token = getIdToken();
-     final expired = isTokenExpired();
+    final expired = isTokenExpired();
     print('Token: $token, expired: $expired');
     if (token != null && !isTokenExpired()) {
       final header = 'Bearer $token';
-       print('-----------------------Authorization header: $header');
+      print('-----------------------Authorization header: $header');
       return header;
     }
     return null;

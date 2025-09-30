@@ -127,96 +127,98 @@ class _MainNavScreenState extends ConsumerState<MainNavScreen> {
             pages[_selectedIndex],
           ],
         ),
-        bottomNavigationBar: Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Container(
-            height: 70.h,
-            decoration: BoxDecoration(
-              color: AppColors.navBarBackground,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 8.r,
-                  offset: Offset(0, -2.h),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(_icons.length, (index) {
-                final isSelected = _selectedIndex == index;
-                return GestureDetector(
-                  onTap: () async {
-                    // If leaving Home tab (index 2), pause audio and reset play state
-                    if (_selectedIndex == 2 && index != 2) {
-                      final player = ref.read(audioPlayerProvider);
-                      try {
-                        await player.pause();
-                      } catch (_) {}
-                      ref.read(isPlayingProvider.notifier).state = false;
-                    }
-                    setState(() => _selectedIndex = index);
-                  },
-                  behavior: HitTestBehavior.opaque,
-                  child: SizedBox(
-                    width: 70.w,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        isSelected
-                            ? Container(
-                                width: 65.w,
-                                height: 55.h, // increased to avoid overflow
-                                decoration: BoxDecoration(
+        bottomNavigationBar: Container(
+          height: 70.h,
+          decoration: BoxDecoration(
+            color: AppColors.navBarBackground,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 8.r,
+                offset: Offset(0, -2.h),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(_icons.length, (index) {
+              final isSelected = _selectedIndex == index;
+              return GestureDetector(
+                onTap: () async {
+                  // If leaving Home tab (index 2), pause audio and reset play state
+                  if (_selectedIndex == 2 && index != 2) {
+                    final player = ref.read(audioPlayerProvider);
+                    try {
+                      await player.pause();
+                    } catch (_) {}
+                    ref.read(isPlayingProvider.notifier).state = false;
+                  }
+                  setState(() => _selectedIndex = index);
+                },
+                behavior: HitTestBehavior.opaque,
+                child: SizedBox(
+                  width: 70.w,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      isSelected
+                          ? Container(
+                              width: 65.w,
+                              height: 55.h, // increased to avoid overflow
+                              decoration: BoxDecoration(
+                                color: AppColors.selectedBackground,
+                                borderRadius: BorderRadius.circular(12.r),
+                                border: Border.all(
                                   color: AppColors.selectedBackground,
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  border: Border.all(
-                                    color: AppColors.selectedBackground,
-                                    width: 1.w,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color.fromRGBO(140, 0, 26, 0.16),
-                                      offset: Offset(0, 4.h),
-                                      blurRadius: 16.r,
-                                    ),
-                                  ],
+                                  width: 1.w,
                                 ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Image.asset(
-                                      _icons[index],
-                                      width: 26.w,
-                                      height: 26.w,
-                                      color: AppColors.selected,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color.fromRGBO(
+                                      140,
+                                      0,
+                                      26,
+                                      0.16,
                                     ),
-                                    SizedBox(height: 1.h), // reduced spacing
-                                    FittedBox(
-                                      child: Text(
-                                        _labels[index],
-                                        style: TextStyle(
-                                          fontSize: 12.sp, // reduced font size
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.selected,
-                                        ),
+                                    offset: Offset(0, 4.h),
+                                    blurRadius: 16.r,
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    _icons[index],
+                                    width: 26.w,
+                                    height: 26.w,
+                                    color: AppColors.selected,
+                                  ),
+                                  SizedBox(height: 1.h), // reduced spacing
+                                  FittedBox(
+                                    child: Text(
+                                      _labels[index],
+                                      style: TextStyle(
+                                        fontSize: 12.sp, // reduced font size
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.selected,
                                       ),
                                     ),
-                                  ],
-                                ),
-                              )
-                            : Image.asset(
-                                _icons[index],
-                                height: 26.h,
-                                width: 26.w,
-                                color: AppColors.unselected,
+                                  ),
+                                ],
                               ),
-                      ],
-                    ),
+                            )
+                          : Image.asset(
+                              _icons[index],
+                              height: 26.h,
+                              width: 26.w,
+                              color: AppColors.unselected,
+                            ),
+                    ],
                   ),
-                );
-              }),
-            ),
+                ),
+              );
+            }),
           ),
         ),
       ),

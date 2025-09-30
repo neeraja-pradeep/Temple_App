@@ -10,6 +10,7 @@ import '../../../core/services/firebase_auth_service.dart';
 import '../../../core/services/signin_api_service.dart';
 import '../../../core/services/token_storage_service.dart';
 import 'auth_state_provider.dart';
+import '../../home/providers/home_providers.dart';
 
 // Form keys - using AutoDisposeProvider to prevent GlobalKey conflicts
 final loginFormKeyProvider = AutoDisposeProvider<GlobalKey<FormState>>((ref) {
@@ -396,6 +397,11 @@ class AuthController extends StateNotifier<bool> {
           // Set authenticated state
           ref.read(authStateProvider.notifier).setAuthenticated();
 
+          // Invalidate god categories provider to force refresh with new token
+          ref.invalidate(godCategoriesProvider);
+          ref.invalidate(profileProvider);
+          ref.invalidate(songProvider);
+
           // 👉 Navigate AFTER API response is saved
           _handlePostLoginNavigation(context);
         }
@@ -483,13 +489,11 @@ class AuthController extends StateNotifier<bool> {
     log(
       "signinResponse =============== : ${signinResponse?.newUser ?? "dfsdfsdf"}",
     );
-    if (signinResponse != null && signinResponse.newUser) {
-      print('🆕 New user detected, navigating to user details flow');
-      Navigator.pushReplacementNamed(context, '/user/basic');
-    } else {
-      print('👤 Existing user, navigating to main app');
-      Navigator.pushReplacementNamed(context, '/main');
-    }
+
+    // Don't navigate manually - let the auth state provider handle it
+    // The App widget will automatically rebuild and show the correct screen
+    // based on the auth state change
+    print('✅ Auth state set to authenticated, app will rebuild automatically');
   }
 }
 

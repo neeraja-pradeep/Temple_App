@@ -221,12 +221,12 @@ class HomePage extends ConsumerStatefulWidget {
             ),
           );
         }
-        // Navigate explicitly to login and clear stack
-        if (context.mounted) {
-          Navigator.of(
-            context,
-          ).pushNamedAndRemoveUntil('/login', (route) => false);
-        }
+        // Don't navigate manually - let the auth state provider handle it
+        // The App widget will automatically rebuild and show the login screen
+        // based on the auth state change
+        print(
+          '✅ Auth state set to not authenticated, app will rebuild automatically',
+        );
       } else {
         // Show error message
         if (context.mounted) {
@@ -237,12 +237,12 @@ class HomePage extends ConsumerStatefulWidget {
             ),
           );
         }
-        // Navigate to login even if there were issues
-        if (context.mounted) {
-          Navigator.of(
-            context,
-          ).pushNamedAndRemoveUntil('/login', (route) => false);
-        }
+        // Don't navigate manually - let the auth state provider handle it
+        // The App widget will automatically rebuild and show the login screen
+        // based on the auth state change
+        print(
+          '✅ Auth state set to not authenticated, app will rebuild automatically',
+        );
       }
     } catch (e) {
       print('❌ Logout error: $e');
@@ -370,7 +370,10 @@ class _HomePageState extends ConsumerState<HomePage>
 
     return godCategories.when(
       data: (categories) {
-        if (categories.isEmpty) return const Center(child: Text("ERROR"));
+        if (categories.isEmpty) {
+          print('❌ God categories list is empty');
+          return _shimmerLoader(); // Show shimmer instead of error
+        }
 
         return Stack(
           fit: StackFit.expand,
@@ -535,7 +538,12 @@ class _HomePageState extends ConsumerState<HomePage>
         );
       },
       loading: () => _shimmerLoader(),
-      error: (err, _) => const Center(child: Text("ERROR")),
+      error: (err, stackTrace) {
+        print('❌ God categories provider error: $err');
+        print('❌ Stack trace: $stackTrace');
+        // Show shimmer loading instead of error to avoid flash
+        return _shimmerLoader();
+      },
     );
   }
 

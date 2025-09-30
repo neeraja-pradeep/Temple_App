@@ -37,8 +37,22 @@ class CompleteTokenService {
   /// Get a valid bearer token (refresh if needed using stored refresh token)
   static Future<String?> getValidBearerToken() async {
     try {
-      // Check if current token is expired
-      if (TokenRefreshService.isTokenExpired()) {
+      print('🔍 Checking token validity...');
+
+      // First, check if we have a token at all
+      final currentToken = TokenStorageService.getIdToken();
+      if (currentToken == null) {
+        print('❌ No token found in storage');
+        return null;
+      }
+
+      // Check if token is actually expired (not just about to expire)
+      final isActuallyExpired = TokenStorageService.isTokenExpired();
+      print('🔍 Token actually expired: $isActuallyExpired');
+
+      if (isActuallyExpired) {
+        print('🔄 Token is actually expired, attempting refresh...');
+
         // Get stored refresh token
         final storedRefreshToken = TokenStorageService.getRefreshToken();
 
@@ -50,6 +64,7 @@ class CompleteTokenService {
               );
 
           if (refreshResult != null) {
+            print('✅ Token refreshed successfully');
             return refreshResult["idToken"];
           }
         } else {
@@ -62,27 +77,50 @@ class CompleteTokenService {
                   newRefreshToken,
                 );
             if (refreshResult != null) {
+              print('✅ Token refreshed successfully with new refresh token');
               return refreshResult["idToken"];
             }
           }
         }
 
         // Fallback to automatic refresh
-        return await TokenRefreshService.getValidToken();
+        final fallbackToken = await TokenRefreshService.getValidToken();
+        if (fallbackToken != null) {
+          print('✅ Token refreshed via fallback method');
+          return fallbackToken;
+        }
+
+        print('❌ All token refresh attempts failed');
+        return null;
       } else {
-        return TokenStorageService.getIdToken();
+        print('✅ Token is still valid, returning current token');
+        return currentToken;
       }
     } catch (e) {
+      print('❌ Error in getValidBearerToken: $e');
       return null;
     }
   }
 
   /// Get authorization header with automatic token refresh
   static Future<String?> getAuthorizationHeader() async {
-    final bearerToken = await getValidBearerToken();
-    if (bearerToken != null) {
-      return 'Bearer $bearerToken';
+    try {
+      print('🔐 Getting authorization header...');
+      final bearerToken = await getValidBearerToken();
+      print(
+        '🔍 Bearer token result: ${bearerToken != null ? '${bearerToken.substring(0, 20)}...' : 'null'}',
+      );
+      if (bearerToken != null) {
+        final header = 'Bearer $bearerToken';
+        print('✅ Authorization header generated successfully');
+        return header;
+      } else {
+        print('❌ No valid bearer token available');
+        return null;
+      }
+    } catch (e) {
+      print('❌ Error getting authorization header: $e');
+      return null;
     }
-    return null;
   }
 }
