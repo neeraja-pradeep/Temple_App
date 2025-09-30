@@ -9,6 +9,7 @@ import 'package:temple_app/core/app_colors.dart';
 import 'package:temple_app/core/services/fcm_token_service.dart';
 import 'package:temple_app/core/services/logout_service.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
+import 'package:temple_app/features/drawer/pooja_orders/presentation/booking_details.dart';
 import 'package:temple_app/features/home/providers/home_providers.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -100,7 +101,12 @@ class HomePage extends ConsumerStatefulWidget {
                 Expanded(
                   child: Column(
                     children: [
-                      _buildMenuItem("Pooja Booking", () {}),
+                      _buildMenuItem("Pooja Booking", () {
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(builder: (context) => BookingDetails())
+                          );
+                      }),
                       SizedBox(height: 12.h),
                       _buildMenuItem("Store Orders", () {}),
                       SizedBox(height: 12.h),

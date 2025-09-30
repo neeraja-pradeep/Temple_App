@@ -85,3 +85,6 @@ flutter:
           weight: 600
         - asset: assets/fonts/NotoSansMalayalam-Bold.ttf
           weight: 700
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf

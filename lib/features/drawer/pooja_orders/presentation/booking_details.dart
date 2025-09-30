@@ -1,0 +1,133 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:temple_app/core/app_colors.dart';
+import 'package:temple_app/features/drawer/pooja_orders/booking_service.dart';
+import 'package:temple_app/features/drawer/pooja_orders/presentation/widget/order_card.dart';
+
+class BookingDetails extends ConsumerStatefulWidget {
+  const BookingDetails({super.key});
+
+  @override
+  ConsumerState<BookingDetails> createState() => _BookingDetailsState();
+}
+
+class _BookingDetailsState extends ConsumerState<BookingDetails> {
+  String selectedFilter = "upcoming"; // default tab
+
+  @override
+  Widget build(BuildContext context) {
+    final ordersAsync = ref.watch(bookingOrdersProvider(selectedFilter));
+
+    return Scaffold(
+      backgroundColor: AppColors.selectedBackground,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        toolbarHeight: 60.h,
+        leadingWidth: 64.w,
+        leading: Padding(
+          padding: EdgeInsets.only(left: 16.w, top: 16.h),
+          child: Container(
+            width: 40.w,
+            height: 40.h,
+            decoration: BoxDecoration(
+              color: const Color.fromRGBO(251, 239, 217, 1),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Center(
+              child: IconButton(
+                icon: Image.asset(
+                  'assets/backIcon.png',
+                  width: 20.w,
+                  height: 20.h,
+                ),
+                onPressed: () => Navigator.pop(context),
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
+              ),
+            ),
+          ),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Pooja Booking Details",
+              style: TextStyle(
+                fontFamily: "Poppins",
+                fontSize: 16.sp),
+            ),
+            SizedBox(height: 10.h),
+            // Filter buttons
+            Container(
+              width: 343,
+              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.white,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildFilterButton("upcoming"),
+                  _buildFilterButton("completed"),
+                  _buildFilterButton("cancelled"),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Booking list
+            Expanded(
+              child: ordersAsync.when(
+                data: (orders) {
+                  if (orders.isEmpty) {
+                    return const Center(child: Text("No orders found"));
+                  }
+                  return ListView.builder(
+                    itemCount: orders.length,
+                    itemBuilder: (context, index) {
+                      final booking = orders[index];
+                      return OrderCard(booking: booking); // use the expandable card
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, _) => Center(child: Text("Error: $err")),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterButton(String filter) {
+    final isSelected = selectedFilter == filter;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedFilter = filter;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.selectedBackground : Colors.transparent,
+          borderRadius: BorderRadius.circular(10.r),
+        ),
+        child: Text(
+          filter[0].toUpperCase() + filter.substring(1),
+          style: TextStyle(
+            color: isSelected ? AppColors.selected : Colors.black,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}
