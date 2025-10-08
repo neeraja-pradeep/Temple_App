@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/core/app_colors.dart';
-import 'package:temple_app/features/drawer/pooja_orders/order_model.dart';
-import 'package:temple_app/features/drawer/pooja_orders/presentation/detailed_view.dart';
+import 'package:temple_app/features/drawer/pooja_booking/data/booking_model.dart';
+import 'package:temple_app/features/drawer/pooja_booking/presentation/detailed_view.dart';
 
-class OrderCard extends StatefulWidget {
+class BookingCard extends StatefulWidget {
   final Booking booking;
 
-  const OrderCard({super.key, required this.booking});
+  const BookingCard({super.key, required this.booking});
 
   @override
-  State<OrderCard> createState() => _OrderCardState();
+  State<BookingCard> createState() => _BookingCardState();
 }
 
-class _OrderCardState extends State<OrderCard> {
+class _BookingCardState extends State<BookingCard> {
   bool isExpanded = false;
 
   @override
@@ -112,7 +112,7 @@ class _OrderCardState extends State<OrderCard> {
                   onPressed: () {
                     Navigator.push(
                       context, 
-                      MaterialPageRoute(builder: (context) => DetailedView(booking: widget.booking) )
+                      MaterialPageRoute(builder: (context) => DetailedView(bookingId: widget.booking.id) )
                     );
                   },
                   child: const Text("View Details",

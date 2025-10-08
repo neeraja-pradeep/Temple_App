@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/core/app_colors.dart';
-import 'package:temple_app/features/drawer/pooja_orders/booking_service.dart';
-import 'package:temple_app/features/drawer/pooja_orders/presentation/widget/order_card.dart';
+import 'package:temple_app/features/drawer/pooja_booking/data/booking_service.dart';
+import 'package:temple_app/features/drawer/pooja_booking/presentation/widget/booking_card.dart';
 
 class BookingDetails extends ConsumerStatefulWidget {
   const BookingDetails({super.key});
@@ -29,7 +29,7 @@ class _BookingDetailsState extends ConsumerState<BookingDetails> {
     final ordersAsync = ref.watch(bookingOrdersProvider(selectedFilter));
 
     return Scaffold(
-      backgroundColor: AppColors.selectedBackground,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -41,7 +41,7 @@ class _BookingDetailsState extends ConsumerState<BookingDetails> {
             width: 40.w,
             height: 40.h,
             decoration: BoxDecoration(
-              color: const Color.fromRGBO(251, 239, 217, 1),
+              color:AppColors.selectedBackground,
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Center(
@@ -101,13 +101,13 @@ class _BookingDetailsState extends ConsumerState<BookingDetails> {
                     itemCount: orders.length,
                     itemBuilder: (context, index) {
                       final booking = orders[index];
-                      return OrderCard(
+                      return BookingCard(
                         booking: booking,
                       ); // use the expandable card
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.selected,)),
                 error: (err, _) => Center(child: Text("Error: $err")),
               ),
             ),

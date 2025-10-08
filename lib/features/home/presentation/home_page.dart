@@ -9,7 +9,11 @@ import 'package:temple_app/core/app_colors.dart';
 import 'package:temple_app/core/services/fcm_token_service.dart';
 import 'package:temple_app/core/services/logout_service.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
-import 'package:temple_app/features/drawer/pooja_orders/presentation/booking_details.dart';
+import 'package:temple_app/features/drawer/contact_us/contact_us.dart';
+import 'package:temple_app/features/drawer/pooja_booking/presentation/booking_details.dart';
+import 'package:temple_app/features/drawer/saved_addresses/presentation/saved_address.dart';
+import 'package:temple_app/features/drawer/saved_members/presentation/saved_members.dart';
+import 'package:temple_app/features/drawer/store_order/presentation/order_details.dart';
 import 'package:temple_app/features/home/providers/home_providers.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -110,11 +114,32 @@ class HomePage extends ConsumerStatefulWidget {
                         );
                       }),
                       SizedBox(height: 12.h),
-                      _buildMenuItem("Store Orders", () {}),
+                      _buildMenuItem("Store Orders", () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OrderDetails(),
+                          ),
+                        );
+                      }),
                       SizedBox(height: 12.h),
-                      _buildMenuItem("Saved members list", () {}),
+                      _buildMenuItem("Saved members list", () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SavedMembers(),
+                          ),
+                        );
+                      }),
                       SizedBox(height: 12.h),
-                      _buildMenuItem("Saved Addresses", () {}),
+                      _buildMenuItem("Saved Addresses", () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SavedAddress(),
+                          ),
+                        );
+                      }),
 
                       SizedBox(height: 20.h),
 
@@ -135,7 +160,14 @@ class HomePage extends ConsumerStatefulWidget {
                       // Bottom menu items at the very bottom
                       _buildMenuItem(
                         "Contact Us",
-                        () {},
+                        () {
+                          Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ContactUs(),
+                          ),
+                        );
+                        },
                         fontWeight: FontWeight.w400,
                       ),
                       SizedBox(height: 12.h),

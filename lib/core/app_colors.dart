@@ -13,4 +13,5 @@ class AppColors {
   static const Color socialButtonBackground = Color(
     0xFFECECEC,
   ); // rgba(236, 236, 236, 1)
+  static const Color background = Color(0xFFFDF8EF);
 }
