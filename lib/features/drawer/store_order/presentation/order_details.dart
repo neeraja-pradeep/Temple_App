@@ -19,7 +19,7 @@ class _OrderDetailsState extends ConsumerState<OrderDetails> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.refresh(storeOrdersProvider(selectedFilter));
+      // ref.refresh(storeOrdersProvider(selectedFilter));
     });
   }
 
