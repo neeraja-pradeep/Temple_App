@@ -7,7 +7,7 @@ import '../../../../core/services/token_storage_service.dart';
 
 class CategoryRepository {
   final String baseUrl = ApiConstants.baseUrl;
-  final String hiveBoxName = 'store_categories';
+  static String hiveBoxName = 'store_categories';
 
   Future<List<StoreCategory>> fetchCategories({bool forceRefresh = false}) async {
     try {

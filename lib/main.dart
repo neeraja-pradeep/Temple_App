@@ -8,19 +8,21 @@
 //   main.dart     - Entry point
 //
 // Add more features by following the same pattern in features/.
+import 'dart:developer';
 import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:temple_app/core/hive/hive_init_provider.dart';
-import 'package:temple_app/features/shop/cart/data/repositories/cart_repository.dart';
-import 'package:temple_app/core/services/token_storage_service.dart';
 import 'package:temple_app/core/services/token_auto_refresh_service.dart';
+import 'package:temple_app/core/services/token_storage_service.dart';
+import 'package:temple_app/core/storage/hive_initializer.dart';
+import 'package:temple_app/features/global_api_notifer/provider/sync_provider.dart';
+import 'package:temple_app/features/shop/cart/data/repositories/cart_repository.dart';
 
 import 'core/app.dart';
 import 'core/services/notification_service.dart';
@@ -74,8 +76,11 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
+
     // Call the function once
     Future.microtask(() async {
+      await ref.read(manualSyncProvider.future);
+
       await CartRepository().getinitStateCartFromAPi();
     });
   }
