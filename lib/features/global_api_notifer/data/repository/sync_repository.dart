@@ -72,11 +72,11 @@ class SyncRepository {
         // Match model and refresh accordingly
         switch (detail.modelName) {
           case 'PoojaCategory':
-            await _refreshHiveBox('poojaCategoryBox', 'PoojaCategory');
+            await _refreshHiveBox('poojaCategoryBox', 'PoojaCategory'); // sets your logic
             break;
 
           case 'Pooja':
-            await _refreshStoreCategory();
+            await _refreshStoreCategory();// exampl....................
             break;
 
           case 'StoreCategory':
