@@ -41,7 +41,7 @@ class SyncRepository {
         debugPrint(' New update detected! Fetching details...');
         final processed = await _processGlobalUpdateDetails(ref);
         if (processed) {
-          await HiveSyncCache.saveLastUpdated('2024-10-09T13:46:07.862214+05:30');
+          await HiveSyncCache.saveLastUpdated('2024-10-09T13:46:07.862214+05:30');//2024-10-09T13:46:07.862214+05:30 -------------> for testing puprose only | | orginal line(latestTimestamp)
         } else {
           debugPrint(
             ' [SyncRepository] Detail processing failed; cached timestamp unchanged.',
