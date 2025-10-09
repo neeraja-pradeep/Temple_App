@@ -105,6 +105,7 @@ class OrderLine {
   final String? poojaStatus;
   final String? poojaStatusDisplay;
   final bool? isCancelled;
+  final List<String> selectedDates;
 
   OrderLine({
     required this.id,
@@ -124,9 +125,12 @@ class OrderLine {
     this.poojaStatus,
     this.poojaStatusDisplay,
     this.isCancelled,
+    this.selectedDates = const [],
   });
 
   factory OrderLine.fromJson(Map<String, dynamic> json) {
+    final selectedDates = _mapSelectedDates(json['selected_dates']);
+
     return OrderLine(
       id: json['id'] ?? 0,
       pooja: json['pooja'] ?? 0,
@@ -137,7 +141,9 @@ class OrderLine {
       specialPoojaDateDetails: json['special_pooja_date_details'] != null
           ? SpecialPoojaDateDetails.fromJson(json['special_pooja_date_details'])
           : null,
-      selectedDate: json['selected_date'],
+      selectedDates: selectedDates,
+      selectedDate:
+          json['selected_date'] ?? (selectedDates.isNotEmpty ? selectedDates.first : null),
       userList: json['user_list'] ?? 0,
       userListDetails: json['user_list_details'] != null
           ? UserListDetails.fromJson(json['user_list_details'])
@@ -155,6 +161,16 @@ class OrderLine {
       isCancelled: json['is_cancelled'] ?? false,
     );
   }
+}
+
+List<String> _mapSelectedDates(dynamic value) {
+  if (value is List) {
+    return value.map((e) => e.toString()).toList();
+  }
+  if (value is String && value.isNotEmpty) {
+    return [value];
+  }
+  return const [];
 }
 
 class PoojaDetails {

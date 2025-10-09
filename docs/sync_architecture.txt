@@ -1,0 +1,78 @@
+﻿Temple App – Sync Architecture Primer
+=====================================
+
+Why this document exists
+------------------------
+We now treat every major screen as a consumer of shared master data (categories, pooja content,
+cart, etc.). Instead of hard-coded refresh buttons, a small background service checks for updates
+and keeps the local Hive cache fresh. This note explains that loop in plain language and shows how
+we already finished it for the store category section. Everyone else can copy the same recipe.
+
+High-level flow (think websocket without the socket)
+----------------------------------------------------
+```
+ ┌───────────────┐     ┌──────────────────┐     ┌──────────────────────┐
+ │ Sync service  │ --> │ global-update/   │ --> │ Timestamp changed?    │
+ └───────────────┘     └──────────────────┘     └────────────┬─────────┘
+                                                             │ yes
+                                                             ▼
+                                              ┌────────────────────────────┐
+                                              │ global-update-details/     │
+                                              │ tells us which models moved│
+                                              └──────────────┬─────────────┘
+                                                             ▼
+                                  ┌────────────────────────────────────────┐
+                                  │ For each model:                        │
+                                  │   1. Clear its Hive box                │
+                                  │   2. Refetch from the API              │
+                                  │   3. Save fresh timestamp (after all)  │
+                                  └────────────────────────────────────────┘
+```
+Rules of engagement
+----------------------------------
+1. **Always open Hive with types.** If you clear `Hive.openBox<PoojaCategory>`, reopen it with the
+   same generic type before the UI touches it again.
+2. **Don’t freeze the UI.** When a box is empty show a shimmer/placeholder so users know data is
+   refreshing instead of thinking the page is broken.
+3. **Parse the API defensively.** The backend now sends nested objects (e.g. `pooja: { id, name }`)
+   and list-based dates (`selected_dates: []`). Model factories must accept both the new and legacy
+   formats.
+4. **Only trust timestamps after a full refresh.** If any model fails to repopulate, keep the old
+   timestamp so the sync service retries on the next poll.
+
+Detailed example – Store Category section (already done)
+--------------------------------------------------------
+1. **Detect changes** – Sync polls `/global-update/`. When the timestamp shifts, the detail response
+   includes `StoreCategory`.
+2. **Pause stale data** – `CategoryRepository.resetCategories` sets a `skipApiFetch` flag. Providers
+   see that flag and temporarily return an empty list, which drives the shimmer in
+   `ShoppingSectionScreen`.
+3. **Clear the cache safely** – The repository opens the `store_categories` box as
+   `Hive.openBox<StoreCategory>()`, clears it, and invalidates the Riverpod providers. No other part
+   of the app should access the box while the flag is true.
+4. **Refetch from the API** – After a short delay, `/ecommerce/category/` is called, the nested
+   fields are mapped, and the Hive box is refilled. The flag is lowered and Riverpod rebuilds the
+   widgets with the fresh list.
+5. **Persist the new timestamp** – Only after every affected model refreshes do we call
+   `HiveSyncCache.saveLastUpdated`. Future polls skip the heavy work until the backend advertises a
+   newer timestamp.
+
+How to apply this to other screens
+----------------------------------
+• **SpecialPage / PoojaPage** – add typed Hive helpers, shimmer states, and refresh hooks, mirroring
+  the store flow. Ensure booking repositories send the new plural fields we already adopted.
+• **HomePage widgets** – listen to the same sync events so banners and counters stay current.
+• **Checkout flow** – deserialise the new cart shapes (nested user attributes, selected dates array)
+  and surface friendly fallbacks when data is missing.
+• **Shopping section (products/offers)** – reuse the helper methods for inventory, offers, and cart
+  boxes.
+• **MusicPage** – decide whether its catalogue needs the same refresh logic; if yes, follow the
+  pattern with a dedicated Hive box for tracks/playlists.
+• **Testing** – add at least one widget or integration test per module that covers the
+  “shimmer → refreshed data” path.
+
+Takeaway
+--------
+The store category implementation is the template. Copy that DNA—typed Hive, defensive parsing,
+shimmer-first UX, timestamp discipline—to every other module so the whole app benefits from the
+same resilient, near-real-time data flow.

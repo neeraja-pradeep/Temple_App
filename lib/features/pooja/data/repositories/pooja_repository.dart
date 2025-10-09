@@ -14,7 +14,17 @@ class PoojaRepository {
   final String malayalamDateBox = 'malayalamDateBox';
 
   Future<List<PoojaCategory>> fetchPoojaCategories() async {
-    final box = await Hive.openBox<PoojaCategory>(poojaCategoryBox);
+    Box<PoojaCategory> box;
+    if (Hive.isBoxOpen(poojaCategoryBox)) {
+      try {
+        box = Hive.box<PoojaCategory>(poojaCategoryBox);
+      } catch (_) {
+        await Hive.box(poojaCategoryBox).close();
+        box = await Hive.openBox<PoojaCategory>(poojaCategoryBox);
+      }
+    } else {
+      box = await Hive.openBox<PoojaCategory>(poojaCategoryBox);
+    }
 
     final url = Uri.parse('$baseUrl/booking/poojacategory/');
 

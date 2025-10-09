@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:http/http.dart' as http;
 import 'package:temple_app/core/constants/api_constants.dart';
 import 'package:temple_app/features/shop/cart/data/model/cart_model.dart';
 import 'package:temple_app/features/shop/data/model/product/product_category.dart';
+
 import '../../../../core/services/token_storage_service.dart';
 
 class CategoryProductRepository {
@@ -150,17 +152,66 @@ class CategoryProductRepository {
     }
   }
 
+  //   Future<List<CategoryProductModel>> fetchCategoryProduct(
+  //     int? categoryId,
+  //   ) async {
+  //     log("categoryId----------------------------------: $categoryId");
+  //     try {
+  //       final uri = Uri.parse(
+  //         categoryId == null
+  //             ? "$baseUrl/ecommerce/shop-products/"
+  //             : "$baseUrl/ecommerce/shop-products/?category=$categoryId",
+  //       );
+
+  //       // Get authorization header with bearer token
+  //       final authHeader = TokenStorageService.getAuthorizationHeader();
+  //       if (authHeader == null) {
+  //         throw Exception(
+  //           'No valid authentication token found. Please login again.',
+  //         );
+  //       }
+
+  //       final headers = {
+  //         'Accept': 'application/json',
+  //         'Authorization': authHeader,
+  //       };
+
+  //       print('🌐 Making fetch category products API call to: $uri');
+  //       print('🔐 Authorization header: $authHeader');
+
+  //       final response = await http.get(uri, headers: headers);
+
+  //       print('📥 Category Products API Response Status: ${response.statusCode}');
+  //       print('📥 Category Products API Response Body: ${response.body}');
+
+  //       if (response.statusCode == 200) {
+  //         final body = jsonDecode(response.body);
+
+  //         // Ensure body is a list
+  //         if (body is List) {
+  //           return body.map((e) => CategoryProductModel.fromJson(e)).toList();
+  //         } else {
+  //           throw Exception("Invalid response format: expected a List");
+  //         }
+  //       } else {
+  //         throw Exception(
+  //           "Failed to fetch products. Status Code: ${response.statusCode}",
+  //         );
+  //       }
+  //     } catch (e) {
+  //       // Log or rethrow depending on your needs
+  //       print("Error in fetchCategoryProduct: $e");
+  //       return [];
+  //     }
+  //   }
+  // }
   Future<List<CategoryProductModel>> fetchCategoryProduct(
     int? categoryId,
   ) async {
-    try {
-      final uri = Uri.parse(
-        categoryId == null
-            ? "$baseUrl/ecommerce/shop-products/"
-            : "$baseUrl/ecommerce/shop-products/?category=$categoryId",
-      );
+    log("categoryId----------------------------------: $categoryId");
 
-      // Get authorization header with bearer token
+    try {
+      // Get authorization header first
       final authHeader = TokenStorageService.getAuthorizationHeader();
       if (authHeader == null) {
         throw Exception(
@@ -168,25 +219,40 @@ class CategoryProductRepository {
         );
       }
 
+      // Prepare the request URI
+      final uri = Uri.parse(
+        categoryId == null
+            ? "$baseUrl/ecommerce/shop-products/"
+            : "$baseUrl/ecommerce/shop-products/?category=$categoryId",
+      );
+
       final headers = {
         'Accept': 'application/json',
         'Authorization': authHeader,
       };
 
-      print('🌐 Making fetch category products API call to: $uri');
-      print('🔐 Authorization header: $authHeader');
+   
 
+      //  Step 3: Make the request
       final response = await http.get(uri, headers: headers);
 
-      print('📥 Category Products API Response Status: ${response.statusCode}');
-      print('📥 Category Products API Response Body: ${response.body}');
+  
 
+      //  Step 4: Handle the response
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
-
-        // Ensure body is a list
         if (body is List) {
-          return body.map((e) => CategoryProductModel.fromJson(e)).toList();
+          try {
+            final products = body
+                .map((e) => CategoryProductModel.fromJson(e))
+                .toList();
+            log(' Parsed Category Products: $products');
+            return products;
+          } catch (parseError) {
+            log(' Error parsing category product JSON: $parseError');
+            log(' Problematic body data: $body');
+            return [];
+          }
         } else {
           throw Exception("Invalid response format: expected a List");
         }
@@ -196,8 +262,7 @@ class CategoryProductRepository {
         );
       }
     } catch (e) {
-      // Log or rethrow depending on your needs
-      print("Error in fetchCategoryProduct: $e");
+      print(" Error in fetchCategoryProduct: $e");
       return [];
     }
   }

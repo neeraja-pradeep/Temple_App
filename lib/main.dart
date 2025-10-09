@@ -8,7 +8,6 @@
 //   main.dart     - Entry point
 //
 // Add more features by following the same pattern in features/.
-import 'dart:developer';
 import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -80,6 +79,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     // Call the function once
     Future.microtask(() async {
       await ref.read(manualSyncProvider.future);
+      await ref.read(syncTimerProvider);
 
       await CartRepository().getinitStateCartFromAPi();
     });

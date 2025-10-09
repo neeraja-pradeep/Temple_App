@@ -135,14 +135,17 @@ class _MalayalamCalendarState extends ConsumerState<MalayalamCalendar> {
               calendarStyle: CalendarStyle(
                 cellMargin: const EdgeInsets.only(top: 6, left: 6, right: 6),
                 selectedDecoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
                   color: AppColors.selected,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 todayDecoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppColors.selected),
                 ),
                 defaultDecoration: BoxDecoration(
+                  shape: BoxShape.rectangle,
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),

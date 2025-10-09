@@ -20,7 +20,7 @@ class CategoryProductModelAdapter extends TypeAdapter<CategoryProductModel> {
       id: fields[0] as int,
       name: fields[1] as String,
       slug: fields[2] as String,
-      description: fields[3] as String,
+      description: fields[3] as String?,
       category: fields[4] as CategoryModel,
       variants: (fields[5] as List).cast<VariantModel>(),
     );
@@ -69,8 +69,8 @@ class CategoryModelAdapter extends TypeAdapter<CategoryModel> {
       id: fields[0] as int,
       name: fields[1] as String,
       parent: fields[2] as String?,
-      mediaUrl: fields[3] as String,
-      mediaPublicId: fields[4] as String,
+      mediaUrl: fields[3] as String?,
+      mediaPublicId: fields[4] as String?,
       children: (fields[5] as List).cast<dynamic>(),
     );
   }
@@ -121,7 +121,7 @@ class VariantModelAdapter extends TypeAdapter<VariantModel> {
       sku: fields[3] as String,
       name: fields[4] as String,
       price: fields[5] as String,
-      mediaUrl: fields[6] as String,
+      mediaUrl: fields[6] as String?,
       stock: fields[7] as int,
     );
   }

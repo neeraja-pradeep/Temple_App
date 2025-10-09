@@ -19,6 +19,7 @@ class CartItem {
   final int? specialPoojaDate;
   final SpecialPoojaDateDetails? specialPoojaDateDetails;
   final String? selectedDate;
+  final List<String> selectedDates;
   final int userList;
   final UserListDetails userListDetails;
   final String effectivePrice;
@@ -34,6 +35,7 @@ class CartItem {
     this.specialPoojaDate,
     this.specialPoojaDateDetails,
     this.selectedDate,
+    this.selectedDates = const [],
     required this.userList,
     required this.userListDetails,
     required this.effectivePrice,
@@ -44,24 +46,51 @@ class CartItem {
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
+    final dynamic rawSelectedDates = json['selected_dates'];
+    List<String> selectedDates = const [];
+    if (rawSelectedDates is List) {
+      selectedDates = rawSelectedDates.map((e) => e.toString()).toList();
+    } else if (rawSelectedDates is String) {
+      selectedDates = [rawSelectedDates];
+    }
+
+    String? selectedDate = json['selected_date'];
+    if (selectedDate == null && selectedDates.isNotEmpty) {
+      selectedDate = selectedDates.first;
+    }
+
+    final poojaRaw = json['pooja_details'] ?? json['pooja'];
+    final poojaId =
+        _extractInt(json['pooja'], fallback: _extractInt(poojaRaw));
+
+    final userListRaw = json['user_list_details'] ?? json['user_list'];
+    final userListId =
+        _extractInt(json['user_list'], fallback: _extractInt(userListRaw));
+
     return CartItem(
-      id: json['id'] ?? 0,
-      pooja: json['pooja'] ?? 0,
-      poojaDetails: PoojaDetails.fromJson(json['pooja_details'] ?? {}),
-      specialPoojaDate: json['special_pooja_date'],
+      id: _extractInt(json['id']),
+      pooja: poojaId,
+      poojaDetails: PoojaDetails.fromJson(_normalizePoojaDetails(poojaRaw)),
+      specialPoojaDate: _extractNullableInt(json['special_pooja_date']),
       specialPoojaDateDetails: json['special_pooja_date_details'] != null
-          ? SpecialPoojaDateDetails.fromJson(json['special_pooja_date_details'])
+          ? SpecialPoojaDateDetails.fromJson(
+              _ensureMap(json['special_pooja_date_details']),
+            )
           : null,
-      selectedDate: json['selected_date'],
-      userList: json['user_list'] ?? 0,
+      selectedDate: selectedDate,
+      selectedDates: selectedDates,
+      userList: userListId,
       userListDetails: UserListDetails.fromJson(
-        json['user_list_details'] ?? {},
+        _normalizeUserList(userListRaw, json['user_attribute']),
       ),
-      effectivePrice: json['effective_price'] ?? '0.00',
-      additionalCharges: json['additional_charges'] ?? '0.00',
-      status: json['status'] ?? false,
-      agent: json['agent'],
-      agentDetails: json['agent_details'],
+      effectivePrice: _extractString(json['effective_price'], fallback: '0.00'),
+      additionalCharges:
+          _extractString(json['additional_charges'], fallback: '0.00'),
+      status: _extractBool(json['status']),
+      agent: _extractNullableInt(json['agent']),
+      agentDetails: json['agent_details'] is Map<String, dynamic>
+          ? Map<String, dynamic>.from(json['agent_details'])
+          : null,
     );
   }
 }
@@ -98,24 +127,54 @@ class PoojaDetails {
   });
 
   factory PoojaDetails.fromJson(Map<String, dynamic> json) {
+    if (json.isEmpty) {
+      return PoojaDetails(
+        id: 0,
+        name: '',
+        category: 0,
+        categoryName: '',
+        price: '0.00',
+        status: false,
+        bannerDesc: '',
+        cardDesc: '',
+        captionsDesc: '',
+        specialPooja: false,
+        specialPoojaDates: const [],
+        mediaUrl: '',
+        bannerUrl: '',
+      );
+    }
+
+    final categoryData = json['category'];
+    final categoryId = _extractInt(categoryData,
+        fallback: _extractInt(json['category']));
+    final categoryName = categoryData is Map<String, dynamic>
+        ? categoryData['name']?.toString() ?? json['category_name']?.toString() ?? ''
+        : json['category_name']?.toString() ?? '';
+
+    final specialPoojaDatesRaw = json['special_pooja_dates'];
+
     return PoojaDetails(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-      category: json['category'] ?? 0,
-      categoryName: json['category_name'] ?? '',
-      price: json['price'] ?? '0.00',
-      status: json['status'] ?? false,
-      bannerDesc: json['banner_desc'] ?? '',
-      cardDesc: json['card_desc'] ?? '',
-      captionsDesc: json['captions_desc'] ?? '',
-      specialPooja: json['special_pooja'] ?? false,
-      specialPoojaDates:
-          (json['special_pooja_dates'] as List<dynamic>?)
-              ?.map((date) => SpecialPoojaDate.fromJson(date))
-              .toList() ??
-          [],
-      mediaUrl: json['media_url'] ?? '',
-      bannerUrl: json['banner_url'] ?? '',
+      id: _extractInt(json['id']),
+      name: _extractString(json['name']),
+      category: categoryId,
+      categoryName: categoryName,
+      price: _extractString(json['price'], fallback: '0.00'),
+      status: _extractBool(json['status']),
+      bannerDesc: _extractString(json['banner_desc']),
+      cardDesc: _extractString(json['card_desc']),
+      captionsDesc: _extractString(json['captions_desc']),
+      specialPooja: _extractBool(json['special_pooja']),
+      specialPoojaDates: specialPoojaDatesRaw is List
+          ? specialPoojaDatesRaw
+              .map((date) => SpecialPoojaDate.fromJson(
+                    _ensureMap(date),
+                  ))
+              .toList()
+          : const [],
+      mediaUrl: _extractString(json['media_url'],
+          fallback: _extractString(json['banner_url'])),
+      bannerUrl: _extractString(json['banner_url']),
     );
   }
 }
@@ -151,18 +210,18 @@ class SpecialPoojaDate {
 
   factory SpecialPoojaDate.fromJson(Map<String, dynamic> json) {
     return SpecialPoojaDate(
-      id: json['id'] ?? 0,
-      pooja: json['pooja'] ?? 0,
-      poojaName: json['pooja_name'] ?? '',
-      date: json['date'] ?? '',
-      malayalamDate: json['malayalam_date'] ?? '',
+      id: _extractInt(json['id']),
+      pooja: _extractInt(json['pooja']),
+      poojaName: _extractString(json['pooja_name']),
+      date: _extractString(json['date']),
+      malayalamDate: _extractString(json['malayalam_date']),
       time: json['time'],
-      price: json['price'] ?? '0.00',
-      status: json['status'] ?? false,
-      banner: json['banner'] ?? false,
-      createdAt: json['created_at'] ?? '',
-      modifiedAt: json['modified_at'] ?? '',
-      linkedOrdersCount: json['linked_orders_count'] ?? 0,
+      price: _extractString(json['price'], fallback: '0.00'),
+      status: _extractBool(json['status']),
+      banner: _extractBool(json['banner']),
+      createdAt: _extractString(json['created_at']),
+      modifiedAt: _extractString(json['modified_at']),
+      linkedOrdersCount: _extractInt(json['linked_orders_count']),
     );
   }
 }
@@ -198,18 +257,18 @@ class SpecialPoojaDateDetails {
 
   factory SpecialPoojaDateDetails.fromJson(Map<String, dynamic> json) {
     return SpecialPoojaDateDetails(
-      id: json['id'] ?? 0,
-      pooja: json['pooja'] ?? 0,
-      poojaName: json['pooja_name'] ?? '',
-      date: json['date'] ?? '',
-      malayalamDate: json['malayalam_date'] ?? '',
+      id: _extractInt(json['id']),
+      pooja: _extractInt(json['pooja']),
+      poojaName: _extractString(json['pooja_name']),
+      date: _extractString(json['date']),
+      malayalamDate: _extractString(json['malayalam_date']),
       time: json['time'],
-      price: json['price'] ?? '0.00',
-      status: json['status'] ?? false,
-      banner: json['banner'] ?? false,
-      createdAt: json['created_at'] ?? '',
-      modifiedAt: json['modified_at'] ?? '',
-      linkedOrdersCount: json['linked_orders_count'] ?? 0,
+      price: _extractString(json['price'], fallback: '0.00'),
+      status: _extractBool(json['status']),
+      banner: _extractBool(json['banner']),
+      createdAt: _extractString(json['created_at']),
+      modifiedAt: _extractString(json['modified_at']),
+      linkedOrdersCount: _extractInt(json['linked_orders_count']),
     );
   }
 }
@@ -228,15 +287,20 @@ class UserListDetails {
   });
 
   factory UserListDetails.fromJson(Map<String, dynamic> json) {
+    final data = _ensureMap(json);
+
+    final attributesRaw = data['attributes'];
+    final attributes = attributesRaw is List
+        ? attributesRaw
+            .map((attr) => UserAttribute.fromJson(_ensureMap(attr)))
+            .toList()
+        : const <UserAttribute>[];
+
     return UserListDetails(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-      user: json['user'] ?? 0,
-      attributes:
-          (json['attributes'] as List<dynamic>?)
-              ?.map((attr) => UserAttribute.fromJson(attr))
-              .toList() ??
-          [],
+      id: _extractInt(data['id']),
+      name: _extractString(data['name']),
+      user: _extractInt(data['user'], fallback: _extractInt(data['user_id'])),
+      attributes: attributes,
     );
   }
 }
@@ -255,11 +319,124 @@ class UserAttribute {
   });
 
   factory UserAttribute.fromJson(Map<String, dynamic> json) {
+    final nakshatramData = json['nakshatram'];
+    final nakshatramId = _extractInt(nakshatramData,
+        fallback: _extractInt(json['nakshatram']));
+    final nakshatramName = nakshatramData is Map<String, dynamic>
+        ? nakshatramData['name']?.toString() ??
+            json['nakshatram_name']?.toString() ??
+            ''
+        : json['nakshatram_name']?.toString() ?? '';
+
     return UserAttribute(
-      id: json['id'] ?? 0,
-      userList: json['user_list'] ?? 0,
-      nakshatram: json['nakshatram'] ?? 0,
-      nakshatramName: json['nakshatram_name'] ?? '',
+      id: _extractInt(json['id']),
+      userList: _extractInt(json['user_list']),
+      nakshatram: nakshatramId,
+      nakshatramName: nakshatramName,
     );
   }
+}
+
+int _extractInt(dynamic value, {int fallback = 0}) {
+  if (value is int) return value;
+  if (value is double) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? fallback;
+  if (value is Map<String, dynamic>) {
+    return _extractInt(value['id'], fallback: fallback);
+  }
+  return fallback;
+}
+
+int? _extractNullableInt(dynamic value) {
+  if (value == null) return null;
+  return _extractInt(value);
+}
+
+String _extractString(dynamic value, {String fallback = ''}) {
+  if (value == null) return fallback;
+  return value.toString();
+}
+
+bool _extractBool(dynamic value, {bool fallback = false}) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  if (value is String) {
+    final v = value.toLowerCase();
+    if (v == 'true') return true;
+    if (v == 'false') return false;
+  }
+  return fallback;
+}
+
+Map<String, dynamic> _ensureMap(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value;
+  }
+  return <String, dynamic>{};
+}
+
+Map<String, dynamic> _normalizePoojaDetails(dynamic value) {
+  final map = _ensureMap(value);
+  if (map.isEmpty) {
+    return <String, dynamic>{};
+  }
+
+  final normalized = Map<String, dynamic>.from(map);
+
+  final category = normalized['category'];
+  if (category is Map<String, dynamic>) {
+    normalized['category'] = category['id'];
+    normalized['category_name'] =
+        category['name'] ?? normalized['category_name'];
+  }
+
+  normalized['price'] = _extractString(normalized['price'], fallback: '0.00');
+
+  return normalized;
+}
+
+Map<String, dynamic> _normalizeUserList(
+  dynamic value,
+  dynamic fallbackAttribute,
+) {
+  final map = _ensureMap(value);
+
+  final normalized = Map<String, dynamic>.from(map);
+
+  final attributes = (normalized['attributes'] as List<dynamic>?)
+          ?.map((attr) => _normalizeUserAttribute(attr))
+          .where((attr) => attr.isNotEmpty)
+          .toList() ??
+      <Map<String, dynamic>>[];
+
+  if (fallbackAttribute != null) {
+    final attr = _normalizeUserAttribute(fallbackAttribute);
+    if (attr.isNotEmpty) {
+      attributes.add(attr);
+    }
+  }
+
+  normalized['attributes'] = attributes;
+  normalized['id'] = _extractInt(normalized['id']);
+  normalized['name'] = _extractString(normalized['name']);
+  normalized['user'] =
+      _extractInt(normalized['user'], fallback: _extractInt(normalized['user_id']));
+
+  return normalized;
+}
+
+Map<String, dynamic> _normalizeUserAttribute(dynamic value) {
+  final map = _ensureMap(value);
+  if (map.isEmpty) {
+    return map;
+  }
+
+  final normalized = Map<String, dynamic>.from(map);
+  final nakshatram = normalized['nakshatram'];
+  if (nakshatram is Map<String, dynamic>) {
+    normalized['nakshatram'] = nakshatram['id'];
+    normalized['nakshatram_name'] =
+        nakshatram['name'] ?? normalized['nakshatram_name'];
+  }
+  return normalized;
 }

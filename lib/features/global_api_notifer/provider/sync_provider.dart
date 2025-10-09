@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:temple_app/features/global_api_notifer/data/repository/sync_repository.dart';
@@ -10,17 +9,16 @@ final syncRepositoryProvider = Provider((ref) => SyncRepository());
 final syncTimerProvider = Provider.autoDispose((ref) {
   final repo = ref.read(syncRepositoryProvider);
 
-  Timer.periodic(const Duration(minutes:30 ), (_) async {
-    await repo.checkForUpdates();
+  Timer.periodic(const Duration(seconds:30 ), (_) async {
+    await repo.checkForUpdates(ref );
   });
 
   // Optional: immediate check when app opens
-  repo.checkForUpdates();
+  repo.checkForUpdates(ref );
 });
 
 /// For manual refresh via UI button
 final manualSyncProvider = FutureProvider<void>((ref) async {
-  log(  "-------------------\nMANUAL SYNC\n-----------------------------------");
   final repo = ref.read(syncRepositoryProvider);
-  await repo.checkForUpdates();
+  await repo.checkForUpdates(ref);
 });

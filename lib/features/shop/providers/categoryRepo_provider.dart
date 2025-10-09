@@ -6,7 +6,10 @@ import 'package:temple_app/features/shop/data/repositories/product_repository.da
 
 // CATEGORY
 final categoryRepositoryProvider = Provider((ref) => CategoryRepository());
-//
+
+/// Tracks whether a manual/category sync is in progress so UI can show shimmer
+final categoryRefreshInProgressProvider = StateProvider<bool>((ref) => false);
+
 final categoriesProvider = FutureProvider<List<StoreCategory>>((ref) async {
   return ref.read(categoryRepositoryProvider).fetchCategories();
 });

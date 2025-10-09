@@ -100,15 +100,19 @@ class BookingRepository {
 
       // Add date field based on pooja type
       if (specialPoojaDateId != null) {
-        // Special pooja - send special_pooja_date_id
+        // Special pooja - send special_pooja_date_ids (API expects an array)
+        requestBody['special_pooja_date_ids'] = [specialPoojaDateId];
+        // Maintain legacy key for backward compatibility if the backend still accepts it
         requestBody['special_pooja_date_id'] = specialPoojaDateId.toString();
         print(
-          '🎯 Special Pooja detected - using special_pooja_date_id: $specialPoojaDateId',
+          '🎯 Special Pooja detected - using special_pooja_date_ids: $specialPoojaDateId',
         );
       } else if (selectedDate != null) {
-        // Regular pooja - send selected_date
+        // Regular pooja - send selected_dates (API expects an array)
+        requestBody['selected_dates'] = [selectedDate];
+        // Maintain legacy key for backward compatibility if the backend still accepts it
         requestBody['selected_date'] = selectedDate;
-        print('📅 Regular Pooja detected - using selected_date: $selectedDate');
+        print('📅 Regular Pooja detected - using selected_dates: $selectedDate');
       } else {
         throw Exception(
           'Either selected_date or special_pooja_date_id must be provided',

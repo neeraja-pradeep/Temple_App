@@ -1,7 +1,6 @@
 import 'package:hive/hive.dart';
 part 'product_category.g.dart';
 
-
 @HiveType(typeId: 6) // must be unique across all models
 class CategoryProductModel extends HiveObject {
   @HiveField(0)
@@ -14,7 +13,7 @@ class CategoryProductModel extends HiveObject {
   final String slug;
 
   @HiveField(3)
-  final String description;
+  final String? description; //  made nullable (API might return null)
 
   @HiveField(4)
   final CategoryModel category;
@@ -26,19 +25,19 @@ class CategoryProductModel extends HiveObject {
     required this.id,
     required this.name,
     required this.slug,
-    required this.description,
+    this.description,
     required this.category,
     required this.variants,
   });
 
   factory CategoryProductModel.fromJson(Map<String, dynamic> json) {
     return CategoryProductModel(
-      id: json['id'],
-      name: json['name'],
-      slug: json['slug'],
-      description: json['description'],
-      category: CategoryModel.fromJson(json['category']),
-      variants: (json['variants'] as List)
+      id: json['id'] ?? 0,
+      name: json['name']?.toString() ?? '',
+      slug: json['slug']?.toString() ?? '',
+      description: json['description']?.toString(),
+      category: CategoryModel.fromJson(json['category'] ?? {}),
+      variants: (json['variants'] as List? ?? [])
           .map((v) => VariantModel.fromJson(v))
           .toList(),
     );
@@ -68,10 +67,10 @@ class CategoryModel extends HiveObject {
   final String? parent;
 
   @HiveField(3)
-  final String mediaUrl;
+  final String? mediaUrl; // nullable
 
   @HiveField(4)
-  final String mediaPublicId;
+  final String? mediaPublicId; //  nullable
 
   @HiveField(5)
   final List<dynamic> children;
@@ -79,19 +78,19 @@ class CategoryModel extends HiveObject {
   CategoryModel({
     required this.id,
     required this.name,
-    required this.parent,
-    required this.mediaUrl,
-    required this.mediaPublicId,
+    this.parent,
+    this.mediaUrl,
+    this.mediaPublicId,
     required this.children,
   });
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
-      id: json['id'],
-      name: json['name'],
-      parent: json['parent'],
-      mediaUrl: json['media_url'],
-      mediaPublicId: json['media_public_id'],
+      id: json['id'] ?? 0,
+      name: json['name']?.toString() ?? '',
+      parent: json['parent']?.toString(),
+      mediaUrl: json['media_url']?.toString(), //  null-safe
+      mediaPublicId: json['media_public_id']?.toString(),
       children: json['children'] ?? [],
     );
   }
@@ -129,7 +128,7 @@ class VariantModel extends HiveObject {
   final String price;
 
   @HiveField(6)
-  final String mediaUrl;
+  final String? mediaUrl; //  nullable
 
   @HiveField(7)
   final int stock;
@@ -141,20 +140,20 @@ class VariantModel extends HiveObject {
     required this.sku,
     required this.name,
     required this.price,
-    required this.mediaUrl,
+    this.mediaUrl,
     required this.stock,
   });
 
   factory VariantModel.fromJson(Map<String, dynamic> json) {
     return VariantModel(
-      id: json['id'],
-      product: json['product'],
-      productName: json['product_name'],
-      sku: json['sku'],
-      name: json['name'],
-      price: json['price'],
-      mediaUrl: json['media_url'],
-      stock: json['stock'],
+      id: json['id'] ?? 0,
+      product: json['product'] ?? 0,
+      productName: json['product_name']?.toString() ?? '',
+      sku: json['sku']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      price: json['price']?.toString() ?? '0',
+      mediaUrl: json['media_url']?.toString(), // handles null correctly
+      stock: json['stock'] ?? 0,
     );
   }
 

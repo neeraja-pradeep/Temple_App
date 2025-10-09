@@ -1,4 +1,4 @@
-import 'dart:developer';
+﻿import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -16,6 +16,17 @@ class ShopCategorySection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsync = ref.watch(categoriesProvider);
+    final isRefreshing = ref.watch(categoryRefreshInProgressProvider);
+
+    Widget buildShimmer() => _buildCategoryShimmer();
+
+    if (isRefreshing) {
+      log('[UI] Category refresh in progress – showing shimmer');
+      return Expanded(
+        flex: 2,
+        child: buildShimmer(),
+      );
+    }
 
     return Expanded(
       flex: 2,
@@ -23,19 +34,27 @@ class ShopCategorySection extends ConsumerWidget {
         data: (data) {
           log('[UI] Categories loaded: ${data.length} items');
 
-          // ✅ Handle empty category list
           if (data.isEmpty) {
-            log('[UI] Category list is empty.');
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.h),
-                child: WText(
-                  text: "No categories available",
-                  color: Colors.grey,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+            log('[UI] Category list is empty. Waiting 5 seconds before showing message...');
+            return FutureBuilder(
+              future: Future.delayed(const Duration(seconds: 5)),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return buildShimmer();
+                }
+
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
+                    child: WText(
+                      text: "No categories available",
+                      color: Colors.grey,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              },
             );
           }
 
@@ -50,7 +69,6 @@ class ShopCategorySection extends ConsumerWidget {
                 return GestureDetector(
                   onTap: () {
                     try {
-                      // 👇 Update providers safely
                       ref.read(selectedCategoryIndexProvider.notifier).state = index;
                       ref.read(selectedIndexCatProvider.notifier).state = index;
                       log('[UI] Category tapped: ${data[index].name} (Index: $index)');
@@ -108,35 +126,10 @@ class ShopCategorySection extends ConsumerWidget {
             ),
           );
         },
-
-        // 🔹 Shimmer loading effect
         loading: () {
           log('[UI] Loading categories...');
-          return Padding(
-            padding: EdgeInsets.only(left: 10.w, top: 5.h, bottom: 3.h),
-            child: SizedBox(
-              height: 80.h,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: 6,
-                itemBuilder: (context, index) => Shimmer.fromColors(
-                  baseColor: Colors.grey.shade300,
-                  highlightColor: Colors.grey.shade100,
-                  child: Container(
-                    width: 95.w,
-                    decoration: BoxDecoration(
-                      color: cWhite,
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                  ),
-                ),
-                separatorBuilder: (_, __) => AppSizes.w10,
-              ),
-            ),
-          );
+          return buildShimmer();
         },
-
-        // 🔹 Error state
         error: (err, stack) {
           log('[UI Error] Error loading categories: $err');
           log('[StackTrace]', error: err, stackTrace: stack);
@@ -149,16 +142,40 @@ class ShopCategorySection extends ConsumerWidget {
                   Icon(Icons.error_outline, color: Colors.red.shade400, size: 30),
                   AppSizes.h10,
                   WText(
-                    text: "Failed to load categories.\nPlease try again later.",
+                    text: "Failed to load categories.\\nPlease try again later.",
                     color: Colors.red.shade400,
                     fontSize: 12.sp,
-                    // textAlign: TextAlign.center,
                   ),
                 ],
               ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildCategoryShimmer() {
+    return Padding(
+      padding: EdgeInsets.only(left: 10.w, top: 5.h, bottom: 3.h),
+      child: SizedBox(
+        height: 80.h,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: 6,
+          itemBuilder: (context, index) => Shimmer.fromColors(
+            baseColor: Colors.grey.shade300,
+            highlightColor: Colors.grey.shade100,
+            child: Container(
+              width: 95.w,
+              decoration: BoxDecoration(
+                color: cWhite,
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+            ),
+          ),
+          separatorBuilder: (_, __) => AppSizes.w10,
+        ),
       ),
     );
   }
@@ -185,10 +202,11 @@ class ShopCategorySection extends ConsumerWidget {
   }
 }
 
-// ✅ Normalizes URL scheme
+// âœ… Normalizes URL scheme
 String _normalizeImageUrl(String url) {
   final trimmed = url.trim();
   if (trimmed.isEmpty) return '';
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
   return 'https://$trimmed';
 }
+
