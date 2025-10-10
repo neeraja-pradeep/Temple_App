@@ -352,7 +352,8 @@ class CartRepository {
       }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        log("✅ Cart updated: ${response.body}");
+        log("Cart updated successfully: ${response.body}");
+        await getinitStateCartFromAPi(); // Ensure Hive cache mirrors remote cart
         return true;
       } else {
         log("❌ Failed: ${response.statusCode} ${response.body}");

@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:temple_app/features/global_api_notifer/data/model/global_update_model.dart';
 import 'package:temple_app/features/pooja/data/models/pooja_category_model.dart';
 import 'package:temple_app/features/shop/data/repositories/category_repository.dart';
+import 'package:temple_app/features/shop/data/repositories/product_repository.dart';
 
 // Import repositories
 import '../local/hive_sync_cache.dart';
@@ -15,6 +16,8 @@ class SyncRepository {
   static const _baseUrl = "http://templerun.click/api/booking";
 
   final CategoryRepository _categoryRepo = CategoryRepository();
+  final CategoryProductRepository _categoryProductRepo =
+      CategoryProductRepository();
 
   ///  Check the global update timestamp and refresh if needed
   Future<void> checkForUpdates(Ref ref) async {
@@ -90,6 +93,11 @@ class SyncRepository {
             await _refreshStoreCategory(ref);
             break;
 
+          case 'StoreProduct':
+          case 'StoreProductVariant':
+            await _refreshStoreProducts(ref);
+            break;
+
           default:
             debugPrint(' [SyncRepository] Unknown model: ${detail.modelName}');
         }
@@ -139,6 +147,16 @@ class SyncRepository {
         return Hive.openBox<PoojaCategory>(boxName);
       default:
         return Hive.openBox(boxName);
+    }
+  }
+
+  Future<void> _refreshStoreProducts(Ref ref) async {
+    try {
+      debugPrint('Clearing and refreshing Store Products...');
+      await _categoryProductRepo.resetCategoryProducts(ref);
+    } catch (e, stack) {
+      debugPrint(' [SyncRepository] Failed to refresh StoreProduct: $e');
+      debugPrint(stack.toString());
     }
   }
 

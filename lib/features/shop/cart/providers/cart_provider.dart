@@ -47,11 +47,15 @@ class CartListNotifier extends StateNotifier<List<CartItem>> {
     required String productVariantId,
     required int quantity,
   }) async {
-    await _repository.addAndUpdateCartItemToAPI(
+    final updated = await _repository.addAndUpdateCartItemToAPI(
       productVariantId: productVariantId,
       quantity: quantity,
     );
-    await loadCart();
+    if (updated) {
+      state = await _repository.getCart(); // use freshly synced Hive cache
+    } else {
+      await loadCart(); // fallback to server fetch if API update failed
+    }
   }
 
   /// ➖ Decrement via API (PATCH new qty, or DELETE if zero), then sync

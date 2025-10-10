@@ -1,269 +1,203 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:temple_app/core/constants/api_constants.dart';
-import 'package:temple_app/features/shop/cart/data/model/cart_model.dart';
 import 'package:temple_app/features/shop/data/model/product/product_category.dart';
 
 import '../../../../core/services/token_storage_service.dart';
+import '../../providers/categoryRepo_provider.dart';
 
+/// Repository that keeps shop category products in sync with the backend and
+/// the local Hive cache while coordinating UI refresh barriers.
 class CategoryProductRepository {
   final String baseUrl = ApiConstants.baseUrl;
+  static const String _hiveBoxPrefix = 'category_products';
+  static final Set<String> _trackedBoxNames = <String>{};
 
-  /// Get all cart items
-  Future<List<CartItem>> getCart() async {
-    try {
-      final url = Uri.parse("$baseUrl/ecommerce/cart/");
+  bool skipApiFetch = false;
+  Completer<void>? _resetBarrier;
 
-      // Get authorization header with bearer token
-      final authHeader = TokenStorageService.getAuthorizationHeader();
-      if (authHeader == null) {
-        throw Exception(
-          'No valid authentication token found. Please login again.',
-        );
+  String _boxNameFor(int? categoryId) {
+    final suffix = categoryId?.toString() ?? 'all';
+    final name = '${_hiveBoxPrefix}_$suffix';
+    _trackedBoxNames.add(name);
+    return name;
+  }
+
+  Future<Box<CategoryProductModel>> _openProductBox(int? categoryId) async {
+    final boxName = _boxNameFor(categoryId);
+    return Hive.openBox<CategoryProductModel>(boxName);
+  }
+
+  Future<List<CategoryProductModel>> _getCachedProducts(int? categoryId) async {
+    final box = await _openProductBox(categoryId);
+    return box.values.toList(growable: false);
+  }
+
+  Future<void> _cacheProducts(
+    int? categoryId,
+    List<CategoryProductModel> products,
+  ) async {
+    final box = await _openProductBox(categoryId);
+    await box.clear();
+    await box.addAll(products);
+  }
+
+  Future<void> _clearCategoryProducts({int? categoryId}) async {
+    if (categoryId != null) {
+      final box = await _openProductBox(categoryId);
+      await box.clear();
+      return;
+    }
+
+    final targets = _trackedBoxNames.isEmpty
+        ? <String>{_boxNameFor(null)}
+        : Set<String>.from(_trackedBoxNames);
+
+    for (final name in targets) {
+      final box = await Hive.openBox<CategoryProductModel>(name);
+      await box.clear();
+    }
+  }
+
+  Future<List<CategoryProductModel>> fetchCategoryProduct(
+    int? categoryId, {
+    bool forceRefresh = false,
+    bool bypassBarrier = false,
+  }) async {
+    log('fetchCategoryProduct → categoryId: $categoryId, forceRefresh: $forceRefresh');
+
+    if (!bypassBarrier) {
+      final barrier = _resetBarrier;
+      if (barrier != null && !barrier.isCompleted) {
+        await barrier.future;
       }
+    }
 
-      final headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": authHeader,
-      };
-
-      print('🌐 Making get cart API call to: $url');
-      print('🔐 Authorization header: $authHeader');
-
-      final response = await http.get(url, headers: headers);
-
-      print('📥 Get Cart API Response Status: ${response.statusCode}');
-      print('📥 Get Cart API Response Body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final cartList = data['cart'] as List<dynamic>;
-        return cartList.map((json) => CartItem.fromJson(json)).toList();
-      } else {
-        // Log the error status
-        print(
-          "Failed to fetch cart. Status code: ${response.statusCode}, Body: ${response.body}",
-        );
-        return [];
-      }
-    } catch (e, stackTrace) {
-      // Log any exceptions
-      print("Exception while fetching cart: $e");
-      print(stackTrace);
+    if (skipApiFetch && !forceRefresh) {
+      log('API fetch skipped for category products (manual reset in progress)');
       return [];
     }
-  }
-
-  Future addToCart(String productVariantId, {int quantity = 1}) async {
-    final url = Uri.parse("$baseUrl/ecommerce/cart/");
-
-    // Get authorization header with bearer token
-    final authHeader = TokenStorageService.getAuthorizationHeader();
-    if (authHeader == null) {
-      throw Exception(
-        'No valid authentication token found. Please login again.',
-      );
-    }
-
-    final body = jsonEncode({
-      "product_variant_id": productVariantId,
-      "quantity": quantity,
-    });
-
-    final headers = {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      "Authorization": authHeader,
-    };
-
-    print('🌐 Making add to cart API call to: $url');
-    print('🔐 Authorization header: $authHeader');
-    print('📤 Request body: $body');
-
-    final response = await http.post(url, headers: headers, body: body);
-
-    print('📥 Add to Cart API Response Status: ${response.statusCode}');
-    print('📥 Add to Cart API Response Body: ${response.body}');
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-
-      // TODO: Update Hive/Local Storage here
-      return data;
-    } else {
-      throw Exception("Failed to add to cart: ${response.body}");
-    }
-  }
-
-  /// Increment quantity
-  Future incrementCart(String productVariantId, int currentQuantity) async {
-    final newQuantity = currentQuantity + 1;
-    return await addToCart(productVariantId, quantity: newQuantity);
-  }
-
-  /// Decrement quantity
-  Future decrementCart(String productVariantId, int currentQuantity) async {
-    final newQuantity = currentQuantity - 1;
-
-    if (newQuantity > 0) {
-      return await addToCart(productVariantId, quantity: newQuantity);
-    } else {
-      return await removeFromCart(productVariantId);
-    }
-  }
-
-  /// Remove from cart (when quantity = 0)
-  Future removeFromCart(String productVariantId) async {
-    final url = Uri.parse("$baseUrl/ecommerce/cart/remove/");
-
-    // Get authorization header with bearer token
-    final authHeader = TokenStorageService.getAuthorizationHeader();
-    if (authHeader == null) {
-      throw Exception(
-        'No valid authentication token found. Please login again.',
-      );
-    }
-
-    final body = jsonEncode({"product_variant_id": productVariantId});
-
-    final headers = {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      "Authorization": authHeader,
-    };
-
-    print('🌐 Making remove from cart API call to: $url');
-    print('🔐 Authorization header: $authHeader');
-    print('📤 Request body: $body');
-
-    final response = await http.post(url, headers: headers, body: body);
-
-    print('📥 Remove from Cart API Response Status: ${response.statusCode}');
-    print('📥 Remove from Cart API Response Body: ${response.body}');
-
-    if (response.statusCode == 200) {
-      // TODO: Update Hive/Local Storage here
-      return true;
-    } else {
-      throw Exception("Failed to remove from cart: ${response.body}");
-    }
-  }
-
-  //   Future<List<CategoryProductModel>> fetchCategoryProduct(
-  //     int? categoryId,
-  //   ) async {
-  //     log("categoryId----------------------------------: $categoryId");
-  //     try {
-  //       final uri = Uri.parse(
-  //         categoryId == null
-  //             ? "$baseUrl/ecommerce/shop-products/"
-  //             : "$baseUrl/ecommerce/shop-products/?category=$categoryId",
-  //       );
-
-  //       // Get authorization header with bearer token
-  //       final authHeader = TokenStorageService.getAuthorizationHeader();
-  //       if (authHeader == null) {
-  //         throw Exception(
-  //           'No valid authentication token found. Please login again.',
-  //         );
-  //       }
-
-  //       final headers = {
-  //         'Accept': 'application/json',
-  //         'Authorization': authHeader,
-  //       };
-
-  //       print('🌐 Making fetch category products API call to: $uri');
-  //       print('🔐 Authorization header: $authHeader');
-
-  //       final response = await http.get(uri, headers: headers);
-
-  //       print('📥 Category Products API Response Status: ${response.statusCode}');
-  //       print('📥 Category Products API Response Body: ${response.body}');
-
-  //       if (response.statusCode == 200) {
-  //         final body = jsonDecode(response.body);
-
-  //         // Ensure body is a list
-  //         if (body is List) {
-  //           return body.map((e) => CategoryProductModel.fromJson(e)).toList();
-  //         } else {
-  //           throw Exception("Invalid response format: expected a List");
-  //         }
-  //       } else {
-  //         throw Exception(
-  //           "Failed to fetch products. Status Code: ${response.statusCode}",
-  //         );
-  //       }
-  //     } catch (e) {
-  //       // Log or rethrow depending on your needs
-  //       print("Error in fetchCategoryProduct: $e");
-  //       return [];
-  //     }
-  //   }
-  // }
-  Future<List<CategoryProductModel>> fetchCategoryProduct(
-    int? categoryId,
-  ) async {
-    log("categoryId----------------------------------: $categoryId");
 
     try {
-      // Get authorization header first
-      final authHeader = TokenStorageService.getAuthorizationHeader();
-      if (authHeader == null) {
-        throw Exception(
-          'No valid authentication token found. Please login again.',
-        );
+      final cacheBox = await _openProductBox(categoryId);
+
+      if (!forceRefresh && cacheBox.isNotEmpty) {
+        log('Returning cached products for categoryId: $categoryId');
+        return cacheBox.values.toList(growable: false);
       }
 
-      // Prepare the request URI
-      final uri = Uri.parse(
-        categoryId == null
-            ? "$baseUrl/ecommerce/shop-products/"
-            : "$baseUrl/ecommerce/shop-products/?category=$categoryId",
+      final response = await http.get(
+        _buildProductsUri(categoryId),
+        headers: _buildAuthHeaders(),
       );
 
-      final headers = {
-        'Accept': 'application/json',
-        'Authorization': authHeader,
-      };
-
-   
-
-      //  Step 3: Make the request
-      final response = await http.get(uri, headers: headers);
-
-  
-
-      //  Step 4: Handle the response
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         if (body is List) {
-          try {
-            final products = body
-                .map((e) => CategoryProductModel.fromJson(e))
-                .toList();
-            log(' Parsed Category Products: $products');
-            return products;
-          } catch (parseError) {
-            log(' Error parsing category product JSON: $parseError');
-            log(' Problematic body data: $body');
-            return [];
-          }
+          final products = body
+              .map((e) => CategoryProductModel.fromJson(e))
+              .toList(growable: false);
+
+          await _cacheProducts(categoryId, products);
+          log('Cached ${products.length} products for categoryId: $categoryId');
+          return products;
         } else {
-          throw Exception("Invalid response format: expected a List");
+          throw Exception('Invalid response format: expected a List');
         }
       } else {
         throw Exception(
-          "Failed to fetch products. Status Code: ${response.statusCode}",
+          'Failed to fetch products. Status Code: ${response.statusCode}',
         );
       }
-    } catch (e) {
-      print(" Error in fetchCategoryProduct: $e");
+    } catch (e, stack) {
+      log('Error in fetchCategoryProduct: $e');
+      log(stack.toString());
+      try {
+        final cached = await _getCachedProducts(categoryId);
+        if (cached.isNotEmpty) {
+          log('Returning cached products due to error (count: ${cached.length})');
+          return cached;
+        }
+      } catch (cacheError) {
+        log('Failed to load cached products: $cacheError');
+      }
       return [];
     }
+  }
+
+  Future<void> resetCategoryProducts(
+    Ref ref, {
+    int? categoryId,
+  }) async {
+    final repo = ref.read(categoryProductRepositoryProvider);
+
+    ref.read(categoryRefreshInProgressProvider.notifier).state = true;
+
+    final inFlight = repo._resetBarrier;
+    if (inFlight != null && !inFlight.isCompleted) {
+      await inFlight.future;
+    }
+
+    final barrier = Completer<void>();
+    repo._resetBarrier = barrier;
+    repo.skipApiFetch = true;
+
+    final targetCategory =
+        categoryId ?? ref.read(selectedCategoryIDProvider);
+
+    try {
+      await repo._clearCategoryProducts();
+      ref.invalidate(categoryProductProvider);
+
+      await Future.delayed(const Duration(seconds: 3));
+
+      repo.skipApiFetch = false;
+      await repo.fetchCategoryProduct(
+        targetCategory,
+        forceRefresh: true,
+        bypassBarrier: true,
+      );
+
+      if (!barrier.isCompleted) {
+        barrier.complete();
+      }
+    } catch (e, stack) {
+      if (!barrier.isCompleted) {
+        barrier.completeError(e);
+      }
+      log('Failed to reset category products: $e', stackTrace: stack);
+    } finally {
+      repo.skipApiFetch = false;
+      if (!barrier.isCompleted) {
+        barrier.complete();
+      }
+      repo._resetBarrier = null;
+      ref.read(categoryRefreshInProgressProvider.notifier).state = false;
+    }
+  }
+
+  Map<String, String> _buildAuthHeaders() {
+    final authHeader = TokenStorageService.getAuthorizationHeader();
+    if (authHeader == null) {
+      throw Exception(
+        'No valid authentication token found. Please login again.',
+      );
+    }
+    return {
+      'Accept': 'application/json',
+      'Authorization': authHeader,
+    };
+  }
+
+  Uri _buildProductsUri(int? categoryId) {
+    final path = categoryId == null
+        ? "$baseUrl/ecommerce/shop-products/"
+        : "$baseUrl/ecommerce/shop-products/?category=$categoryId";
+    return Uri.parse(path);
   }
 }
