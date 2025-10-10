@@ -11,11 +11,16 @@ final specialPoojaRepositoryProvider = Provider<SpecialPoojaRepository>((ref) {
 
 final specialPoojasProvider = FutureProvider<List<SpecialPooja>>((ref) async {
   final repo = ref.watch(specialPoojaRepositoryProvider);
-  final poojas = await repo.fetchSpecialPoojas();
-  await repo.saveSpecialPoojasToCache(poojas);
-  return poojas;
+  return await repo.fetchSpecialPoojas();
 });
 
+// Example for a refreshable provider
+final refreshSpecialPoojasProvider = FutureProvider<List<SpecialPooja>>((
+  ref,
+) async {
+  final repo = ref.watch(specialPoojaRepositoryProvider);
+  return await repo.fetchSpecialPoojas(forceRefresh: true);
+});
 
 final specialBannerPageProvider = StateProvider<int>((ref) => 0);
 
@@ -25,9 +30,15 @@ final weeklyPoojaRepositoryProvider = Provider<WeeklyPoojaRepository>((ref) {
 
 final weeklyPoojasProvider = FutureProvider<List<SpecialPooja>>((ref) async {
   final repo = ref.watch(weeklyPoojaRepositoryProvider);
-  final poojas = await repo.fetchWeeklyPoojas();
-  await repo.saveWeeklyPoojasToCache(poojas);
-  return poojas;
+  return await repo.fetchWeeklyPoojas();
+});
+
+// Example for a refreshable provider
+final refreshWeeklyPoojasProvider = FutureProvider<List<SpecialPooja>>((
+  ref,
+) async {
+  final repo = ref.watch(weeklyPoojaRepositoryProvider);
+  return await repo.fetchWeeklyPoojas(forceRefresh: true);
 });
 
 final specialPrayerRepositoryProvider = Provider<SpecialPrayerRepository>((
@@ -38,9 +49,15 @@ final specialPrayerRepositoryProvider = Provider<SpecialPrayerRepository>((
 
 final specialPrayersProvider = FutureProvider<List<SpecialPooja>>((ref) async {
   final repo = ref.watch(specialPrayerRepositoryProvider);
-  final prayers = await repo.fetchSpecialPrayers();
-  await repo.saveSpecialPrayersToCache(prayers);
-  return prayers;
+  return await repo.fetchSpecialPrayers();
+});
+
+// Example for a refreshable provider
+final refreshSpecialPrayersProvider = FutureProvider<List<SpecialPooja>>((
+  ref,
+) async {
+  final repo = ref.watch(specialPrayerRepositoryProvider);
+  return await repo.fetchSpecialPrayers(forceRefresh: true);
 });
 
 final specialPoojasBoxProvider = Provider<Box<SpecialPooja>?>(

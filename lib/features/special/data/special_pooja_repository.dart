@@ -7,9 +7,29 @@ import '../../../core/services/token_storage_service.dart';
 class SpecialPoojaRepository {
   static const String _endpoint =
       'http://templerun.click/api/booking/poojas/?banner=true';
+  static String hiveBoxName = 'specialPoojas';
 
-  Future<List<SpecialPooja>> fetchSpecialPoojas() async {
+  // Add this flag for sync control
+  bool skipApiFetch = false;
+
+  Future<List<SpecialPooja>> fetchSpecialPoojas({
+    bool forceRefresh = false,
+  }) async {
     try {
+      final box = await Hive.openBox<SpecialPooja>(hiveBoxName);
+
+      // ✅ if manual clear mode is active — just return empty
+      if (skipApiFetch && !forceRefresh) {
+        print("⏭️ API fetch skipped (manual clear mode active)");
+        return [];
+      }
+
+      if (!forceRefresh && box.isNotEmpty) {
+        print("📦 Returning special poojas from Hive cache");
+        return box.values.toList();
+      }
+
+      // Fetch from API if Hive is empty or force refresh
       final uri = Uri.parse(_endpoint);
 
       // Get authorization header with bearer token
@@ -38,6 +58,7 @@ class SpecialPoojaRepository {
           'Failed to load special poojas: ${response.statusCode}',
         );
       }
+
       final dynamic decoded = json.decode(response.body);
       List<dynamic> list;
       if (decoded is List) {
@@ -51,18 +72,51 @@ class SpecialPoojaRepository {
       } else {
         list = <dynamic>[];
       }
-      return list
+
+      final poojas = list
           .map((e) => SpecialPooja.fromJson(e as Map<String, dynamic>))
           .toList();
+
+      // Cache the results
+      await box.clear();
+      await box.addAll(poojas);
+      print("💾 Special poojas cached in Hive (${poojas.length} items)");
+
+      return poojas;
     } catch (e) {
       print('fetchSpecialPoojas error: $e');
-      rethrow;
+
+      // fallback to cache
+      try {
+        final box = await Hive.openBox<SpecialPooja>(hiveBoxName);
+        if (box.isNotEmpty) {
+          print("⚠️ Returning cached special poojas due to error");
+          return box.values.toList();
+        }
+      } catch (_) {}
+
+      return [];
     }
   }
 
   Future<void> saveSpecialPoojasToCache(List<SpecialPooja> poojas) async {
-    final box = await Hive.openBox<SpecialPooja>('specialPoojas');
+    final box = await Hive.openBox<SpecialPooja>(hiveBoxName);
     await box.clear();
     await box.addAll(poojas);
+  }
+
+  Future<void> clearSpecialPoojas() async {
+    final box = await Hive.openBox<SpecialPooja>(hiveBoxName);
+    await box.clear();
+  }
+
+  Future<void> resetSpecialPoojas() async {
+    skipApiFetch = true;
+    try {
+      await clearSpecialPoojas();
+      print('🧹 Cleared special poojas cache');
+    } finally {
+      skipApiFetch = false;
+    }
   }
 }

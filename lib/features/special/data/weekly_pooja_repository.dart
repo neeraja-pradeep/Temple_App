@@ -7,9 +7,29 @@ import '../../../core/services/token_storage_service.dart';
 class WeeklyPoojaRepository {
   static const String _endpoint =
       'http://templerun.click/api/booking/poojas/weekly_pooja';
+  static String hiveBoxName = 'weeklyPoojas';
 
-  Future<List<SpecialPooja>> fetchWeeklyPoojas() async {
+  // Add this flag for sync control
+  bool skipApiFetch = false;
+
+  Future<List<SpecialPooja>> fetchWeeklyPoojas({
+    bool forceRefresh = false,
+  }) async {
     try {
+      final box = await Hive.openBox<SpecialPooja>(hiveBoxName);
+
+      // ✅ if manual clear mode is active — just return empty
+      if (skipApiFetch && !forceRefresh) {
+        print("⏭️ API fetch skipped (manual clear mode active)");
+        return [];
+      }
+
+      if (!forceRefresh && box.isNotEmpty) {
+        print("📦 Returning weekly poojas from Hive cache");
+        return box.values.toList();
+      }
+
+      // Fetch from API if Hive is empty or force refresh
       final uri = Uri.parse(_endpoint);
 
       // Get authorization header with bearer token
@@ -36,6 +56,7 @@ class WeeklyPoojaRepository {
       if (response.statusCode != 200) {
         throw Exception('Failed to load weekly poojas: ${response.statusCode}');
       }
+
       final dynamic decoded = json.decode(response.body);
       List<dynamic> list;
       if (decoded is List) {
@@ -49,18 +70,51 @@ class WeeklyPoojaRepository {
       } else {
         list = <dynamic>[];
       }
-      return list
+
+      final poojas = list
           .map((e) => SpecialPooja.fromJson(e as Map<String, dynamic>))
           .toList();
+
+      // Cache the results
+      await box.clear();
+      await box.addAll(poojas);
+      print("💾 Weekly poojas cached in Hive (${poojas.length} items)");
+
+      return poojas;
     } catch (e) {
       print('fetchWeeklyPoojas error: $e');
-      rethrow;
+
+      // fallback to cache
+      try {
+        final box = await Hive.openBox<SpecialPooja>(hiveBoxName);
+        if (box.isNotEmpty) {
+          print("⚠️ Returning cached weekly poojas due to error");
+          return box.values.toList();
+        }
+      } catch (_) {}
+
+      return [];
     }
   }
 
   Future<void> saveWeeklyPoojasToCache(List<SpecialPooja> poojas) async {
-    final box = await Hive.openBox<SpecialPooja>('weeklyPoojas');
+    final box = await Hive.openBox<SpecialPooja>(hiveBoxName);
     await box.clear();
     await box.addAll(poojas);
+  }
+
+  Future<void> clearWeeklyPoojas() async {
+    final box = await Hive.openBox<SpecialPooja>(hiveBoxName);
+    await box.clear();
+  }
+
+  Future<void> resetWeeklyPoojas() async {
+    skipApiFetch = true;
+    try {
+      await clearWeeklyPoojas();
+      print('🧹 Cleared weekly poojas cache');
+    } finally {
+      skipApiFetch = false;
+    }
   }
 }

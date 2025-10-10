@@ -7,6 +7,11 @@ import 'package:http/http.dart' as http;
 import 'package:temple_app/features/global_api_notifer/data/model/global_update_model.dart';
 import 'package:temple_app/features/pooja/data/models/pooja_category_model.dart';
 import 'package:temple_app/features/shop/data/repositories/category_repository.dart';
+import 'package:temple_app/features/special/data/special_pooja_repository.dart';
+import 'package:temple_app/features/special/data/weekly_pooja_repository.dart';
+import 'package:temple_app/features/special/data/special_prayer_repository.dart';
+import 'package:temple_app/features/special/providers/special_pooja_provider.dart';
+import 'package:temple_app/features/special/data/special_pooja_model.dart';
 
 // Import repositories
 import '../local/hive_sync_cache.dart';
@@ -15,6 +20,9 @@ class SyncRepository {
   static const _baseUrl = "http://templerun.click/api/booking";
 
   final CategoryRepository _categoryRepo = CategoryRepository();
+  final SpecialPoojaRepository _specialPoojaRepo = SpecialPoojaRepository();
+  final WeeklyPoojaRepository _weeklyPoojaRepo = WeeklyPoojaRepository();
+  final SpecialPrayerRepository _specialPrayerRepo = SpecialPrayerRepository();
 
   ///  Check the global update timestamp and refresh if needed
   Future<void> checkForUpdates(Ref ref) async {
@@ -41,7 +49,9 @@ class SyncRepository {
         debugPrint(' New update detected! Fetching details...');
         final processed = await _processGlobalUpdateDetails(ref);
         if (processed) {
-          await HiveSyncCache.saveLastUpdated('2024-10-09T13:46:07.862214+05:30');//2024-10-09T13:46:07.862214+05:30 -------------> for testing puprose only | | orginal line(latestTimestamp)
+          await HiveSyncCache.saveLastUpdated(
+            '2024-10-09T13:46:07.862214+05:30',
+          ); //2024-10-09T13:46:07.862214+05:30 -------------> for testing puprose only | | orginal line(latestTimestamp)
         } else {
           debugPrint(
             ' [SyncRepository] Detail processing failed; cached timestamp unchanged.',
@@ -79,7 +89,10 @@ class SyncRepository {
         // Match model and refresh accordingly
         switch (detail.modelName) {
           case 'PoojaCategory':
-            await _refreshHiveBox('poojaCategoryBox', 'PoojaCategory'); // sets your logic
+            await _refreshHiveBox(
+              'poojaCategoryBox',
+              'PoojaCategory',
+            ); // sets your logic
             break;
 
           case 'Pooja':
@@ -88,6 +101,10 @@ class SyncRepository {
 
           case 'StoreCategory':
             await _refreshStoreCategory(ref);
+            break;
+
+          case 'SpecialPoojaDate':
+            await _refreshSpecialPoojaData(ref);
             break;
 
           default:
@@ -150,6 +167,54 @@ class SyncRepository {
     } catch (e, stack) {
       debugPrint(' [SyncRepository] Failed to refresh StoreCategory: $e');
       debugPrint(stack.toString());
+    }
+  }
+
+  ///  Refresh Special Pooja Data (Banner, Weekly, Special Prayers)
+  Future<void> _refreshSpecialPoojaData(Ref ref) async {
+    try {
+      debugPrint('🔄 Clearing and refreshing Special Pooja Data...');
+
+      // Clear all special pooja related Hive boxes
+      await _clearSpecialPoojaHiveBoxes();
+
+      // Invalidate all special pooja providers to trigger refresh
+      ref.invalidate(specialPoojasProvider);
+      ref.invalidate(weeklyPoojasProvider);
+      ref.invalidate(specialPrayersProvider);
+
+      debugPrint('✅ Special Pooja Data refresh initiated');
+    } catch (e, stack) {
+      debugPrint('❌ [SyncRepository] Failed to refresh SpecialPoojaDate: $e');
+      debugPrint(stack.toString());
+    }
+  }
+
+  /// Clear all special pooja related Hive boxes
+  Future<void> _clearSpecialPoojaHiveBoxes() async {
+    try {
+      // Clear special poojas (banner) box
+      if (Hive.isBoxOpen('specialPoojas')) {
+        final box = Hive.box<SpecialPooja>('specialPoojas');
+        await box.clear();
+        debugPrint('🧹 Cleared specialPoojas box');
+      }
+
+      // Clear weekly poojas box
+      if (Hive.isBoxOpen('weeklyPoojas')) {
+        final box = Hive.box<SpecialPooja>('weeklyPoojas');
+        await box.clear();
+        debugPrint('🧹 Cleared weeklyPoojas box');
+      }
+
+      // Clear special prayers box
+      if (Hive.isBoxOpen('specialPrayers')) {
+        final box = Hive.box<SpecialPooja>('specialPrayers');
+        await box.clear();
+        debugPrint('🧹 Cleared specialPrayers box');
+      }
+    } catch (e) {
+      debugPrint('❌ Error clearing special pooja boxes: $e');
     }
   }
 }
