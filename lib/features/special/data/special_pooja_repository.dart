@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'special_pooja_model.dart';
 import 'package:hive/hive.dart';
-import '../../../core/services/token_storage_service.dart';
+import 'package:temple_app/core/network/auth_headers.dart';
 
 class SpecialPoojaRepository {
   static const String _endpoint =
@@ -13,17 +13,8 @@ class SpecialPoojaRepository {
       final uri = Uri.parse(_endpoint);
 
       // Get authorization header with bearer token
-      final authHeader = TokenStorageService.getAuthorizationHeader();
-      if (authHeader == null) {
-        throw Exception(
-          'No valid authentication token found. Please login again.',
-        );
-      }
-
-      final headers = {
-        'Accept': 'application/json',
-        'Authorization': authHeader,
-      };
+      final authHeader = await AuthHeaders.requireToken();
+      final headers = AuthHeaders.readFromHeader(authHeader);
 
       print('🌐 Making banner API call to: $uri');
       print('🔐 Authorization header: $authHeader');

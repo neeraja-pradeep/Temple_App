@@ -6,13 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:temple_app/core/constants/api_constants.dart';
+import 'package:temple_app/core/network/auth_headers.dart';
 import 'package:temple_app/features/shop/data/model/category/store_category.dart';
 import 'package:temple_app/features/shop/providers/categoryRepo_provider.dart';
 
-import '../../../../core/services/token_storage_service.dart';
-
 class CategoryRepository {
-  final String baseUrl = ApiConstants.baseUrl;
   static String hiveBoxName = 'store_categories';
 
   // ðŸ‘‡ Add this flag
@@ -45,18 +43,11 @@ class CategoryRepository {
       }
 
       // Fetch from API if Hive is empty
-      final authHeader = TokenStorageService.getAuthorizationHeader();
-      if (authHeader == null) {
-        throw Exception('No valid authentication token found. Please login again.');
-      }
-
-      final headers = {
-        'Accept': 'application/json',
-        'Authorization': authHeader,
-      };
+      final authHeader = await AuthHeaders.requireToken();
+      final headers = AuthHeaders.readFromHeader(authHeader);
 
       print('ðŸŒ Fetching categories from API...');
-      final response = await http.get(Uri.parse("$baseUrl/ecommerce/category/"), headers: headers);
+      final response = await http.get(Uri.parse(ApiConstants.storeCategories), headers: headers);
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
@@ -114,7 +105,7 @@ class CategoryRepository {
       ref.invalidate(categoriesProvider);
       ref.invalidate(categoryProductProvider);
 
-      await Future.delayed(const Duration(seconds: 3));
+      await Future.delayed(const Duration(seconds: 1));
 
       repo.skipApiFetch = false;
       log('-------------------\nPERIODIC SYNC\n-----------------------------------');

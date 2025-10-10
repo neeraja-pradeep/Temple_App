@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'package:temple_app/core/constants/api_constants.dart';
 import 'package:temple_app/features/global_api_notifer/data/model/global_update_model.dart';
 import 'package:temple_app/features/pooja/data/models/pooja_category_model.dart';
 import 'package:temple_app/features/shop/data/repositories/category_repository.dart';
@@ -13,8 +14,6 @@ import 'package:temple_app/features/shop/data/repositories/product_repository.da
 import '../local/hive_sync_cache.dart';
 
 class SyncRepository {
-  static const _baseUrl = "http://templerun.click/api/booking";
-
   final CategoryRepository _categoryRepo = CategoryRepository();
   final CategoryProductRepository _categoryProductRepo =
       CategoryProductRepository();
@@ -24,7 +23,7 @@ class SyncRepository {
     debugPrint(' [SyncRepository] Checking for updates...');
 
     try {
-      final response = await http.get(Uri.parse("$_baseUrl/global-update/"));
+      final response = await http.get(Uri.parse(ApiConstants.globalUpdate));
       if (response.statusCode != 200) {
         debugPrint(
           ' [SyncRepository] Failed global-update: ${response.statusCode}',
@@ -63,7 +62,7 @@ class SyncRepository {
   Future<bool> _processGlobalUpdateDetails(Ref ref) async {
     try {
       final response = await http.get(
-        Uri.parse("$_baseUrl/global-update-details/"),
+        Uri.parse(ApiConstants.globalUpdateDetails),
       );
       if (response.statusCode != 200) {
         debugPrint(

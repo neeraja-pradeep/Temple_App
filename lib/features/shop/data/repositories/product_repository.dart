@@ -6,15 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:temple_app/core/constants/api_constants.dart';
+import 'package:temple_app/core/network/auth_headers.dart';
 import 'package:temple_app/features/shop/data/model/product/product_category.dart';
 
-import '../../../../core/services/token_storage_service.dart';
 import '../../providers/categoryRepo_provider.dart';
 
 /// Repository that keeps shop category products in sync with the backend and
 /// the local Hive cache while coordinating UI refresh barriers.
 class CategoryProductRepository {
-  final String baseUrl = ApiConstants.baseUrl;
   static const String _hiveBoxPrefix = 'category_products';
   static final Set<String> _trackedBoxNames = <String>{};
 
@@ -93,7 +92,7 @@ class CategoryProductRepository {
 
       final response = await http.get(
         _buildProductsUri(categoryId),
-        headers: _buildAuthHeaders(),
+        headers: await _buildAuthHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -154,7 +153,7 @@ class CategoryProductRepository {
       await repo._clearCategoryProducts();
       ref.invalidate(categoryProductProvider);
 
-      await Future.delayed(const Duration(seconds: 3));
+      await Future.delayed(const Duration(seconds: 1));
 
       repo.skipApiFetch = false;
       await repo.fetchCategoryProduct(
@@ -181,23 +180,15 @@ class CategoryProductRepository {
     }
   }
 
-  Map<String, String> _buildAuthHeaders() {
-    final authHeader = TokenStorageService.getAuthorizationHeader();
-    if (authHeader == null) {
-      throw Exception(
-        'No valid authentication token found. Please login again.',
-      );
-    }
-    return {
-      'Accept': 'application/json',
-      'Authorization': authHeader,
-    };
+  Future<Map<String, String>> _buildAuthHeaders() async {
+    final authHeader = await AuthHeaders.requireToken();
+    return AuthHeaders.readFromHeader(authHeader);
   }
 
   Uri _buildProductsUri(int? categoryId) {
-    final path = categoryId == null
-        ? "$baseUrl/ecommerce/shop-products/"
-        : "$baseUrl/ecommerce/shop-products/?category=$categoryId";
-    return Uri.parse(path);
+    if (categoryId == null) {
+      return Uri.parse(ApiConstants.shopProducts);
+    }
+    return Uri.parse(ApiConstants.shopProductsByCategory(categoryId));
   }
 }

@@ -9,7 +9,7 @@ final syncRepositoryProvider = Provider((ref) => SyncRepository());
 final syncTimerProvider = Provider.autoDispose((ref) {
   final repo = ref.read(syncRepositoryProvider);
 
-  Timer.periodic(const Duration( minutes:30 ), (_) async {
+  Timer.periodic(const Duration( seconds:30 ), (_) async {
     await repo.checkForUpdates(ref );
   });
 
