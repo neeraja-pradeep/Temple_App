@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:temple_app/core/constants/api_constants.dart';
-import '../../../../../core/services/token_storage_service.dart';
+import 'package:temple_app/core/network/auth_headers.dart';
 
 class OrderLineModel {
   final int id;
@@ -65,24 +65,12 @@ class OrderDetailModel {
 }
 
 class OrderRepository {
-  final String baseUrl = ApiConstants.baseUrl;
-
   Future<OrderDetailModel> fetchOrderById(int orderId) async {
     // Get authorization header with bearer token
-    final authHeader = TokenStorageService.getAuthorizationHeader();
-    if (authHeader == null) {
-      throw Exception(
-        'No valid authentication token found. Please login again.',
-      );
-    }
+    final authHeader = await AuthHeaders.requireToken();
+    final headers = AuthHeaders.jsonFromHeader(authHeader);
 
-    final headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': authHeader,
-    };
-
-    final uri = Uri.parse("$baseUrl/ecommerce/orders/$orderId");
+    final uri = Uri.parse(ApiConstants.orderById(orderId));
 
     print('🌐 Making fetch order by ID API call to: $uri');
     print('🔐 Authorization header: $authHeader');

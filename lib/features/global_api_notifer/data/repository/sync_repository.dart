@@ -4,9 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'package:temple_app/core/constants/api_constants.dart';
 import 'package:temple_app/features/global_api_notifer/data/model/global_update_model.dart';
 import 'package:temple_app/features/pooja/data/models/pooja_category_model.dart';
 import 'package:temple_app/features/shop/data/repositories/category_repository.dart';
+import 'package:temple_app/features/shop/data/repositories/product_repository.dart';
 import 'package:temple_app/features/special/data/special_pooja_repository.dart';
 import 'package:temple_app/features/special/data/weekly_pooja_repository.dart';
 import 'package:temple_app/features/special/data/special_prayer_repository.dart';
@@ -20,6 +22,8 @@ class SyncRepository {
   static const _baseUrl = "http://templerun.click/api/booking";
 
   final CategoryRepository _categoryRepo = CategoryRepository();
+  final CategoryProductRepository _categoryProductRepo =
+      CategoryProductRepository();
   final SpecialPoojaRepository _specialPoojaRepo = SpecialPoojaRepository();
   final WeeklyPoojaRepository _weeklyPoojaRepo = WeeklyPoojaRepository();
   final SpecialPrayerRepository _specialPrayerRepo = SpecialPrayerRepository();
@@ -91,7 +95,7 @@ class SyncRepository {
     try {
       debugPrint('🌐 API Call #2: GET $_baseUrl/global-update-details/');
       final response = await http.get(
-        Uri.parse("$_baseUrl/global-update-details/"),
+        Uri.parse(ApiConstants.globalUpdateDetails),
       );
       debugPrint('📥 Response Status: ${response.statusCode}');
 
@@ -185,6 +189,16 @@ class SyncRepository {
         return Hive.openBox<PoojaCategory>(boxName);
       default:
         return Hive.openBox(boxName);
+    }
+  }
+
+  Future<void> _refreshStoreProducts(Ref ref) async {
+    try {
+      debugPrint('Clearing and refreshing Store Products...');
+      await _categoryProductRepo.resetCategoryProducts(ref);
+    } catch (e, stack) {
+      debugPrint(' [SyncRepository] Failed to refresh StoreProduct: $e');
+      debugPrint(stack.toString());
     }
   }
 

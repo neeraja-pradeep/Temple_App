@@ -8,7 +8,7 @@ import 'package:temple_app/features/shop/delivery/data/model/address_model.dart'
 import '../../../../../core/services/complete_token_service.dart';
 
 class AddressRepository {
-  final String baseUrl = "${ApiConstants.baseUrl}/ecommerce/address/";
+  final String baseUrl = ApiConstants.addresses;
 
   Future<Box<AddressModel>> _openBox() async {
     return await Hive.openBox<AddressModel>('addressBox');
@@ -216,7 +216,7 @@ class AddressRepository {
       print('📤 Request body: ${jsonEncode({"id": id, "selection": true})}');
 
       final response = await http.patch(
-        Uri.parse('$baseUrl$id/'),
+        Uri.parse(ApiConstants.addressById(id)),
         headers: headers,
         body: jsonEncode({"id": id, "selection": true}),
       );
@@ -261,11 +261,12 @@ class AddressRepository {
         "Authorization": authHeader,
       };
 
-      print('🌐 Making delete address API call to: $baseUrl$id/');
+      final targetUri = ApiConstants.addressById(id);
+      print('🌐 Making delete address API call to: $targetUri');
       print('🔐 Authorization header: $authHeader');
 
       final response = await http.delete(
-        Uri.parse("$baseUrl$id/"),
+        Uri.parse(targetUri),
         headers: headers,
       );
 

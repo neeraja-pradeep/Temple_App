@@ -4,7 +4,6 @@ import 'package:temple_app/features/shop/cart/providers/cart_provider.dart';
 import 'package:temple_app/features/shop/presentation/app_bar.dart';
 import 'package:temple_app/features/shop/presentation/category_listing.dart';
 import 'package:temple_app/features/shop/presentation/category_productSection.dart';
-import 'package:temple_app/features/shop/providers/categoryRepo_provider.dart';
 import 'package:temple_app/features/shop/providers/gesture_riverpod.dart';
 import 'package:temple_app/features/shop/widget/checkout_button.dart';
 
@@ -25,9 +24,8 @@ class ShoppingSectionScreen extends ConsumerWidget {
             // ---------------- AppBar Section ----------------
             AppBarSection(
               onPressed: () async {
-                final repo = ref.read(categoryRepositoryProvider);
   
-                // ref.read(onclickCheckoutButton.notifier).state = true;
+                ref.read(onclickCheckoutButton.notifier).state = true;
               },
             ),
 
