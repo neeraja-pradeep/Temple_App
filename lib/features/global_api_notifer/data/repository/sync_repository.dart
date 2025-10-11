@@ -14,6 +14,8 @@ import 'package:temple_app/features/special/data/weekly_pooja_repository.dart';
 import 'package:temple_app/features/special/data/special_prayer_repository.dart';
 import 'package:temple_app/features/special/providers/special_pooja_provider.dart';
 import 'package:temple_app/features/special/data/special_pooja_model.dart';
+import 'package:temple_app/features/booking/providers/booking_provider.dart';
+import 'package:temple_app/features/music/providers/music_providers.dart';
 
 // Import repositories
 import '../local/hive_sync_cache.dart';
@@ -136,7 +138,33 @@ class SyncRepository {
 
           case 'SpecialPoojaDate':
             debugPrint('📂 Refreshing SpecialPoojaDate...');
-            await _refreshSpecialPoojaData(ref);
+            await _refreshSpecialPoojaDatesOnly(ref);
+            break;
+
+          // Add specific model names for other special pooja components
+          case 'SpecialPooja':
+          case 'SpecialPoojaBanner':
+            debugPrint('📂 Refreshing Special Pooja Banner...');
+            await _refreshSpecialPoojaBannerOnly(ref);
+            break;
+
+          case 'WeeklyPooja':
+          case 'WeeklyPoojaData':
+            debugPrint('📂 Refreshing Weekly Pooja...');
+            await _refreshWeeklyPoojaOnly(ref);
+            break;
+
+          case 'SpecialPrayer':
+          case 'SpecialPrayerData':
+            debugPrint('📂 Refreshing Special Prayer...');
+            await _refreshSpecialPrayerOnly(ref);
+            break;
+
+          case 'Music':
+          case 'Song':
+          case 'MusicData':
+            debugPrint('📂 Refreshing Music...');
+            await _refreshMusicOnly(ref);
             break;
 
           default:
@@ -213,35 +241,149 @@ class SyncRepository {
     }
   }
 
-  ///  Refresh Special Pooja Data (Banner, Weekly, Special Prayers)
-  Future<void> _refreshSpecialPoojaData(Ref ref) async {
+  /// Refresh only Special Pooja Dates (when SpecialPoojaDate model is updated)
+  Future<void> _refreshSpecialPoojaDatesOnly(Ref ref) async {
     try {
-      debugPrint('🔄 Clearing and refreshing Special Pooja Data...');
-      debugPrint('📋 This will trigger the following API calls:');
-      debugPrint(
-        '   🌐 GET http://templerun.click/api/booking/poojas/?banner=true',
-      );
-      debugPrint(
-        '   🌐 GET http://templerun.click/api/booking/poojas/weekly_pooja',
-      );
-      debugPrint(
-        '   🌐 GET http://templerun.click/api/booking/poojas/?special_pooja=true',
-      );
+      debugPrint('🔄 Clearing and refreshing Special Pooja Dates only...');
+      debugPrint('📋 This will trigger API calls for date-related data only');
 
-      // Clear all special pooja related Hive boxes
+      // Note: Since SpecialPoojaDate affects all special pooja data,
+      // we still need to refresh all providers but with more specific logging
       await _clearSpecialPoojaHiveBoxes();
 
       // Invalidate all special pooja providers to trigger refresh
-      debugPrint('🔄 Invalidating providers to trigger API calls...');
+      debugPrint(
+        '🔄 Invalidating special pooja providers to trigger API calls...',
+      );
       ref.invalidate(specialPoojasProvider);
       ref.invalidate(weeklyPoojasProvider);
       ref.invalidate(specialPrayersProvider);
 
+      // Also invalidate booking providers to prevent stale booking data
+      debugPrint('🔄 Invalidating booking providers to prevent stale data...');
+      ref.invalidate(bookingPoojaProvider);
+      ref.invalidate(cartProvider);
+
       debugPrint(
-        '✅ Special Pooja Data refresh initiated - API calls will be triggered when providers are accessed',
+        '✅ Special Pooja Dates refresh initiated - API calls will be triggered when providers are accessed',
       );
     } catch (e, stack) {
       debugPrint('❌ [SyncRepository] Failed to refresh SpecialPoojaDate: $e');
+      debugPrint(stack.toString());
+    }
+  }
+
+  /// Refresh only Special Pooja Banner (when SpecialPooja/SpecialPoojaBanner model is updated)
+  Future<void> _refreshSpecialPoojaBannerOnly(Ref ref) async {
+    try {
+      debugPrint('🔄 Clearing and refreshing Special Pooja Banner only...');
+      debugPrint('📋 This will trigger: GET /poojas/?banner=true');
+
+      // Clear only banner box
+      if (Hive.isBoxOpen('specialPoojas')) {
+        final box = Hive.box<SpecialPooja>('specialPoojas');
+        await box.clear();
+        debugPrint('🧹 Cleared specialPoojas box');
+      }
+
+      // Invalidate banner provider
+      debugPrint('🔄 Invalidating banner provider...');
+      ref.invalidate(specialPoojasProvider);
+
+      // Also invalidate booking providers to prevent stale booking data
+      debugPrint('🔄 Invalidating booking providers to prevent stale data...');
+      ref.invalidate(bookingPoojaProvider);
+      ref.invalidate(cartProvider);
+
+      debugPrint('✅ Special Pooja Banner refresh initiated');
+    } catch (e, stack) {
+      debugPrint('❌ [SyncRepository] Failed to refresh SpecialPoojaBanner: $e');
+      debugPrint(stack.toString());
+    }
+  }
+
+  /// Refresh only Weekly Pooja (when WeeklyPooja/WeeklyPoojaData model is updated)
+  Future<void> _refreshWeeklyPoojaOnly(Ref ref) async {
+    try {
+      debugPrint('🔄 Clearing and refreshing Weekly Pooja only...');
+      debugPrint('📋 This will trigger: GET /poojas/weekly_pooja');
+
+      // Clear only weekly poojas box
+      if (Hive.isBoxOpen('weeklyPoojas')) {
+        final box = Hive.box<SpecialPooja>('weeklyPoojas');
+        await box.clear();
+        debugPrint('🧹 Cleared weeklyPoojas box');
+      }
+
+      // Invalidate weekly poojas provider
+      debugPrint('🔄 Invalidating weekly poojas provider...');
+      ref.invalidate(weeklyPoojasProvider);
+
+      // Also invalidate booking providers to prevent stale booking data
+      debugPrint('🔄 Invalidating booking providers to prevent stale data...');
+      ref.invalidate(bookingPoojaProvider);
+      ref.invalidate(cartProvider);
+
+      debugPrint('✅ Weekly Pooja refresh initiated');
+    } catch (e, stack) {
+      debugPrint('❌ [SyncRepository] Failed to refresh WeeklyPooja: $e');
+      debugPrint(stack.toString());
+    }
+  }
+
+  /// Refresh only Special Prayer (when SpecialPrayer/SpecialPrayerData model is updated)
+  Future<void> _refreshSpecialPrayerOnly(Ref ref) async {
+    try {
+      debugPrint('🔄 Clearing and refreshing Special Prayer only...');
+      debugPrint('📋 This will trigger: GET /poojas/?special_pooja=true');
+
+      // Clear only special prayers box
+      if (Hive.isBoxOpen('specialPrayers')) {
+        final box = Hive.box<SpecialPooja>('specialPrayers');
+        await box.clear();
+        debugPrint('🧹 Cleared specialPrayers box');
+      }
+
+      // Invalidate special prayers provider
+      debugPrint('🔄 Invalidating special prayers provider...');
+      ref.invalidate(specialPrayersProvider);
+
+      // Also invalidate booking providers to prevent stale booking data
+      debugPrint('🔄 Invalidating booking providers to prevent stale data...');
+      ref.invalidate(bookingPoojaProvider);
+      ref.invalidate(cartProvider);
+
+      debugPrint('✅ Special Prayer refresh initiated');
+    } catch (e, stack) {
+      debugPrint('❌ [SyncRepository] Failed to refresh SpecialPrayer: $e');
+      debugPrint(stack.toString());
+    }
+  }
+
+  /// Refresh only Music (when Music/Song/MusicData model is updated)
+  Future<void> _refreshMusicOnly(Ref ref) async {
+    try {
+      debugPrint('🔄 Clearing and refreshing Music only...');
+      debugPrint('📋 This will trigger: GET /song/songs/');
+
+      // Since music doesn't use Hive caching, we just invalidate the provider
+      // This will trigger a fresh API call when the music page is accessed
+      debugPrint('🔄 Invalidating music provider...');
+      ref.invalidate(songsProvider);
+
+      // Also invalidate any music-related state providers to reset the music player
+      debugPrint('🔄 Invalidating music player state...');
+      ref.invalidate(queueProvider);
+      ref.invalidate(queueIndexProvider);
+      ref.invalidate(currentlyPlayingIdProvider);
+      ref.invalidate(isPlayingProvider);
+      ref.invalidate(isMutedProvider);
+
+      debugPrint(
+        '✅ Music refresh initiated - fresh API call will be triggered when music page is accessed',
+      );
+    } catch (e, stack) {
+      debugPrint('❌ [SyncRepository] Failed to refresh Music: $e');
       debugPrint(stack.toString());
     }
   }
