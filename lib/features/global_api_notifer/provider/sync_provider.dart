@@ -5,16 +5,21 @@ import 'package:temple_app/features/global_api_notifer/data/repository/sync_repo
 
 final syncRepositoryProvider = Provider((ref) => SyncRepository());
 
-/// Periodic background check (every 30 mins)
+/// Periodic background check (every 30 seconds)
 final syncTimerProvider = Provider.autoDispose((ref) {
   final repo = ref.read(syncRepositoryProvider);
 
-  Timer.periodic(const Duration(seconds:30 ), (_) async {
-    await repo.checkForUpdates(ref );
+  print('🚀 Starting 30-second sync timer...');
+  print('⏰ First sync check will happen immediately');
+
+  Timer.periodic(const Duration(seconds: 30), (timer) async {
+    print('⏰ 30-second timer triggered - starting sync check...');
+    await repo.checkForUpdates(ref);
   });
 
   // Optional: immediate check when app opens
-  repo.checkForUpdates(ref );
+  print('🔄 Performing immediate sync check...');
+  repo.checkForUpdates(ref);
 });
 
 /// For manual refresh via UI button

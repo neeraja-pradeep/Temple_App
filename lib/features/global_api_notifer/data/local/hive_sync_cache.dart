@@ -8,8 +8,11 @@ class HiveSyncCache {
   static Future<void> saveLastUpdated(String timestamp) async {
     try {
       final box = await Hive.openBox(_syncBox);
+      // Clear old timestamp and save new one (Hive.put automatically overwrites)
       await box.put(_lastUpdateKey, timestamp);
-      debugPrint('✅ [HiveSyncCache] Saved last update timestamp: $timestamp');
+      debugPrint(
+        '✅ [HiveSyncCache] Cleared old timestamp and saved new: $timestamp',
+      );
     } catch (e) {
       debugPrint('❌ [HiveSyncCache] Failed to save timestamp: $e');
     }
@@ -24,6 +27,16 @@ class HiveSyncCache {
     } catch (e) {
       debugPrint('❌ [HiveSyncCache] Failed to get timestamp: $e');
       return null;
+    }
+  }
+
+  static Future<void> clearTimestamp() async {
+    try {
+      final box = await Hive.openBox(_syncBox);
+      await box.delete(_lastUpdateKey);
+      debugPrint('🧹 [HiveSyncCache] Cleared timestamp only');
+    } catch (e) {
+      debugPrint('❌ [HiveSyncCache] Failed to clear timestamp: $e');
     }
   }
 

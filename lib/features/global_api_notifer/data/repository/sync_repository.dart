@@ -26,13 +26,17 @@ class SyncRepository {
 
   ///  Check the global update timestamp and refresh if needed
   Future<void> checkForUpdates(Ref ref) async {
-    debugPrint(' [SyncRepository] Checking for updates...');
+    debugPrint('🔄 [SyncRepository] Starting 30-second sync check...');
+    debugPrint('⏰ Timestamp: ${DateTime.now().toIso8601String()}');
 
     try {
+      debugPrint('🌐 API Call #1: GET $_baseUrl/global-update/');
       final response = await http.get(Uri.parse("$_baseUrl/global-update/"));
+      debugPrint('📥 Response Status: ${response.statusCode}');
+
       if (response.statusCode != 200) {
         debugPrint(
-          ' [SyncRepository] Failed global-update: ${response.statusCode}',
+          '❌ [SyncRepository] Failed global-update: ${response.statusCode}',
         );
         return;
       }
@@ -41,54 +45,75 @@ class SyncRepository {
       final latestTimestamp = data['last_updated'];
       final cachedTimestamp = await HiveSyncCache.getLastUpdated();
 
-      debugPrint(' Server timestamp: $latestTimestamp');
-      debugPrint(' Cached timestamp: $cachedTimestamp');
+      debugPrint('📊 Server timestamp: $latestTimestamp');
+      debugPrint('💾 Cached timestamp: $cachedTimestamp');
+      debugPrint(
+        '🔍 Timestamp comparison: ${cachedTimestamp == latestTimestamp ? "SAME" : "DIFFERENT"}',
+      );
 
       // If new update detected
       if (cachedTimestamp == null || cachedTimestamp != latestTimestamp) {
-        debugPrint(' New update detected! Fetching details...');
+        debugPrint('🆕 New update detected! Fetching details...');
+        debugPrint(
+          '🔄 Processing updates and will save new timestamp after completion',
+        );
+
         final processed = await _processGlobalUpdateDetails(ref);
         if (processed) {
-          await HiveSyncCache.saveLastUpdated(
-            '2024-10-09T13:46:07.862214+05:30',
-          ); //2024-10-09T13:46:07.862214+05:30 -------------> for testing puprose only | | orginal line(latestTimestamp)
+          // Clear old timestamp and save new one
+          await HiveSyncCache.saveLastUpdated(latestTimestamp);
+          debugPrint(
+            '💾 Cleared old timestamp and saved new timestamp: $latestTimestamp',
+          );
+          debugPrint(
+            '✅ Sync completed successfully - timestamp updated locally',
+          );
         } else {
           debugPrint(
-            ' [SyncRepository] Detail processing failed; cached timestamp unchanged.',
+            '❌ [SyncRepository] Detail processing failed; cached timestamp unchanged.',
           );
         }
       } else {
-        debugPrint(' No new updates found.');
+        debugPrint('✅ No new updates found - sync check complete');
+        debugPrint('💾 Using existing cached timestamp: $cachedTimestamp');
       }
     } catch (e, stack) {
-      debugPrint(' [SyncRepository] Error checking updates: $e');
+      debugPrint('❌ [SyncRepository] Error checking updates: $e');
       debugPrint(stack.toString());
     }
+
+    debugPrint('🏁 [SyncRepository] 30-second sync check completed');
+    debugPrint('⏰ Next check in 30 seconds...');
   }
 
   /// dY"< Fetch details of what models were updated
   Future<bool> _processGlobalUpdateDetails(Ref ref) async {
     try {
+      debugPrint('🌐 API Call #2: GET $_baseUrl/global-update-details/');
       final response = await http.get(
         Uri.parse("$_baseUrl/global-update-details/"),
       );
+      debugPrint('📥 Response Status: ${response.statusCode}');
+
       if (response.statusCode != 200) {
         debugPrint(
-          '[SyncRepository] Failed global-update-details: ${response.statusCode}',
+          '❌ [SyncRepository] Failed global-update-details: ${response.statusCode}',
         );
         return false;
       }
 
       final data = jsonDecode(response.body);
       final List results = data['results'];
+      debugPrint('📋 Found ${results.length} model updates to process');
 
       for (final item in results) {
         final detail = GlobalUpdateDetailModel.fromJson(item);
-        debugPrint(' Model changed: ${detail.modelName}');
+        debugPrint('🔄 Processing model change: ${detail.modelName}');
 
         // Match model and refresh accordingly
         switch (detail.modelName) {
           case 'PoojaCategory':
+            debugPrint('📂 Refreshing PoojaCategory...');
             await _refreshHiveBox(
               'poojaCategoryBox',
               'PoojaCategory',
@@ -96,24 +121,28 @@ class SyncRepository {
             break;
 
           case 'Pooja':
+            debugPrint('📂 Refreshing Pooja...');
             await _refreshStoreCategory(ref);
             break;
 
           case 'StoreCategory':
+            debugPrint('📂 Refreshing StoreCategory...');
             await _refreshStoreCategory(ref);
             break;
 
           case 'SpecialPoojaDate':
+            debugPrint('📂 Refreshing SpecialPoojaDate...');
             await _refreshSpecialPoojaData(ref);
             break;
 
           default:
-            debugPrint(' [SyncRepository] Unknown model: ${detail.modelName}');
+            debugPrint('❓ [SyncRepository] Unknown model: ${detail.modelName}');
         }
       }
+      debugPrint('✅ All model updates processed successfully');
       return true;
     } catch (e, stack) {
-      debugPrint(' [SyncRepository] Error processing details: $e');
+      debugPrint('❌ [SyncRepository] Error processing details: $e');
       debugPrint(stack.toString());
       return false;
     }
@@ -174,16 +203,29 @@ class SyncRepository {
   Future<void> _refreshSpecialPoojaData(Ref ref) async {
     try {
       debugPrint('🔄 Clearing and refreshing Special Pooja Data...');
+      debugPrint('📋 This will trigger the following API calls:');
+      debugPrint(
+        '   🌐 GET http://templerun.click/api/booking/poojas/?banner=true',
+      );
+      debugPrint(
+        '   🌐 GET http://templerun.click/api/booking/poojas/weekly_pooja',
+      );
+      debugPrint(
+        '   🌐 GET http://templerun.click/api/booking/poojas/?special_pooja=true',
+      );
 
       // Clear all special pooja related Hive boxes
       await _clearSpecialPoojaHiveBoxes();
 
       // Invalidate all special pooja providers to trigger refresh
+      debugPrint('🔄 Invalidating providers to trigger API calls...');
       ref.invalidate(specialPoojasProvider);
       ref.invalidate(weeklyPoojasProvider);
       ref.invalidate(specialPrayersProvider);
 
-      debugPrint('✅ Special Pooja Data refresh initiated');
+      debugPrint(
+        '✅ Special Pooja Data refresh initiated - API calls will be triggered when providers are accessed',
+      );
     } catch (e, stack) {
       debugPrint('❌ [SyncRepository] Failed to refresh SpecialPoojaDate: $e');
       debugPrint(stack.toString());
