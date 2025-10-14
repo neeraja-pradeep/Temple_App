@@ -8,6 +8,7 @@ import 'package:temple_app/core/constants/sized.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/features/shop/cart/presentation/app_bar.dart';
 import 'package:temple_app/features/shop/cart/providers/addToCart_provider.dart';
+import 'package:temple_app/features/shop/cart/providers/cart_provider.dart';
 import 'package:temple_app/features/shop/delivery/presentation/add_address.dart';
 import 'package:temple_app/features/shop/delivery/presentation/deliverd_completedPage.dart';
 import 'package:temple_app/features/shop/delivery/presentation/saved_address.dart';
@@ -301,7 +302,9 @@ class PaymentMethodScreen extends ConsumerWidget {
               if (!context.mounted) return;
 
               if (orderId != null) {
+                await ref.read(cartProviders.notifier).clearCart();
                 ref.watch(selectedPaymentProvider.notifier).state = -1;
+                if (!context.mounted) return;
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(

@@ -96,9 +96,12 @@ Map<String, _ModelUpdateHandler> buildModelHandlers(SyncRepository repo) {
     'PoojaOrder': _wrapLogOnly(
       '📂 PoojaOrder update detected - manual refresh required.',
     ),
-    'Order': _wrapLogOnly(
-      '📂 Order update detected - manual refresh required.',
+    'Order': _wrapRef(
+      repo,
+      'Refreshing store orders...',
+      (ref) => _refreshStoreOrders(repo, ref),
     ),
+    
   };
 }
 

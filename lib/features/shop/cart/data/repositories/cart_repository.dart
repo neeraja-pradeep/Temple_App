@@ -374,14 +374,64 @@ class CartRepository {
     }
   }
 
+  Future<bool> _clearRemoteCartItems() async {
+    try {
+      final remoteItems = await _fetchRemoteCartItems();
+      if (remoteItems == null) {
+        log('[CART] Skipped clearing remote cart because fetch failed');
+        return false;
+      }
+      if (remoteItems.isEmpty) {
+        log('[CART] Remote cart already empty');
+        return true;
+      }
+
+      final headers = await _jsonHeaders();
+      var allDeleted = true;
+
+      for (final item in remoteItems) {
+        try {
+          final response = await http.delete(
+            _cartItemUri(item.id),
+            headers: headers,
+          );
+          final ok = response.statusCode == 200 ||
+              response.statusCode == 204 ||
+              response.statusCode == 202;
+          if (!ok) {
+            allDeleted = false;
+            log(
+              '[CART] Failed deleting remote item ${item.id}: '
+              '${response.statusCode} ${response.body}',
+            );
+          }
+        } catch (e, st) {
+          allDeleted = false;
+          log('[CART] Exception deleting remote item ${item.id}: $e');
+          log(st.toString());
+        }
+      }
+
+      return allDeleted;
+    } catch (e, st) {
+      log('[CART] Exception while clearing remote cart: $e');
+      log(st.toString());
+      return false;
+    }
+  }
+
   Future<bool> clearCart() async {
     try {
+      final remoteCleared = await _clearRemoteCartItems();
       final box = await _cartBox();
       await box.clear();
-      log('✅ Cart cleared successfully after order completion');
-      return true;
+      log('Cart cleared successfully after order completion');
+      if (!remoteCleared) {
+        log('[CART] Remote cart may still contain items; see previous logs');
+      }
+      return remoteCleared;
     } catch (e, st) {
-      log('🚨 Failed to clear cart: $e');
+      log('dYs" Failed to clear cart: $e');
       log(st.toString());
       return false;
     }

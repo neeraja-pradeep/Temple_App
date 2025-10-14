@@ -12,7 +12,7 @@ final syncTimerProvider = Provider.autoDispose((ref) {
   print('🚀 Starting 30-second sync timer...');
   print('⏰ First sync check will happen immediately');
 
-  Timer.periodic(const Duration(seconds: 30), (timer) async {
+  Timer.periodic(const Duration(minutes: 1), (timer) async {
     print('⏰ 30-second timer triggered - starting sync check...');
     await repo.checkForUpdates(ref);
   });

@@ -17,7 +17,14 @@ class DeliverdCompletedPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SafeArea(
+    return WillPopScope(
+      onWillPop: () async {
+        await ref.read(cartProviders.notifier).clearCart();
+        ref.read(onclickCheckoutButton.notifier).state = false;
+        ref.read(onclickConformCheckoutButton.notifier).state = false;
+        return true;
+      },
+      child: SafeArea(
       child: Scaffold(
         body: Stack(
           fit: StackFit.expand,
@@ -260,6 +267,6 @@ class DeliverdCompletedPage extends ConsumerWidget {
           ],
         ),
       ),
-    );
+      ));
   }
 }

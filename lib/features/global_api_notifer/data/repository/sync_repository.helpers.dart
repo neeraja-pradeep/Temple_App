@@ -71,6 +71,28 @@ Future<void> _refreshStoreCategory(SyncRepository repo, Ref ref) async {
   }
 }
 
+Future<void> _refreshStoreOrders(SyncRepository repo, Ref ref) async {
+  try {
+    debugPrint('Clearing and refreshing Store Orders...');
+    final targets = StoreOrderService.cacheBoxNames();
+    for (final name in targets) {
+      final box = await _ensureTypedBox<StoreOrder>(repo, name);
+      await box.clear();
+    }
+
+    _invalidateProviders(
+      ref,
+      logMessage: 'Invalidating store orders provider...',
+      providers: [storeOrdersProvider],
+    );
+
+    debugPrint('Store Orders refresh initiated');
+  } catch (e, stack) {
+    debugPrint(' [SyncRepository] Failed to refresh StoreOrder: $e');
+    debugPrint(stack.toString());
+  }
+}
+
 Future<void> _refreshSpecialPoojaDatesOnly(SyncRepository repo, Ref ref) async {
   try {
     debugPrint('🔄 Clearing and refreshing Special Pooja Dates only...');
