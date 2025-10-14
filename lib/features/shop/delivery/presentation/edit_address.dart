@@ -6,6 +6,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:temple_app/core/constants/sized.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/features/shop/delivery/data/model/address_model.dart';
+import 'package:temple_app/features/shop/delivery/data/repositories/delivery_repository.dart'
+    show AddressRepositoryException;
 import 'package:temple_app/features/shop/delivery/providers/delivery_provider.dart';
 import 'package:temple_app/features/shop/widget/text_formfield.dart';
 import 'package:temple_app/widgets/mytext.dart';
@@ -102,10 +104,15 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
       }
       Navigator.pop(context);
     } catch (e) {
+      final fallback = widget.address == null
+          ? "Failed to add address"
+          : "Failed to update address";
+      final message = e is AddressRepositoryException
+          ? e.message
+          : e.toString().replaceFirst('Exception: ', '');
+
       showToast(
-        widget.address == null
-            ? "Failed to add address"
-            : "Failed to update address",
+        message.isNotEmpty ? message : fallback,
         bgColor: primaryThemeColor,
       );
     }

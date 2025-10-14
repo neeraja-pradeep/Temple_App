@@ -36,8 +36,8 @@ class AddressNotifier extends StateNotifier<AsyncValue<List<AddressModel>>> {
     try {
       await repository.updateAddress(address);
       await fetchAddresses();
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -45,8 +45,8 @@ class AddressNotifier extends StateNotifier<AsyncValue<List<AddressModel>>> {
     try {
       await repository.addAddress(address);
       fetchAddresses();
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+    } catch (e) {
+      rethrow;
     }
   }
 

@@ -5,20 +5,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:temple_app/core/constants/api_constants.dart';
+import 'package:temple_app/features/booking/providers/booking_provider.dart';
 import 'package:temple_app/features/global_api_notifer/data/model/global_update_model.dart';
+import 'package:temple_app/features/music/providers/music_providers.dart';
 import 'package:temple_app/features/pooja/data/models/pooja_category_model.dart';
 import 'package:temple_app/features/shop/data/repositories/category_repository.dart';
 import 'package:temple_app/features/shop/data/repositories/product_repository.dart';
-import 'package:temple_app/features/special/data/special_pooja_repository.dart';
-import 'package:temple_app/features/special/data/weekly_pooja_repository.dart';
-import 'package:temple_app/features/special/data/special_prayer_repository.dart';
-import 'package:temple_app/features/special/providers/special_pooja_provider.dart';
 import 'package:temple_app/features/special/data/special_pooja_model.dart';
-import 'package:temple_app/features/booking/providers/booking_provider.dart';
-import 'package:temple_app/features/music/providers/music_providers.dart';
+import 'package:temple_app/features/special/data/special_pooja_repository.dart';
+import 'package:temple_app/features/special/data/special_prayer_repository.dart';
+import 'package:temple_app/features/special/data/weekly_pooja_repository.dart';
+import 'package:temple_app/features/special/providers/special_pooja_provider.dart';
 
 // Import repositories
 import '../local/hive_sync_cache.dart';
+
+typedef _ModelUpdateHandler = Future<void> Function(Ref ref);
 
 class SyncRepository {
   static const _baseUrl = "http://templerun.click/api/booking";
@@ -29,6 +31,91 @@ class SyncRepository {
   final SpecialPoojaRepository _specialPoojaRepo = SpecialPoojaRepository();
   final WeeklyPoojaRepository _weeklyPoojaRepo = WeeklyPoojaRepository();
   final SpecialPrayerRepository _specialPrayerRepo = SpecialPrayerRepository();
+  late final Map<String, _ModelUpdateHandler> _modelHandlers;
+
+  SyncRepository() {
+    _modelHandlers = {
+      'PoojaCategory': _wrapNoRef(
+        '📂 Refreshing PoojaCategory...',
+        () => _refreshHiveBox<PoojaCategory>('poojaCategoryBox'),
+      ),
+      'Pooja': _wrapRef('📂 Refreshing Pooja...', _refreshStoreCategory),
+      'StoreCategory': _wrapRef(
+        '📂 Refreshing StoreCategory...',
+        _refreshStoreCategory,
+      ),
+      'SpecialPoojaDate': _wrapRef(
+        '📂 Refreshing SpecialPoojaDate...',
+        _refreshSpecialPoojaDatesOnly,
+      ),
+      'SpecialPooja': _wrapRef(
+        '📂 Refreshing Special Pooja Banner...',
+        _refreshSpecialPoojaBannerOnly,
+      ),
+      'SpecialPoojaBanner': _wrapRef(
+        '📂 Refreshing Special Pooja Banner...',
+        _refreshSpecialPoojaBannerOnly,
+      ),
+      'WeeklyPooja': _wrapRef(
+        '📂 Refreshing Weekly Pooja...',
+        _refreshWeeklyPoojaOnly,
+      ),
+      'WeeklyPoojaData': _wrapRef(
+        '📂 Refreshing Weekly Pooja...',
+        _refreshWeeklyPoojaOnly,
+      ),
+      'SpecialPrayer': _wrapRef(
+        '📂 Refreshing Special Prayer...',
+        _refreshSpecialPrayerOnly,
+      ),
+      'SpecialPrayerData': _wrapRef(
+        '📂 Refreshing Special Prayer...',
+        _refreshSpecialPrayerOnly,
+      ),
+      'Music': _wrapRef('📂 Refreshing Music...', _refreshMusicOnly),
+      'Song': _wrapRef('📂 Refreshing Music...', _refreshMusicOnly),
+      'MusicData': _wrapRef('📂 Refreshing Music...', _refreshMusicOnly),
+    };
+  }
+
+  _ModelUpdateHandler _wrapNoRef(
+    String message,
+    Future<void> Function() handler,
+  ) {
+    return (ref) async {
+      debugPrint(message);
+      await handler();
+    };
+  }
+
+  _ModelUpdateHandler _wrapRef(
+    String message,
+    Future<void> Function(Ref ref) handler,
+  ) {
+    return (ref) async {
+      debugPrint(message);
+      await handler(ref);
+    };
+  }
+
+  void _invalidateProviders(
+    Ref ref, {
+    required String logMessage,
+    required Iterable<ProviderOrFamily> providers,
+  }) {
+    debugPrint(logMessage);
+    for (final provider in providers) {
+      ref.invalidate(provider);
+    }
+  }
+
+  void _invalidateBookingProviders(Ref ref) {
+    _invalidateProviders(
+      ref,
+      logMessage: '🔄 Invalidating booking providers to prevent stale data...',
+      providers: [bookingPoojaProvider, cartProvider],
+    );
+  }
 
   ///  Check the global update timestamp and refresh if needed
   Future<void> checkForUpdates(Ref ref) async {
@@ -114,61 +201,12 @@ class SyncRepository {
 
       for (final item in results) {
         final detail = GlobalUpdateDetailModel.fromJson(item);
-        debugPrint('🔄 Processing model change: ${detail.modelName}');
-
-        // Match model and refresh accordingly
-        switch (detail.modelName) {
-          case 'PoojaCategory':
-            debugPrint('📂 Refreshing PoojaCategory...');
-            await _refreshHiveBox(
-              'poojaCategoryBox',
-              'PoojaCategory',
-            ); // sets your logic
-            break;
-
-          case 'Pooja':
-            debugPrint('📂 Refreshing Pooja...');
-            await _refreshStoreCategory(ref);
-            break;
-
-          case 'StoreCategory':
-            debugPrint('📂 Refreshing StoreCategory...');
-            await _refreshStoreCategory(ref);
-            break;
-
-          case 'SpecialPoojaDate':
-            debugPrint('📂 Refreshing SpecialPoojaDate...');
-            await _refreshSpecialPoojaDatesOnly(ref);
-            break;
-
-          // Add specific model names for other special pooja components
-          case 'SpecialPooja':
-          case 'SpecialPoojaBanner':
-            debugPrint('📂 Refreshing Special Pooja Banner...');
-            await _refreshSpecialPoojaBannerOnly(ref);
-            break;
-
-          case 'WeeklyPooja':
-          case 'WeeklyPoojaData':
-            debugPrint('📂 Refreshing Weekly Pooja...');
-            await _refreshWeeklyPoojaOnly(ref);
-            break;
-
-          case 'SpecialPrayer':
-          case 'SpecialPrayerData':
-            debugPrint('📂 Refreshing Special Prayer...');
-            await _refreshSpecialPrayerOnly(ref);
-            break;
-
-          case 'Music':
-          case 'Song':
-          case 'MusicData':
-            debugPrint('📂 Refreshing Music...');
-            await _refreshMusicOnly(ref);
-            break;
-
-          default:
-            debugPrint('❓ [SyncRepository] Unknown model: ${detail.modelName}');
+        final handler = _modelHandlers[detail.modelName];
+        if (handler != null) {
+          debugPrint('🔄 Processing model change: ${detail.modelName}');
+          await handler(ref);
+        } else {
+          debugPrint('❓ [SyncRepository] Unknown model: ${detail.modelName}');
         }
       }
       debugPrint('✅ All model updates processed successfully');
@@ -181,9 +219,9 @@ class SyncRepository {
   }
 
   ///  Generic Hive clear
-  Future<void> _refreshHiveBox(String boxName, String modelName) async {
+  Future<void> _refreshHiveBox<T>(String boxName) async {
     try {
-      final box = await _ensureBoxForModel(boxName, modelName);
+      final box = await _ensureTypedBox<T>(boxName);
       await box.clear();
       debugPrint('Cleared Hive box: $boxName');
     } catch (e) {
@@ -191,33 +229,20 @@ class SyncRepository {
     }
   }
 
-  Future<Box> _ensureBoxForModel(String boxName, String modelName) async {
+  Future<Box<T>> _ensureTypedBox<T>(String boxName) async {
     if (Hive.isBoxOpen(boxName)) {
-      try {
-        return _getOpenBoxForModel(boxName, modelName);
-      } catch (_) {
-        await Hive.box(boxName).close();
-      }
+      return Hive.box<T>(boxName);
     }
-    return _openBoxForModel(boxName, modelName);
+    return Hive.openBox<T>(boxName);
   }
 
-  Box _getOpenBoxForModel(String boxName, String modelName) {
-    switch (modelName) {
-      case 'PoojaCategory':
-        return Hive.box<PoojaCategory>(boxName);
-      default:
-        return Hive.box(boxName);
+  Future<void> _clearBoxIfOpen<T>(String boxName) async {
+    if (!Hive.isBoxOpen(boxName)) {
+      return;
     }
-  }
-
-  Future<Box> _openBoxForModel(String boxName, String modelName) {
-    switch (modelName) {
-      case 'PoojaCategory':
-        return Hive.openBox<PoojaCategory>(boxName);
-      default:
-        return Hive.openBox(boxName);
-    }
+    final box = Hive.box<T>(boxName);
+    await box.clear();
+    debugPrint('🧹 Cleared $boxName box');
   }
 
   Future<void> _refreshStoreProducts(Ref ref) async {
@@ -251,18 +276,18 @@ class SyncRepository {
       // we still need to refresh all providers but with more specific logging
       await _clearSpecialPoojaHiveBoxes();
 
-      // Invalidate all special pooja providers to trigger refresh
-      debugPrint(
-        '🔄 Invalidating special pooja providers to trigger API calls...',
+      _invalidateProviders(
+        ref,
+        logMessage:
+            '🔄 Invalidating special pooja providers to trigger API calls...',
+        providers: [
+          specialPoojasProvider,
+          weeklyPoojasProvider,
+          specialPrayersProvider,
+        ],
       );
-      ref.invalidate(specialPoojasProvider);
-      ref.invalidate(weeklyPoojasProvider);
-      ref.invalidate(specialPrayersProvider);
 
-      // Also invalidate booking providers to prevent stale booking data
-      debugPrint('🔄 Invalidating booking providers to prevent stale data...');
-      ref.invalidate(bookingPoojaProvider);
-      ref.invalidate(cartProvider);
+      _invalidateBookingProviders(ref);
 
       debugPrint(
         '✅ Special Pooja Dates refresh initiated - API calls will be triggered when providers are accessed',
@@ -279,21 +304,15 @@ class SyncRepository {
       debugPrint('🔄 Clearing and refreshing Special Pooja Banner only...');
       debugPrint('📋 This will trigger: GET /poojas/?banner=true');
 
-      // Clear only banner box
-      if (Hive.isBoxOpen('specialPoojas')) {
-        final box = Hive.box<SpecialPooja>('specialPoojas');
-        await box.clear();
-        debugPrint('🧹 Cleared specialPoojas box');
-      }
+      await _clearBoxIfOpen<SpecialPooja>('specialPoojas');
 
-      // Invalidate banner provider
-      debugPrint('🔄 Invalidating banner provider...');
-      ref.invalidate(specialPoojasProvider);
+      _invalidateProviders(
+        ref,
+        logMessage: '🔄 Invalidating banner provider...',
+        providers: [specialPoojasProvider],
+      );
 
-      // Also invalidate booking providers to prevent stale booking data
-      debugPrint('🔄 Invalidating booking providers to prevent stale data...');
-      ref.invalidate(bookingPoojaProvider);
-      ref.invalidate(cartProvider);
+      _invalidateBookingProviders(ref);
 
       debugPrint('✅ Special Pooja Banner refresh initiated');
     } catch (e, stack) {
@@ -308,21 +327,15 @@ class SyncRepository {
       debugPrint('🔄 Clearing and refreshing Weekly Pooja only...');
       debugPrint('📋 This will trigger: GET /poojas/weekly_pooja');
 
-      // Clear only weekly poojas box
-      if (Hive.isBoxOpen('weeklyPoojas')) {
-        final box = Hive.box<SpecialPooja>('weeklyPoojas');
-        await box.clear();
-        debugPrint('🧹 Cleared weeklyPoojas box');
-      }
+      await _clearBoxIfOpen<SpecialPooja>('weeklyPoojas');
 
-      // Invalidate weekly poojas provider
-      debugPrint('🔄 Invalidating weekly poojas provider...');
-      ref.invalidate(weeklyPoojasProvider);
+      _invalidateProviders(
+        ref,
+        logMessage: '🔄 Invalidating weekly poojas provider...',
+        providers: [weeklyPoojasProvider],
+      );
 
-      // Also invalidate booking providers to prevent stale booking data
-      debugPrint('🔄 Invalidating booking providers to prevent stale data...');
-      ref.invalidate(bookingPoojaProvider);
-      ref.invalidate(cartProvider);
+      _invalidateBookingProviders(ref);
 
       debugPrint('✅ Weekly Pooja refresh initiated');
     } catch (e, stack) {
@@ -337,21 +350,15 @@ class SyncRepository {
       debugPrint('🔄 Clearing and refreshing Special Prayer only...');
       debugPrint('📋 This will trigger: GET /poojas/?special_pooja=true');
 
-      // Clear only special prayers box
-      if (Hive.isBoxOpen('specialPrayers')) {
-        final box = Hive.box<SpecialPooja>('specialPrayers');
-        await box.clear();
-        debugPrint('🧹 Cleared specialPrayers box');
-      }
+      await _clearBoxIfOpen<SpecialPooja>('specialPrayers');
 
-      // Invalidate special prayers provider
-      debugPrint('🔄 Invalidating special prayers provider...');
-      ref.invalidate(specialPrayersProvider);
+      _invalidateProviders(
+        ref,
+        logMessage: '🔄 Invalidating special prayers provider...',
+        providers: [specialPrayersProvider],
+      );
 
-      // Also invalidate booking providers to prevent stale booking data
-      debugPrint('🔄 Invalidating booking providers to prevent stale data...');
-      ref.invalidate(bookingPoojaProvider);
-      ref.invalidate(cartProvider);
+      _invalidateBookingProviders(ref);
 
       debugPrint('✅ Special Prayer refresh initiated');
     } catch (e, stack) {
@@ -368,16 +375,24 @@ class SyncRepository {
 
       // Since music doesn't use Hive caching, we just invalidate the provider
       // This will trigger a fresh API call when the music page is accessed
-      debugPrint('🔄 Invalidating music provider...');
-      ref.invalidate(songsProvider);
+      _invalidateProviders(
+        ref,
+        logMessage: '🔄 Invalidating music provider...',
+        providers: [songsProvider],
+      );
 
       // Also invalidate any music-related state providers to reset the music player
-      debugPrint('🔄 Invalidating music player state...');
-      ref.invalidate(queueProvider);
-      ref.invalidate(queueIndexProvider);
-      ref.invalidate(currentlyPlayingIdProvider);
-      ref.invalidate(isPlayingProvider);
-      ref.invalidate(isMutedProvider);
+      _invalidateProviders(
+        ref,
+        logMessage: '🔄 Invalidating music player state...',
+        providers: [
+          queueProvider,
+          queueIndexProvider,
+          currentlyPlayingIdProvider,
+          isPlayingProvider,
+          isMutedProvider,
+        ],
+      );
 
       debugPrint(
         '✅ Music refresh initiated - fresh API call will be triggered when music page is accessed',
@@ -391,26 +406,9 @@ class SyncRepository {
   /// Clear all special pooja related Hive boxes
   Future<void> _clearSpecialPoojaHiveBoxes() async {
     try {
-      // Clear special poojas (banner) box
-      if (Hive.isBoxOpen('specialPoojas')) {
-        final box = Hive.box<SpecialPooja>('specialPoojas');
-        await box.clear();
-        debugPrint('🧹 Cleared specialPoojas box');
-      }
-
-      // Clear weekly poojas box
-      if (Hive.isBoxOpen('weeklyPoojas')) {
-        final box = Hive.box<SpecialPooja>('weeklyPoojas');
-        await box.clear();
-        debugPrint('🧹 Cleared weeklyPoojas box');
-      }
-
-      // Clear special prayers box
-      if (Hive.isBoxOpen('specialPrayers')) {
-        final box = Hive.box<SpecialPooja>('specialPrayers');
-        await box.clear();
-        debugPrint('🧹 Cleared specialPrayers box');
-      }
+      await _clearBoxIfOpen<SpecialPooja>('specialPoojas');
+      await _clearBoxIfOpen<SpecialPooja>('weeklyPoojas');
+      await _clearBoxIfOpen<SpecialPooja>('specialPrayers');
     } catch (e) {
       debugPrint('❌ Error clearing special pooja boxes: $e');
     }

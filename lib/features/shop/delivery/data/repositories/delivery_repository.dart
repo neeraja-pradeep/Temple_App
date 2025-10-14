@@ -14,6 +14,54 @@ class AddressRepository {
     return await Hive.openBox<AddressModel>('addressBox');
   }
 
+  String _extractErrorMessage(http.Response response, String fallbackMessage) {
+    if (response.body.isNotEmpty) {
+      try {
+        final dynamic decoded = jsonDecode(response.body);
+
+        if (decoded is Map<String, dynamic>) {
+          final collected = <String>[];
+
+          for (final entry in decoded.entries) {
+            final value = entry.value;
+            if (value is List && value.isNotEmpty) {
+              collected.add(value.first.toString());
+            } else if (value is String && value.isNotEmpty) {
+              collected.add(value);
+            }
+          }
+
+          if (collected.isNotEmpty) {
+            return collected.join('\n');
+          }
+        } else if (decoded is List && decoded.isNotEmpty) {
+          return decoded.first.toString();
+        } else if (decoded is String && decoded.isNotEmpty) {
+          return decoded;
+        }
+      } catch (_) {
+        // Ignore JSON parsing issues and fall back to status-based messages.
+      }
+    }
+
+    switch (response.statusCode) {
+      case 400:
+        return 'Invalid request. Please check the details and try again.';
+      case 401:
+        return 'Session expired. Please sign in again.';
+      case 403:
+        return "You don't have permission to perform this action.";
+      case 404:
+        return 'Address not found.';
+      case 409:
+        return 'Address already exists.';
+      case 500:
+        return 'Server error occurred. Please try again later.';
+      default:
+        return fallbackMessage;
+    }
+  }
+
   /// Fetch Addresses (API + Cache)
   Future<List<AddressModel>> fetchAddresses() async {
     final box = await _openBox();
@@ -115,14 +163,21 @@ class AddressRepository {
         log("✅ Address added successfully: ${newAddress.name}");
         return newAddress;
       } else {
-        log(
-          "❌ Add failed. Status: ${response.statusCode}, Body: ${response.body}",
+        final message = _extractErrorMessage(
+          response,
+          "Failed to add address",
         );
-        throw Exception("Failed to add address");
+        log("❌ Add failed. Status: ${response.statusCode}, Message: $message");
+        throw AddressRepositoryException(message);
       }
     } catch (e) {
       log("❌ Exception while adding: $e");
-      rethrow;
+      if (e is AddressRepositoryException) {
+        rethrow;
+      }
+      throw AddressRepositoryException(
+        'Network error occurred while adding address. Please try again.',
+      );
     }
   }
 
@@ -182,14 +237,21 @@ class AddressRepository {
         log("✅ Address with ID ${updatedAddress.id} updated.");
         return updatedAddress;
       } else {
-        log(
-          "❌ Update failed. Status: ${response.statusCode}, Body: ${response.body}",
+        final message = _extractErrorMessage(
+          response,
+          "Failed to update address",
         );
-        throw Exception("Failed to update address");
+        log("❌ Update failed. Status: ${response.statusCode}, Message: $message");
+        throw AddressRepositoryException(message);
       }
     } catch (e) {
       log("❌ Exception while updating: $e");
-      rethrow;
+      if (e is AddressRepositoryException) {
+        rethrow;
+      }
+      throw AddressRepositoryException(
+        'Network error occurred while updating address. Please try again.',
+      );
     }
   }
 
@@ -340,4 +402,13 @@ class AddressRepository {
       throw Exception("Network error occurred while deleting address");
     }
   }
+}
+
+class AddressRepositoryException implements Exception {
+  final String message;
+
+  AddressRepositoryException(this.message);
+
+  @override
+  String toString() => message;
 }
