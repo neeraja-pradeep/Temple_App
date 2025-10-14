@@ -810,24 +810,26 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
             },
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            poojas.length >= 3 ? poojas.length : 3,
-            (index) => AnimatedContainer(
-              duration: Duration(milliseconds: 200),
-              margin: EdgeInsets.symmetric(horizontal: 4.w),
-              width: currentPage == index ? 35.w : 12.w,
-              height: 12.w,
-              decoration: BoxDecoration(
-                color: currentPage == index
-                    ? AppColors.selected
-                    : AppColors.unselected,
-                borderRadius: BorderRadius.circular(12.w),
+        // Only show dots if there are more than 1 banner
+        if (poojas.length > 1)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              poojas.length,
+              (index) => AnimatedContainer(
+                duration: Duration(milliseconds: 200),
+                margin: EdgeInsets.symmetric(horizontal: 4.w),
+                width: currentPage == index ? 35.w : 12.w,
+                height: 12.w,
+                decoration: BoxDecoration(
+                  color: currentPage == index
+                      ? AppColors.selected
+                      : AppColors.unselected,
+                  borderRadius: BorderRadius.circular(12.w),
+                ),
               ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -847,6 +849,7 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
           ),
           child: _buildShimmerBox(343.w, 142.h, 8.r),
         ),
+        // Show 3 dots in skeleton loading state
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
