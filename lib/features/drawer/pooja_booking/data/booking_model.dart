@@ -1,19 +1,55 @@
-class Booking {
+import 'package:hive/hive.dart';
+
+part 'booking_model.g.dart';
+
+@HiveType(typeId: 20)
+class Booking extends HiveObject {
+  @HiveField(0)
   final int id;
+
+  @HiveField(1)
   final int user;
+
+  @HiveField(2)
   final UserDetails? userDetails;
+
+  @HiveField(3)
   final String? status;
+
+  @HiveField(4)
   final String? statusDisplay;
+
+  @HiveField(5)
   final String? total;
+
+  @HiveField(6)
   final String? razorpayOrderId;
+
+  @HiveField(7)
   final String? razorpayPaymentId;
+
+  @HiveField(8)
   final String? refundAmount;
+
+  @HiveField(9)
   final String? refundStatus;
+
+  @HiveField(10)
   final String? refundStatusDisplay;
+
+  @HiveField(11)
   final String? razorpayRefundId;
+
+  @HiveField(12)
   final String? refundReason;
+
+  @HiveField(13)
   final String? createdAt;
+
+  @HiveField(14)
   final String? modifiedAt;
+
+  @HiveField(15)
   final List<OrderLine> orderLines;
 
   Booking({
@@ -61,11 +97,21 @@ class Booking {
   }
 }
 
-class UserDetails {
+@HiveType(typeId: 21)
+class UserDetails extends HiveObject {
+  @HiveField(0)
   final int id;
+
+  @HiveField(1)
   final String? email;
+
+  @HiveField(2)
   final String? phoneNumber;
+
+  @HiveField(3)
   final String? firstName;
+
+  @HiveField(4)
   final String? lastName;
 
   UserDetails({
@@ -87,24 +133,60 @@ class UserDetails {
   }
 }
 
-class OrderLine {
+@HiveType(typeId: 22)
+class OrderLine extends HiveObject {
+  @HiveField(0)
   final int id;
+
+  @HiveField(1)
   final int pooja;
+
+  @HiveField(2)
   final PoojaDetails? poojaDetails;
+
+  @HiveField(3)
   final int? specialPoojaDate;
+
+  @HiveField(4)
   final SpecialPoojaDateDetails? specialPoojaDateDetails;
+
+  @HiveField(5)
   final String? selectedDate;
+
+  @HiveField(6)
   final int userList;
+
+  @HiveField(7)
   final UserListDetails? userListDetails;
+
+  @HiveField(8)
   final int userAttribute;
+
+  @HiveField(9)
   final UserAttributeDetails? userAttributeDetails;
+
+  @HiveField(10)
   final String? price;
+
+  @HiveField(11)
   final String? effectivePrice;
+
+  @HiveField(12)
   final String? status;
+
+  @HiveField(13)
   final String? statusDisplay;
+
+  @HiveField(14)
   final String? poojaStatus;
+
+  @HiveField(15)
   final String? poojaStatusDisplay;
+
+  @HiveField(16)
   final bool? isCancelled;
+
+  @HiveField(17)
   final List<String> selectedDates;
 
   OrderLine({
@@ -129,8 +211,9 @@ class OrderLine {
   });
 
   factory OrderLine.fromJson(Map<String, dynamic> json) {
-    final selectedDates = _mapSelectedDates(json['selected_dates']);
-
+    final selectedDates = (json['selected_dates'] as List? ?? [])
+        .map((e) => e.toString())
+        .toList();
     return OrderLine(
       id: json['id'] ?? 0,
       pooja: json['pooja'] ?? 0,
@@ -163,26 +246,28 @@ class OrderLine {
   }
 }
 
-List<String> _mapSelectedDates(dynamic value) {
-  if (value is List) {
-    return value.map((e) => e.toString()).toList();
-  }
-  if (value is String && value.isNotEmpty) {
-    return [value];
-  }
-  return const [];
-}
-
-class PoojaDetails {
+// Repeat HiveType/Field for nested classes
+@HiveType(typeId: 23)
+class PoojaDetails extends HiveObject {
+  @HiveField(0)
   final int id;
+  @HiveField(1)
   final String? name;
+  @HiveField(2)
   final int? category;
+  @HiveField(3)
   final String? categoryName;
+  @HiveField(4)
   final String? price;
+  @HiveField(5)
   final bool? status;
+  @HiveField(6)
   final bool? specialPooja;
+  @HiveField(7)
   final List<SpecialPoojaDateDetails> specialPoojaDates;
+  @HiveField(8)
   final String? mediaUrl;
+  @HiveField(9)
   final String? bannerUrl;
 
   PoojaDetails({
@@ -216,18 +301,31 @@ class PoojaDetails {
   }
 }
 
-class SpecialPoojaDateDetails {
+@HiveType(typeId: 24)
+class SpecialPoojaDateDetails extends HiveObject {
+  @HiveField(0)
   final int id;
+  @HiveField(1)
   final int? pooja;
+  @HiveField(2)
   final String? poojaName;
+  @HiveField(3)
   final String? date;
+  @HiveField(4)
   final String? malayalamDate;
+  @HiveField(5)
   final String? time;
+  @HiveField(6)
   final String? price;
+  @HiveField(7)
   final bool? status;
+  @HiveField(8)
   final bool? banner;
+  @HiveField(9)
   final String? createdAt;
+  @HiveField(10)
   final String? modifiedAt;
+  @HiveField(11)
   final int? linkedOrdersCount;
 
   SpecialPoojaDateDetails({
@@ -263,10 +361,15 @@ class SpecialPoojaDateDetails {
   }
 }
 
-class UserListDetails {
+@HiveType(typeId: 25)
+class UserListDetails extends HiveObject {
+  @HiveField(0)
   final int id;
+  @HiveField(1)
   final String? name;
+  @HiveField(2)
   final int? user;
+  @HiveField(3)
   final List<UserAttributeDetails> attributes;
 
   UserListDetails({
@@ -288,9 +391,13 @@ class UserListDetails {
   }
 }
 
-class UserAttributeDetails {
+@HiveType(typeId: 26)
+class UserAttributeDetails extends HiveObject {
+  @HiveField(0)
   final int id;
+  @HiveField(1)
   final int? nakshatram;
+  @HiveField(2)
   final String? nakshatramName;
 
   UserAttributeDetails({

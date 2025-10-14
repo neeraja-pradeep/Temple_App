@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:temple_app/core/constants/sized.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/features/shop/delivery/data/model/address_model.dart';
@@ -39,49 +40,63 @@ class _AddAddressSheetState extends ConsumerState<AddAddressSheet> {
   }
 
   Future<void> saveAddress() async {
-    if (nameController.text.isEmpty) {
-      showToast("Please enter your name");
-      return;
-    }
-    if (address1Controller.text.isEmpty) {
-      showToast("Please enter address line 01");
-      return;
-    }
-    if (address2Controller.text.isEmpty) {
-      showToast("Please enter address line 02");
-      return;
-    }
-    if (pincodeController.text.isEmpty ||
-        !RegExp(r'^[0-9]{6}$').hasMatch(pincodeController.text)) {
-      showToast("Please enter a valid 6-digit pincode");
-      return;
-    }
-    if (phoneController.text.isEmpty ||
-        !RegExp(r'^[0-9]{10}$').hasMatch(phoneController.text)) {
-      showToast("Please enter a valid 10-digit phone number");
-      return;
-    }
-
-    final newAddress = AddressModel(
-      id: 0, // Backend will assign ID
-      name: nameController.text.trim(),
-      street: address1Controller.text.trim(),
-      city: address2Controller.text.trim(), // adjust if needed
-      state: "",
-      country: "India",
-      pincode: pincodeController.text.trim(),
-      selection: true,
-      phonenumber: phoneController.text.trim(),
-    );
-
-    try {
-      await ref.read(addressListProvider.notifier).addAddress(newAddress);
-      Navigator.pop(context);
-      showToast("Address added successfully", bgColor: primaryThemeColor);
-    } catch (e) {
-      showToast("Failed to add address", bgColor: primaryThemeColor);
-    }
+  // 🧾 Step 1: Validate inputs
+  if (nameController.text.isEmpty) return showToast("Please enter your name");
+  if (address1Controller.text.isEmpty) return showToast("Please enter address line 01");
+  if (address2Controller.text.isEmpty) return showToast("Please enter address line 02");
+  if (pincodeController.text.isEmpty || !RegExp(r'^[0-9]{6}$').hasMatch(pincodeController.text)) {
+    return showToast("Please enter a valid 6-digit pincode");
   }
+  if (phoneController.text.isEmpty || !RegExp(r'^[0-9]{10}$').hasMatch(phoneController.text)) {
+    return showToast("Please enter a valid 10-digit phone number");
+  }
+
+  
+  final newAddress = AddressModel(
+    id: 0, // backend will assign
+    name: nameController.text.trim(),
+    street: address1Controller.text.trim(),
+    city: address2Controller.text.trim(),
+    state: "N/A",
+    country: "India",
+    pincode: pincodeController.text.trim(),
+    selection: true,
+    phonenumber: phoneController.text.trim(),
+  );
+
+  final box = await Hive.openBox<AddressModel>('addressBox');
+
+  // 🚫 Step 3: Check for duplicates in Hive
+  final duplicate = box.values.any((a) => a.phonenumber == newAddress.phonenumber);
+  if (duplicate) {
+    return showToast("An address with this phone number already exists.");
+  }
+
+  try {
+    // 🌐 Step 4: API call
+    try {
+  await ref.read(addressListProvider.notifier).addAddress(newAddress);
+} catch (e, s) {
+  debugPrint("🔥 Error inside addAddress(): $e");
+  debugPrint(s.toString());
+  showToast("Failed: $e");
+  return;
+}
+
+    // 💾 Step 5: Store in Hive (using backend ID)
+    await box.put(newAddress.id, newAddress);
+
+    if (mounted) Navigator.pop(context);
+    showToast("Address added successfully", bgColor: primaryThemeColor);
+  } catch (e) {
+    String errMsg = "Failed to add address";
+    if (e.toString().contains("phone_number")) {
+      errMsg = "An address with this phone number already exists.";
+    }
+    showToast(errMsg, bgColor: Colors.redAccent);
+  }
+}
+
 
   void deleteAddress() {
     nameController.clear();
