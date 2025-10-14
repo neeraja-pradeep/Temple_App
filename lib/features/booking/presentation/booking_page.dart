@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/core/app_colors.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/features/booking/data/booking_pooja_model.dart';
-import 'package:temple_app/features/booking/presentation/pooja_summary_page.dart';
 import 'package:temple_app/features/booking/providers/booking_page_providers.dart';
 import 'package:temple_app/features/booking/providers/booking_provider.dart';
 import 'package:temple_app/features/booking/providers/user_list_provider.dart';
@@ -13,7 +12,6 @@ import 'package:temple_app/features/booking/presentation/widgets/booking_info_ca
 import 'package:temple_app/features/booking/presentation/widgets/pooja_for_whom_section.dart';
 import 'package:temple_app/features/booking/presentation/widgets/booking_calendar_card.dart';
 import 'package:temple_app/features/booking/presentation/widgets/booking_bottom_button.dart';
-import 'package:temple_app/widgets/custom_calendar_picker.dart';
 
 class BookingPage extends ConsumerWidget {
   final int poojaId;
@@ -123,8 +121,11 @@ class BookingPage extends ConsumerWidget {
 
     return Consumer(
       builder: (context, ref, _) {
-        _handleAutoSelection(ref, pooja);
-        _handleUserSelection(ref);
+        // Move state updates to post frame callback to avoid setState during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _handleAutoSelection(ref, pooja);
+          _handleUserSelection(ref);
+        });
 
         return Stack(
           fit: StackFit.expand,
@@ -139,7 +140,12 @@ class BookingPage extends ConsumerWidget {
             ),
             // Content
             SingleChildScrollView(
-              padding: EdgeInsets.all(16.w),
+              padding: EdgeInsets.fromLTRB(
+                16.w,
+                16.h,
+                16.w,
+                75.h,
+              ), // Increased bottom padding
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -161,7 +167,10 @@ class BookingPage extends ConsumerWidget {
                   SizedBox(height: 12.h),
                   // Pooja For Whom Section
                   _buildPoojaForWhomSection(ref),
-                  SizedBox(height: 100.h), // Add extra space for bottom button
+                  SizedBox(height: 20.h),
+                  // Total Price Section
+                  _buildTotalPriceSection(ref, pooja),
+                  // SizedBox(height: 20.h),
                 ],
               ),
             ),
@@ -230,6 +239,84 @@ class BookingPage extends ConsumerWidget {
         style: TextStyle(color: primaryThemeColor),
       ),
     );
+  }
+
+  Widget _buildTotalPriceSection(WidgetRef ref, BookingPooja pooja) {
+    final selectedUsers = ref.watch(selectedUsersProvider(userId));
+    final showCalendar = ref.watch(showCalendarProvider);
+
+    // Don't show price when calendar is open
+    if (showCalendar) return SizedBox.shrink();
+
+    // Calculate price based on pooja type and selected date
+    double basePrice = _calculateBasePrice(ref, pooja);
+    final int userCount = selectedUsers.isNotEmpty ? selectedUsers.length : 1;
+    final double totalPrice = basePrice * userCount;
+
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8.r,
+            offset: Offset(0, 4.h),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'ആകെതുക: ₹${totalPrice.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+              fontFamily: 'NotoSansMalayalam',
+            ),
+          ),
+          SizedBox(height: 12.h),
+          Text(
+            'നോസ്ത്രുഡ് എക്സെപ്റ്റെർ ഡ്യൂയിസ് മാഗ്നാ ക്വിസ് എനിം എനിം എസ്റ്റ് ഉല്ലാംകോ പ്രൊഇഡന്റ് ഉട്ട് നിസി ഉല്ലാംകോ മിനിം',
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: Colors.grey[700],
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  double _calculateBasePrice(WidgetRef ref, BookingPooja pooja) {
+    double basePrice;
+    if (pooja.specialPooja) {
+      // For special pooja, use the price of the selected special date
+      final selectedDate = ref.watch(selectedCalendarDateProvider);
+      if (selectedDate != null) {
+        try {
+          final selectedSpecialDate = pooja.specialPoojaDates.firstWhere(
+            (date) => date.date == selectedDate,
+          );
+          basePrice = double.tryParse(selectedSpecialDate.price) ?? 0.0;
+        } catch (e) {
+          // Fallback to first available special date price
+          basePrice =
+              double.tryParse(pooja.specialPoojaDates.first.price) ?? 0.0;
+        }
+      } else {
+        // No date selected, use first available special date price
+        basePrice = double.tryParse(pooja.specialPoojaDates.first.price) ?? 0.0;
+      }
+    } else {
+      // For regular pooja, use the base price
+      basePrice = double.tryParse(pooja.price) ?? 0.0;
+    }
+    return basePrice;
   }
 
   void _handleAutoSelection(WidgetRef ref, BookingPooja pooja) {

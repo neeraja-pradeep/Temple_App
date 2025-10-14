@@ -35,16 +35,16 @@ class DeliverdCompletedPage extends ConsumerWidget {
             Column(
               children: [
                 /// Custom App Bar
-                CheckoutAppBarSection(
-                  onPressed: () async {
-                    // Clear cart data after successful order completion
-                    await ref.read(cartProviders.notifier).clearCart();
+                // CheckoutAppBarSection(
+                //   onPressed: () async {
+                //     // Clear cart data after successful order completion
+                //     await ref.read(cartProviders.notifier).clearCart();
 
-                    ref.watch(onclickCheckoutButton.notifier).state = false;
-                    ref.watch(onclickConformCheckoutButton.notifier).state =
-                        false;
-                  },
-                ),
+                //     ref.watch(onclickCheckoutButton.notifier).state = false;
+                //     ref.watch(onclickConformCheckoutButton.notifier).state =
+                //         false;
+                //   },
+                // ),
 
                 /// Main White Card Section
                 Expanded(
@@ -54,7 +54,7 @@ class DeliverdCompletedPage extends ConsumerWidget {
                       bottom: 50.h,
                       left: 11.w,
                       right: 11.w,
-                      top: 5.h,
+                      top: 50.h,
                     ),
                     child: Container(
                       width: double.infinity,
@@ -243,17 +243,17 @@ class DeliverdCompletedPage extends ConsumerWidget {
                 AppSizes.h10,
 
                 /// Bottom Text: View Orders
-                GestureDetector(
-                  onTap: () {},
-                  child: Center(
-                    child: WText(
-                      text: 'മൈ ഓർഡേഴ്സ് കാണുക',
-                      color: primaryThemeColor,
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+                // GestureDetector(
+                //   onTap: () {},
+                //   child: Center(
+                //     child: WText(
+                //       text: 'മൈ ഓർഡേഴ്സ് കാണുക',
+                //       color: primaryThemeColor,
+                //       fontSize: 11.sp,
+                //       fontWeight: FontWeight.bold,
+                //     ),
+                //   ),
+                // ),
                 AppSizes.h20,
               ],
             ),

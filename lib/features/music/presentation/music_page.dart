@@ -114,12 +114,12 @@ class _MusicPageState extends ConsumerState<MusicPage> {
         leadingWidth: 64.w,
         leading: Padding(
           padding: EdgeInsets.only(left: 0.w),
-          child: Image.asset(
-            'assets/icons/playlist.png',
-            width: 24.w,
-            height: 24.h,
-            color: AppColors.selected,
-          ),
+          // child: Image.asset(
+          //   'assets/icons/playlist.png',
+          //   width: 24.w,
+          //   height: 24.h,
+          //   color: AppColors.selected,
+          // ),
         ),
         title: Text(
           'Playlist',
@@ -196,9 +196,7 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                             await player.play();
                             ref.read(isPlayingProvider.notifier).state = true;
                           } catch (e, st) {
-                            debugPrint(
-                              'AUDIO LOAD ERROR (list tap): $e',
-                            );
+                            debugPrint('AUDIO LOAD ERROR (list tap): $e');
                             debugPrint(st.toString());
                             try {
                               final String httpsUrl =
@@ -215,9 +213,7 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                               await player.play();
                               ref.read(isPlayingProvider.notifier).state = true;
                             } catch (e2, st2) {
-                              debugPrint(
-                                'Retry failed (list tap): $e2',
-                              );
+                              debugPrint('Retry failed (list tap): $e2');
                               debugPrint(st2.toString());
                             }
                           }

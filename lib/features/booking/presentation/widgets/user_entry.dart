@@ -128,4 +128,3 @@ class UserEntry extends ConsumerWidget {
     );
   }
 }
-

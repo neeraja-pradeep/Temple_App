@@ -96,26 +96,32 @@ class BookingInfoCard extends StatelessWidget {
           // Date Information (only show when not from PoojaPage)
           if (source != 'pooja') ...[
             if (pooja.specialPooja && pooja.specialPoojaDates.isNotEmpty) ...[
-              // Special Pooja - Show first available date
-              Text(
-                pooja.specialPoojaDates.first.malayalamDate,
-                style: TextStyle(
-                  fontFamily: 'NotoSansMalayalam',
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.black,
+              // Special Pooja - Show selected date or first available date
+              if (selectedDate != null) ...[
+                // Show selected date
+                _buildSelectedDateDisplay(selectedDate!),
+              ] else ...[
+                // Show first available date as placeholder
+                Text(
+                  pooja.specialPoojaDates.first.malayalamDate,
+                  style: TextStyle(
+                    fontFamily: 'NotoSansMalayalam',
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black,
+                  ),
                 ),
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                _formatDate(pooja.specialPoojaDates.first.date),
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.grey[600],
+                SizedBox(height: 4.h),
+                Text(
+                  _formatDate(pooja.specialPoojaDates.first.date),
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.grey[600],
+                  ),
                 ),
-              ),
-              SizedBox(height: 8.h),
+                SizedBox(height: 8.h),
+              ],
             ] else if (!pooja.specialPooja) ...[
               // Regular Pooja - Show instruction to select date
               Text(
@@ -132,6 +138,39 @@ class BookingInfoCard extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildSelectedDateDisplay(String selectedDate) {
+    // Find the corresponding special pooja date to get Malayalam date
+    final specialDate = pooja.specialPoojaDates.firstWhere(
+      (d) => d.date == selectedDate,
+      orElse: () => pooja.specialPoojaDates.first,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          specialDate.malayalamDate,
+          style: TextStyle(
+            fontFamily: 'NotoSansMalayalam',
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w400,
+            color: Colors.black,
+          ),
+        ),
+        SizedBox(height: 4.h),
+        Text(
+          _formatDate(selectedDate),
+          style: TextStyle(
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w400,
+            color: Colors.grey[600],
+          ),
+        ),
+        SizedBox(height: 8.h),
+      ],
     );
   }
 
@@ -163,4 +202,3 @@ class BookingInfoCard extends StatelessWidget {
     }
   }
 }
-
