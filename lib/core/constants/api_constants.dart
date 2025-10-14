@@ -34,6 +34,11 @@ class ApiConstants {
   static const String orders = '$ecommerceBase/orders/';
   static const String addresses = '$ecommerceBase/address/';
 
+  // ---------------------------- Home Screen -------------------------------- //
+  static const String profile = '$baseUrl/user/profile/';
+  static String song(int songId) => '$baseUrl/song/songs/$songId/';
+  static const String godCategories = '$bookingBase/poojacategory/';
+
   /// Details for a specific cart item.
   static String cartItem(int cartId) => '$cart$cartId/';
 

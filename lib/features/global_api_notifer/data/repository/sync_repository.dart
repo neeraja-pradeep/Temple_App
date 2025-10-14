@@ -5,7 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:temple_app/core/constants/api_constants.dart';
+import 'package:temple_app/features/drawer/pooja_booking/data/booking_model.dart';
+import 'package:temple_app/features/drawer/saved_members/data/member_model.dart';
+import 'package:temple_app/features/drawer/store_order/data/order_model.dart';
 import 'package:temple_app/features/global_api_notifer/data/model/global_update_model.dart';
+import 'package:temple_app/features/home/data/models/god_category_model.dart';
+import 'package:temple_app/features/home/data/models/song_model.dart';
 import 'package:temple_app/features/pooja/data/models/pooja_category_model.dart';
 import 'package:temple_app/features/shop/data/repositories/category_repository.dart';
 import 'package:temple_app/features/shop/data/repositories/product_repository.dart';
@@ -16,6 +21,7 @@ import 'package:temple_app/features/special/providers/special_pooja_provider.dar
 import 'package:temple_app/features/special/data/special_pooja_model.dart';
 import 'package:temple_app/features/booking/providers/booking_provider.dart';
 import 'package:temple_app/features/music/providers/music_providers.dart';
+import 'package:temple_app/features/shop/delivery/data/model/address_model.dart';
 
 // Import repositories
 import '../local/hive_sync_cache.dart';
@@ -101,12 +107,7 @@ class SyncRepository {
       );
       debugPrint('📥 Response Status: ${response.statusCode}');
 
-      if (response.statusCode != 200) {
-        debugPrint(
-          '❌ [SyncRepository] Failed global-update-details: ${response.statusCode}',
-        );
-        return false;
-      }
+
 
       final data = jsonDecode(response.body);
       final List results = data['results'];
@@ -160,11 +161,49 @@ class SyncRepository {
             await _refreshSpecialPrayerOnly(ref);
             break;
 
-          case 'Music':
-          case 'Song':
           case 'MusicData':
             debugPrint('📂 Refreshing Music...');
             await _refreshMusicOnly(ref);
+          case 'Product':
+
+          case 'ProductType':
+
+          case 'ProductVariant':
+            await _refreshStoreProducts(ref);
+            break;
+          
+          case 'PoojaOrder':
+
+          case 'Category':
+
+          
+          // Home 
+          case 'GodCategories': 
+            await _refreshHiveBox('godCategoriesBox', 'GodCategories');
+            break;
+
+          case 'Profile': 
+            await _refreshHiveBox('profileBox', 'Profile');
+            break;  
+
+          case 'Song':
+            await _refreshHiveBox('songBox', 'Song');
+
+          // Drawer
+          case 'Order':
+            await _refreshHiveBox('storeOrders', 'StoreOrder');
+            break;
+          
+          case 'UserList':
+            await _refreshHiveBox('memberBox', 'MemberModel');
+            break;
+          
+          case 'Booking': // model_name not known
+            await _refreshHiveBox('bookingBox', 'Booking');
+            break;
+
+          case 'Address':
+            await _refreshHiveBox('addressBox', 'AddressModel');
             break;
 
           default:
@@ -192,33 +231,56 @@ class SyncRepository {
   }
 
   Future<Box> _ensureBoxForModel(String boxName, String modelName) async {
-    if (Hive.isBoxOpen(boxName)) {
-      try {
-        return _getOpenBoxForModel(boxName, modelName);
-      } catch (_) {
-        await Hive.box(boxName).close();
-      }
-    }
-    return _openBoxForModel(boxName, modelName);
+  if (Hive.isBoxOpen(boxName)) {
+    // Simply return the already open box to avoid HiveError
+    return _getOpenBoxForModel(boxName, modelName);
   }
+  return _openBoxForModel(boxName, modelName);
+}
 
   Box _getOpenBoxForModel(String boxName, String modelName) {
-    switch (modelName) {
-      case 'PoojaCategory':
-        return Hive.box<PoojaCategory>(boxName);
-      default:
-        return Hive.box(boxName);
-    }
+  switch (modelName) {
+    case 'PoojaCategory':
+      return Hive.box<PoojaCategory>(boxName);
+    case 'MemberModel':
+      return Hive.box<MemberModel>(boxName);
+    case 'StoreOrder':
+      return Hive.box<StoreOrder>(boxName);
+    case 'Booking':
+      return Hive.box<Booking>(boxName);
+    case 'Song':
+      return Hive.box<Song>(boxName);
+    case 'AddressModel':
+      return Hive.box<AddressModel>(boxName);
+    case 'GodCategories':
+      return Hive.box<GodCategory>(boxName);
+    // add for SpecialPoojaDate
+    default:
+      return Hive.box(boxName);
   }
+}
 
   Future<Box> _openBoxForModel(String boxName, String modelName) {
-    switch (modelName) {
-      case 'PoojaCategory':
-        return Hive.openBox<PoojaCategory>(boxName);
-      default:
-        return Hive.openBox(boxName);
-    }
+  switch (modelName) {
+    case 'PoojaCategory':
+      return Hive.openBox<PoojaCategory>(boxName);
+    case 'MemberModel':
+      return Hive.openBox<MemberModel>(boxName);
+    case 'StoreOrder':
+      return Hive.openBox<StoreOrder>(boxName);
+    case 'Booking':
+      return Hive.openBox<Booking>(boxName);
+    case 'Song':
+      return Hive.openBox<Song>(boxName);
+    case 'AddressModel':
+      return Hive.openBox<AddressModel>(boxName);
+    case 'GodCategories':
+      return Hive.openBox<GodCategory>(boxName);
+    // add for SpecialPoojaDate
+    default:
+      return Hive.openBox(boxName);
   }
+}
 
   Future<void> _refreshStoreProducts(Ref ref) async {
     try {

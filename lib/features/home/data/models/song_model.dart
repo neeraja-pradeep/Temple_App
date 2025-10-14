@@ -1,8 +1,18 @@
+import 'package:hive_flutter/hive_flutter.dart';
+
+part 'song_model.g.dart';
+
+@HiveType(typeId: 13)
 class Song {
+  @HiveField(0)
   final int id;
+  @HiveField(1)
   final String title;
+  @HiveField(2)
   final String artist;
+  @HiveField(3)
   final String streamUrl;
+  @HiveField(4)
   final String uploadedAt;
 
   Song({

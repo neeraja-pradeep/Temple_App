@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hive/hive.dart';
 import 'package:temple_app/core/constants/sized.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/features/shop/delivery/data/model/address_model.dart';
@@ -55,61 +56,78 @@ class _AddressSheetState extends ConsumerState<AddressSheet> {
   }
 
   Future<void> saveAddress() async {
-    if (nameController.text.isEmpty) {
-      showToast("Please enter your name");
-      return;
-    }
-    if (address1Controller.text.isEmpty) {
-      showToast("Please enter address line 01");
-      return;
-    }
-    if (address2Controller.text.isEmpty) {
-      showToast("Please enter address line 02");
-      return;
-    }
-    if (pincodeController.text.isEmpty ||
-        !RegExp(r'^[0-9]{6}$').hasMatch(pincodeController.text)) {
-      showToast("Please enter a valid 6-digit pincode");
-      return;
-    }
-    if (phoneController.text.isEmpty ||
-        !RegExp(r'^[0-9]{10}$').hasMatch(phoneController.text)) {
-      showToast("Please enter a valid 10-digit phone number");
-      return;
-    }
+  // 🧾 Step 1: Validate inputs
+  if (nameController.text.isEmpty) return showToast("Please enter your name");
+  if (address1Controller.text.isEmpty) return showToast("Please enter address line 01");
+  if (address2Controller.text.isEmpty) return showToast("Please enter address line 02");
+  if (pincodeController.text.isEmpty || !RegExp(r'^[0-9]{6}$').hasMatch(pincodeController.text)) {
+    return showToast("Please enter a valid 6-digit pincode");
+  }
+  if (phoneController.text.isEmpty || !RegExp(r'^[0-9]{10}$').hasMatch(phoneController.text)) {
+    return showToast("Please enter a valid 10-digit phone number");
+  }
 
-    final AddressModel newAddress = AddressModel(
-      id: widget.address?.id ?? 0, // Keep ID for edit
-      name: nameController.text.trim(),
-      street: address1Controller.text.trim(),
-      city: address2Controller.text.trim(),
-      state: widget.address?.state ?? "",
-      country: widget.address?.country ?? "India",
-      pincode: pincodeController.text.trim(),
-      selection: widget.address?.selection ?? true,
-      phonenumber: phoneController.text.trim(),
-    );
+  final phone = phoneController.text.trim();
 
-    try {
-      if (widget.address == null) {
-        // Add
-        await ref.read(addressListProvider.notifier).addAddress(newAddress);
-        showToast("Address added successfully", bgColor: primaryThemeColor);
-      } else {
-        // Edit
-        await ref.read(addressListProvider.notifier).updateAddress(newAddress);
-        showToast("Address updated successfully", bgColor: primaryThemeColor);
-      }
-      Navigator.pop(context);
-    } catch (e) {
-      showToast(
-        widget.address == null
-            ? "Failed to add address"
-            : "Failed to update address",
-        bgColor: primaryThemeColor,
+  // 🧱 Step 2: Check for duplicate phone number
+  final currentState = ref.read(addressListProvider);
+  if (currentState.hasValue) {
+    final existingAddresses = currentState.value!;
+    final isDuplicate = existingAddresses.any((addr) =>
+        addr.phonenumber == phone &&
+        addr.id != (widget.address?.id ?? -1)); // exclude current if editing
+
+    if (isDuplicate) {
+      return showToast(
+        "This phone number is already linked to another address.",
+        bgColor: Colors.redAccent,
       );
     }
   }
+
+  // 🧱 Step 3: Build model
+  final address = AddressModel(
+    id: widget.address?.id ?? 0,
+    name: nameController.text.trim(),
+    street: address1Controller.text.trim(),
+    city: address2Controller.text.trim(),
+    state: "",
+    country: "India",
+    pincode: pincodeController.text.trim(),
+    selection: true,
+    phonenumber: phone,
+  );
+
+  try {
+    final notifier = ref.read(addressListProvider.notifier);
+
+    if (widget.address == null) {
+      // 🆕 ADD NEW ADDRESS
+      await notifier.addAddress(address);
+      showToast("Address added successfully", bgColor: primaryThemeColor);
+    } else {
+      // ✏️ UPDATE EXISTING ADDRESS
+      await notifier.updateAddress(address);
+      showToast("Address updated successfully", bgColor: primaryThemeColor);
+    }
+
+    // 💾 Save locally to Hive
+    final box = await Hive.openBox<AddressModel>('addressBox');
+    await box.put(address.id, address);
+
+    if (mounted) Navigator.pop(context);
+  } catch (e) {
+    String errMsg = "Failed to save address";
+    if (e.toString().contains("phone_number")) {
+      errMsg = "An address with this phone number already exists.";
+    }
+    showToast(errMsg, bgColor: Colors.redAccent);
+  }
+}
+
+
+
+
 
   void deleteAddress() async {
     // Clear form fields

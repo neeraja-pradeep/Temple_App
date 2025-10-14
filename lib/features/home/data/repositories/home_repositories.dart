@@ -1,157 +1,130 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:hive/hive.dart';
 import 'package:temple_app/features/home/data/models/god_category_model.dart';
 import 'package:temple_app/features/home/data/models/profile_model.dart';
 import 'package:temple_app/features/home/data/models/song_model.dart';
 import '../../../../core/services/complete_token_service.dart';
-import '../../../../core/services/token_storage_service.dart';
 
 class HomeRepository {
   final String baseUrl = "http://templerun.click/api";
 
+  /// Fetch God Categories - Cache first
   Future<List<GodCategory>> fetchGodCategories() async {
-    print('🚀 Starting fetchGodCategories...');
+    final godBox = await Hive.openBox<GodCategory>('godCategoriesBox');
 
-    // Check token availability before retry loop
-    print(
-      '🔍 Pre-check: Token available? ${TokenStorageService.getIdToken() != null}',
-    );
-    print(
-      '🔍 Pre-check: Token expired? ${TokenStorageService.isTokenExpired()}',
-    );
+    // 1️⃣ Return cache if available
+    if (godBox.isNotEmpty) {
+      print('📦 Returning cached God Categories (${godBox.length} items)');
+      return godBox.values.toList();
+    }
 
-    // Retry mechanism for token availability
-    for (int attempt = 1; attempt <= 3; attempt++) {
-      try {
-        print('🔄 Attempt $attempt/3 starting...');
-        final url = Uri.parse('$baseUrl/booking/poojacategory/');
+    // 2️⃣ API call if cache is empty
+    final url = Uri.parse('$baseUrl/booking/poojacategory/');
+    final authHeader = await CompleteTokenService.getAuthorizationHeader();
+    if (authHeader == null) {
+      throw Exception('No valid authentication token found. Please login again.');
+    }
+    final headers = {'Accept': 'application/json', 'Authorization': authHeader};
 
-        // Add a small delay to ensure token is saved after login
-        await Future.delayed(Duration(milliseconds: 100 * attempt));
+    try {
+      final response = await http.get(url, headers: headers);
 
-        // Get authorization header with bearer token (auto-refresh if needed)
-        print(
-          '🔍 Attempting to get authorization header (attempt $attempt/3)...',
-        );
-        final authHeader = await CompleteTokenService.getAuthorizationHeader();
-        print(
-          '🔍 Authorization header result: ${authHeader != null ? '${authHeader.substring(0, 30)}...' : 'null'}',
-        );
-        if (authHeader == null) {
-          print('❌ No authorization header available (attempt $attempt/3)');
-          if (attempt == 3) {
-            throw Exception(
-              'No valid authentication token found. Please login again.',
-            );
-          }
-          print('🔄 Retrying in next attempt...');
-          continue; // Retry
+      if (response.statusCode == 200) {
+        final List<dynamic> results = jsonDecode(response.body)['results'] ?? [];
+        final categories = results
+            .map((e) => GodCategory.fromJson(e))
+            .where((cat) => cat.isActive)
+            .toList();
+
+        // Cache in Hive
+        await godBox.clear();
+        for (var category in categories) {
+          await godBox.put(category.id, category);
         }
+        print('💾 Cached ${categories.length} God Categories to Hive');
 
-        final headers = {
-          'Accept': 'application/json',
-          'Authorization': authHeader,
-        };
-
-        print(
-          '🌐 Making god categories API call to: $url (attempt $attempt/3)',
-        );
-        print('🔐 Authorization header: $authHeader');
-
-        final response = await http.get(url, headers: headers);
-
-        print('📥 God Categories API Response Status: ${response.statusCode}');
-        print('📥 God Categories API Response Body: ${response.body}');
-
-        if (response.statusCode == 200) {
-          final Map<String, dynamic> data = jsonDecode(response.body);
-
-          final List<dynamic> results = data["results"] ?? [];
-
-          final categories = results
-              .map((e) => GodCategory.fromJson(e))
-              .where((cat) => cat.isActive == true)
-              .toList();
-
-          print('✅ Successfully loaded ${categories.length} god categories');
-          return categories;
-        } else {
-          print(
-            '❌ God categories API failed with status: ${response.statusCode}',
-          );
-          print('❌ Response body: ${response.body}');
-          throw Exception(
-            "Failed to load God Categories: ${response.statusCode}",
-          );
-        }
-      } catch (e) {
-        print('❌ God categories fetch error (attempt $attempt/3): $e');
-        if (attempt == 3) {
-          rethrow; // Final attempt failed
-        }
-        // Continue to next attempt
+        return categories;
+      } else {
+        throw Exception("Failed to load God Categories: ${response.statusCode}");
       }
+    } catch (e) {
+      // fallback to cache if API fails
+      if (godBox.isNotEmpty) {
+        print('⚠️ Using cached God Categories from Hive after failure');
+        return godBox.values.toList();
+      }
+      rethrow;
     }
-
-    // This should never be reached, but just in case
-    throw Exception('All attempts to fetch god categories failed');
   }
 
+  /// Fetch Profile - Cache first
   Future<Profile> fetchProfile() async {
-    final url = Uri.parse('$baseUrl/user/profile/');
+    final profileBox = await Hive.openBox<Profile>('profileBox');
 
-    // Get authorization header with bearer token (auto-refresh if needed)
-    final authHeader = await CompleteTokenService.getAuthorizationHeader();
-    if (authHeader == null) {
-      throw Exception(
-        'No valid authentication token found. Please login again.',
-      );
+    if (profileBox.isNotEmpty) {
+      print('📦 Returning cached profile');
+      return profileBox.get('profile')!;
     }
+
+    final url = Uri.parse('$baseUrl/user/profile/');
+    final authHeader = await CompleteTokenService.getAuthorizationHeader();
+    if (authHeader == null) throw Exception('No valid authentication token found.');
 
     final headers = {'Accept': 'application/json', 'Authorization': authHeader};
 
-    print('🌐 Making profile API call to: $url');
-    print('🔐 Authorization header: $authHeader');
+    try {
+      final response = await http.get(url, headers: headers);
 
-    final response = await http.get(url, headers: headers);
-
-    print('📥 Profile API Response Status: ${response.statusCode}');
-    print('📥 Profile API Response Body: ${response.body}');
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      return Profile.fromJson(data['profile']);
-    } else {
-      throw Exception("Failed to load Profile");
+      if (response.statusCode == 200) {
+        final profile = Profile.fromJson(jsonDecode(response.body)['profile']);
+        await profileBox.put('profile', profile);
+        print('💾 Cached Profile to Hive');
+        return profile;
+      } else {
+        throw Exception("Failed to load Profile");
+      }
+    } catch (e) {
+      if (profileBox.isNotEmpty) {
+        print('⚠️ Using cached Profile after API failure');
+        return profileBox.get('profile')!;
+      }
+      rethrow;
     }
   }
 
+  /// Fetch Song - Cache first
   Future<Song> fetchSong() async {
-    final url = Uri.parse('$baseUrl/song/songs/14/');
+    final songBox = await Hive.openBox<Song>('songBox');
 
-    // Get authorization header with bearer token (auto-refresh if needed)
-    final authHeader = await CompleteTokenService.getAuthorizationHeader();
-    if (authHeader == null) {
-      throw Exception(
-        'No valid authentication token found. Please login again.',
-      );
+    if (songBox.isNotEmpty) {
+      print('📦 Returning cached Song');
+      return songBox.get('song')!;
     }
+
+    final url = Uri.parse('$baseUrl/song/songs/14/');
+    final authHeader = await CompleteTokenService.getAuthorizationHeader();
+    if (authHeader == null) throw Exception('No valid authentication token found.');
 
     final headers = {'Accept': 'application/json', 'Authorization': authHeader};
 
-    print('🌐 Making song API call to: $url');
-    print('🔐 Authorization header: $authHeader');
+    try {
+      final response = await http.get(url, headers: headers);
 
-    final response = await http.get(url, headers: headers);
-
-    print('📥 Song API Response Status: ${response.statusCode}');
-    print('📥 Song API Response Body: ${response.body}');
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      return Song.fromJson(data);
-    } else {
-      throw Exception("Failed to load Song");
+      if (response.statusCode == 200) {
+        final song = Song.fromJson(jsonDecode(response.body));
+        await songBox.put('song', song);
+        print('💾 Cached Song to Hive');
+        return song;
+      } else {
+        throw Exception("Failed to load Song");
+      }
+    } catch (e) {
+      if (songBox.isNotEmpty) {
+        print('⚠️ Using cached Song after API failure');
+        return songBox.get('song')!;
+      }
+      rethrow;
     }
   }
 }
