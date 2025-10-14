@@ -814,21 +814,22 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
         if (poojas.length > 1)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              poojas.length,
-              (index) => AnimatedContainer(
+            children: List.generate(poojas.length > 3 ? 3 : poojas.length, (
+              index,
+            ) {
+              final int dotCount = poojas.length > 3 ? 3 : poojas.length;
+              final bool isActive = (currentPage % dotCount) == index;
+              return AnimatedContainer(
                 duration: Duration(milliseconds: 200),
                 margin: EdgeInsets.symmetric(horizontal: 4.w),
-                width: currentPage == index ? 35.w : 12.w,
+                width: isActive ? 35.w : 12.w,
                 height: 12.w,
                 decoration: BoxDecoration(
-                  color: currentPage == index
-                      ? AppColors.selected
-                      : AppColors.unselected,
+                  color: isActive ? AppColors.selected : AppColors.unselected,
                   borderRadius: BorderRadius.circular(12.w),
                 ),
-              ),
-            ),
+              );
+            }),
           ),
       ],
     );
