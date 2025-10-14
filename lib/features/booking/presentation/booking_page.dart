@@ -175,10 +175,16 @@ class BookingPage extends ConsumerWidget {
               ),
             ),
             // Fixed Book Now Button at bottom
-            BookingBottomButton(
-              pooja: pooja,
-              userId: userId,
-              onBookingPressed: () => _handleBooking(context, ref, pooja),
+            Consumer(
+              builder: (context, ref, child) {
+                final selectedUsers = ref.watch(selectedUsersProvider(userId));
+                return BookingBottomButton(
+                  pooja: pooja,
+                  userId: userId,
+                  isEnabled: selectedUsers.isNotEmpty,
+                  onBookingPressed: () => _handleBooking(context, ref, pooja),
+                );
+              },
             ),
           ],
         );
@@ -248,9 +254,12 @@ class BookingPage extends ConsumerWidget {
     // Don't show price when calendar is open
     if (showCalendar) return SizedBox.shrink();
 
+    // Don't show price until at least one user is selected
+    if (selectedUsers.isEmpty) return SizedBox.shrink();
+
     // Calculate price based on pooja type and selected date
     double basePrice = _calculateBasePrice(ref, pooja);
-    final int userCount = selectedUsers.isNotEmpty ? selectedUsers.length : 1;
+    final int userCount = selectedUsers.length;
     final double totalPrice = basePrice * userCount;
 
     return Container(
