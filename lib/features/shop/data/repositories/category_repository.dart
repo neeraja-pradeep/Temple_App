@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
@@ -47,12 +47,17 @@ class CategoryRepository {
       final headers = AuthHeaders.readFromHeader(authHeader);
 
       print('ðŸŒ Fetching categories from API...');
-      final response = await http.get(Uri.parse(ApiConstants.storeCategories), headers: headers);
+      final response = await http.get(
+        Uri.parse(ApiConstants.storeCategories),
+        headers: headers,
+      );
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         if (body is List) {
-          final categories = body.map((e) => StoreCategory.fromJson(e)).toList();
+          final categories = body
+              .map((e) => StoreCategory.fromJson(e))
+              .toList();
           await box.clear();
           await box.addAll(categories);
           print("ðŸ’¾ Categories cached in Hive (${categories.length} items)");
@@ -100,7 +105,9 @@ class CategoryRepository {
 
     try {
       await repo.clearCategories().then((_) {
-        log('-------------------\nMANUAL CLEAR\n-----------------------------------');
+        log(
+          '-------------------\nMANUAL CLEAR\n-----------------------------------',
+        );
       });
       ref.invalidate(categoriesProvider);
       ref.invalidate(categoryProductProvider);
@@ -108,11 +115,12 @@ class CategoryRepository {
       await Future.delayed(const Duration(seconds: 1));
 
       repo.skipApiFetch = false;
-      log('-------------------\nPERIODIC SYNC\n-----------------------------------');
-      await repo.fetchCategories(
-        forceRefresh: true,
-        bypassBarrier: true,
+      log(
+        '-------------------\nPERIODIC SYNC\n-----------------------------------',
       );
+      await repo.fetchCategories(forceRefresh: true, bypassBarrier: true);
+      ref.invalidate(categoriesProvider);
+      ref.invalidate(categoryProductProvider);
       if (!barrier.isCompleted) {
         barrier.complete();
       }
@@ -131,4 +139,3 @@ class CategoryRepository {
     }
   }
 }
-

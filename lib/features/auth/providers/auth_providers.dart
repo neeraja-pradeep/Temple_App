@@ -11,6 +11,7 @@ import '../../../core/services/signin_api_service.dart';
 import '../../../core/services/token_storage_service.dart';
 import 'auth_state_provider.dart';
 import '../../home/providers/home_providers.dart';
+import '../../shop/providers/categoryRepo_provider.dart';
 
 // Form keys - using AutoDisposeProvider to prevent GlobalKey conflicts
 final loginFormKeyProvider = AutoDisposeProvider<GlobalKey<FormState>>((ref) {
@@ -401,6 +402,8 @@ class AuthController extends StateNotifier<bool> {
           ref.invalidate(godCategoriesProvider);
           ref.invalidate(profileProvider);
           ref.invalidate(songProvider);
+          ref.invalidate(categoriesProvider);
+          ref.invalidate(categoryProductProvider);
 
           // 👉 Navigate AFTER API response is saved
           _handlePostLoginNavigation(context);

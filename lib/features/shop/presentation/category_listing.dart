@@ -1,4 +1,4 @@
-﻿import 'dart:developer';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -22,10 +22,7 @@ class ShopCategorySection extends ConsumerWidget {
 
     if (isRefreshing) {
       log('[UI] Category refresh in progress – showing shimmer');
-      return Expanded(
-        flex: 2,
-        child: buildShimmer(),
-      );
+      return Expanded(flex: 2, child: buildShimmer());
     }
 
     return Expanded(
@@ -35,7 +32,9 @@ class ShopCategorySection extends ConsumerWidget {
           log('[UI] Categories loaded: ${data.length} items');
 
           if (data.isEmpty) {
-            log('[UI] Category list is empty. Waiting 5 seconds before showing message...');
+            log(
+              '[UI] Category list is empty. Waiting 5 seconds before showing message...',
+            );
             return FutureBuilder(
               future: Future.delayed(const Duration(seconds: 5)),
               builder: (context, snapshot) {
@@ -58,6 +57,26 @@ class ShopCategorySection extends ConsumerWidget {
             );
           }
 
+          // Ensure we have a valid default selection when categories load
+          final currentCategoryIndex = ref.read(selectedCategoryIndexProvider);
+          final hasValidSelectedIndex =
+              selectedIndex >= 0 && selectedIndex < data.length;
+
+          if (data.isNotEmpty &&
+              (currentCategoryIndex == null ||
+                  currentCategoryIndex < 0 ||
+                  currentCategoryIndex >= data.length)) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ref.read(selectedCategoryIndexProvider.notifier).state = 0;
+            });
+          }
+
+          if (data.isNotEmpty && !hasValidSelectedIndex) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ref.read(selectedIndexCatProvider.notifier).state = 0;
+            });
+          }
+
           return Padding(
             padding: EdgeInsets.only(left: 10.w, top: 5.h, bottom: 3.h),
             child: ListView.separated(
@@ -69,9 +88,12 @@ class ShopCategorySection extends ConsumerWidget {
                 return GestureDetector(
                   onTap: () {
                     try {
-                      ref.read(selectedCategoryIndexProvider.notifier).state = index;
+                      ref.read(selectedCategoryIndexProvider.notifier).state =
+                          index;
                       ref.read(selectedIndexCatProvider.notifier).state = index;
-                      log('[UI] Category tapped: ${data[index].name} (Index: $index)');
+                      log(
+                        '[UI] Category tapped: ${data[index].name} (Index: $index)',
+                      );
                     } catch (e, st) {
                       log('[Error] Failed to update category selection: $e');
                       log('[StackTrace]', error: e, stackTrace: st);
@@ -83,7 +105,9 @@ class ShopCategorySection extends ConsumerWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(10.r),
                       border: Border.all(
-                        color: isSelected ? primaryThemeColor : Colors.transparent,
+                        color: isSelected
+                            ? primaryThemeColor
+                            : Colors.transparent,
                         width: 2.w,
                       ),
                       boxShadow: [
@@ -139,10 +163,15 @@ class ShopCategorySection extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, color: Colors.red.shade400, size: 30),
+                  Icon(
+                    Icons.error_outline,
+                    color: Colors.red.shade400,
+                    size: 30,
+                  ),
                   AppSizes.h10,
                   WText(
-                    text: "Failed to load categories.\\nPlease try again later.",
+                    text:
+                        "Failed to load categories.\\nPlease try again later.",
                     color: Colors.red.shade400,
                     fontSize: 12.sp,
                   ),
@@ -206,7 +235,7 @@ class ShopCategorySection extends ConsumerWidget {
 String _normalizeImageUrl(String url) {
   final trimmed = url.trim();
   if (trimmed.isEmpty) return '';
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://'))
+    return trimmed;
   return 'https://$trimmed';
 }
-

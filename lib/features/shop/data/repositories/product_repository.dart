@@ -68,7 +68,9 @@ class CategoryProductRepository {
     bool forceRefresh = false,
     bool bypassBarrier = false,
   }) async {
-    log('fetchCategoryProduct → categoryId: $categoryId, forceRefresh: $forceRefresh');
+    log(
+      'fetchCategoryProduct → categoryId: $categoryId, forceRefresh: $forceRefresh',
+    );
 
     if (!bypassBarrier) {
       final barrier = _resetBarrier;
@@ -119,7 +121,9 @@ class CategoryProductRepository {
       try {
         final cached = await _getCachedProducts(categoryId);
         if (cached.isNotEmpty) {
-          log('Returning cached products due to error (count: ${cached.length})');
+          log(
+            'Returning cached products due to error (count: ${cached.length})',
+          );
           return cached;
         }
       } catch (cacheError) {
@@ -129,10 +133,7 @@ class CategoryProductRepository {
     }
   }
 
-  Future<void> resetCategoryProducts(
-    Ref ref, {
-    int? categoryId,
-  }) async {
+  Future<void> resetCategoryProducts(Ref ref, {int? categoryId}) async {
     final repo = ref.read(categoryProductRepositoryProvider);
 
     ref.read(categoryRefreshInProgressProvider.notifier).state = true;
@@ -146,8 +147,7 @@ class CategoryProductRepository {
     repo._resetBarrier = barrier;
     repo.skipApiFetch = true;
 
-    final targetCategory =
-        categoryId ?? ref.read(selectedCategoryIDProvider);
+    final targetCategory = categoryId ?? ref.read(selectedCategoryIDProvider);
 
     try {
       await repo._clearCategoryProducts();
@@ -161,6 +161,7 @@ class CategoryProductRepository {
         forceRefresh: true,
         bypassBarrier: true,
       );
+      ref.invalidate(categoryProductProvider);
 
       if (!barrier.isCompleted) {
         barrier.complete();
