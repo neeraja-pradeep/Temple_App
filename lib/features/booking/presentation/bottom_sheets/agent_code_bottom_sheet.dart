@@ -37,28 +37,37 @@ class _AgentCodeBottomSheetState extends ConsumerState<AgentCodeBottomSheet> {
         ref.read(agentCodeProvider.notifier).state = '';
         return true;
       },
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: 16.w,
-          right: 16.w,
-          bottom:
-              MediaQuery.of(context).viewInsets.bottom +
-              MediaQuery.of(context).padding.bottom +
-              16.h,
-          top: 16.h,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16.r),
+            topRight: Radius.circular(16.r),
+          ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _buildHeader(),
-            SizedBox(height: 16.h),
-            _buildTextField(),
-            SizedBox(height: 12.h),
-            _buildDescription(),
-            SizedBox(height: 16.h),
-            _buildConfirmButton(),
-          ],
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 16.w,
+            right: 16.w,
+            bottom:
+                MediaQuery.of(context).viewInsets.bottom +
+                MediaQuery.of(context).padding.bottom +
+                16.h,
+            top: 16.h,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildHeader(),
+              SizedBox(height: 16.h),
+              _buildTextField(),
+              SizedBox(height: 12.h),
+              _buildDescription(),
+              SizedBox(height: 16.h),
+              _buildConfirmButton(),
+            ],
+          ),
         ),
       ),
     );
@@ -148,4 +157,3 @@ class _AgentCodeBottomSheetState extends ConsumerState<AgentCodeBottomSheet> {
     );
   }
 }
-
