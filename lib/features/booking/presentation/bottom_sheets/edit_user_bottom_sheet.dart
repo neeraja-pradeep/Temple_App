@@ -569,4 +569,3 @@ class _EditUserBottomSheetState extends ConsumerState<EditUserBottomSheet> {
     );
   }
 }
-

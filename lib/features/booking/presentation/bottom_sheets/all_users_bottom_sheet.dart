@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:temple_app/core/app_colors.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/features/booking/data/user_list_model.dart';
-import 'package:temple_app/features/booking/providers/booking_page_providers.dart';
 import 'package:temple_app/features/booking/providers/user_list_provider.dart';
 import 'package:temple_app/features/booking/presentation/bottom_sheets/add_user_bottom_sheet.dart';
 import 'package:temple_app/features/booking/presentation/bottom_sheets/edit_user_bottom_sheet.dart';
@@ -18,6 +17,11 @@ class AllUsersBottomSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Always fetch fresh users when opening the sheet
     ref.invalidate(userListsProvider);
+
+    // Auto-select main user when opening the sheet
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureMainUserIsSelected(ref);
+    });
 
     return Container(
       height: 370.h,
@@ -35,6 +39,7 @@ class AllUsersBottomSheet extends ConsumerWidget {
           _buildUsersList(),
           _buildAddNewUserButton(context),
           _buildContinueButton(),
+          SizedBox(height: 20.h),
         ],
       ),
     );
@@ -318,6 +323,40 @@ class AllUsersBottomSheet extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => AddUserBottomSheet(userId: userId),
+    );
+  }
+
+  void _ensureMainUserIsSelected(WidgetRef ref) {
+    final usersAsync = ref.read(userListsProvider);
+    final selectedUsers = ref.read(selectedUsersProvider(userId));
+    print('selectedUsers: $selectedUsers');
+    usersAsync.when(
+      data: (users) {
+        // Check if main user is already selected
+        final isMainUserSelected = selectedUsers.any(
+          (user) => user.id == userId,
+        );
+
+        if (!isMainUserSelected) {
+          try {
+            // Find the main user and add to selection
+            final mainUser = users.firstWhere((user) => user.id == userId);
+            final updatedSelectedUsers = List<UserList>.from(selectedUsers);
+            updatedSelectedUsers.add(mainUser);
+
+            // Update both selected and visible users
+            ref.read(selectedUsersProvider(userId).notifier).state =
+                updatedSelectedUsers;
+            ref.read(visibleUsersProvider(userId).notifier).state =
+                updatedSelectedUsers;
+          } catch (e) {
+            // Main user not found in the list, this shouldn't happen normally
+            print('Main user not found in user list: $e');
+          }
+        }
+      },
+      loading: () {},
+      error: (_, __) {},
     );
   }
 }
