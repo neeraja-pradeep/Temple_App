@@ -77,30 +77,41 @@ Map<String, _ModelUpdateHandler> buildModelHandlers(SyncRepository repo) {
       '📂 Refreshing Music...',
       (ref) => _refreshMusicOnly(repo, ref),
     ),
-    'Song': _wrapRef(
-      repo,
-      '📂 Refreshing Music...',
-      (ref) => _refreshMusicOnly(repo, ref),
-    ),
     'MusicData': _wrapRef(
       repo,
       '📂 Refreshing Music...',
       (ref) => _refreshMusicOnly(repo, ref),
     ),
-    'Address': _wrapLogOnly(
-      '📂 Address update detected - no automated cache refresh configured.',
-    ),
-    'UserList': _wrapLogOnly(
-      '📂 UserList update detected - manual refresh required.',
-    ),
     'PoojaOrder': _wrapLogOnly(
       '📂 PoojaOrder update detected - manual refresh required.',
     ),
-    'Order': _wrapRef(
+    'GodCategories': _wrapRef(
       repo,
-      'Refreshing store orders...',
-      (ref) => _refreshStoreOrders(repo, ref),
+      '📂 Refreshing God Categories...',
+      (ref) async => await _refreshHiveBox(repo, 'godCategoriesBox'),
     ),
+    'Profile': _wrapRef(
+     repo,
+     '📂 Refreshing Profile...',
+     (ref) async => await _refreshHiveBox(repo, 'profileBox'),
+   ),
+   'Song': _wrapRef(
+      repo,
+      '🎵 Refreshing Songs...',
+      (ref) async => await _refreshHiveBox(repo, 'songBox'),
+    ),
+    // sync only during edit/delete/add
+    'UserList': _wrapLogOnly(
+      "Members update detected",
+    ),
+    'Address': _wrapLogOnly(
+        "Address update detected",
+     ),
+    'Order': _wrapRef(
+        repo,
+        '🛒 Refreshing Orders...',
+        (ref) async => await _refreshHiveBox(repo, 'storeOrders'),
+     )
     
   };
 }

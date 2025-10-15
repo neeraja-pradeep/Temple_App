@@ -4,14 +4,25 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:temple_app/core/providers/token_provider.dart';
 import 'package:temple_app/features/drawer/saved_members/data/member_model.dart';
+import 'package:temple_app/features/global_api_notifer/data/repository/sync_repository.dart';
 
 class MemberService {
   final String baseUrl = "http://templerun.click/api/user/user-lists/";
-  final String hiveBoxName = 'memberBox';
+
+  final syncRepo = SyncRepository();
+
+  Future<Box<MemberModel>> _getMemberBox() async {
+  if (Hive.isBoxOpen('memberBox')) {
+    return Hive.box<MemberModel>('memberBox');
+  } else {
+    return Hive.openBox<MemberModel>('memberBox');
+  }
+}
 
   /// ✅ Fetch all members (use cached data first)
   Future<List<MemberModel>> fetchUserLists(Ref ref) async {
-    final box = await Hive.openBox<MemberModel>(hiveBoxName);
+
+    final box = await _getMemberBox();
 
     // 🐝 Return cached data immediately if available
     if (box.isNotEmpty) {
@@ -46,7 +57,7 @@ class MemberService {
     }
   }
 
-  /// ✅ Add new user (also update cache)
+  /// ✅ Add new user (also trigger manual sync)
   Future<MemberModel> addUser(Ref ref, Map<String, dynamic> payload) async {
     final token = ref.read(authorizationHeaderProvider) ?? '';
     if (token.isEmpty) throw Exception('User not authenticated');
@@ -64,8 +75,11 @@ class MemberService {
       final data = jsonDecode(response.body);
       final newMember = MemberModel.fromJson(data);
 
-      final box = await Hive.openBox<MemberModel>(hiveBoxName);
+      final box = await _getMemberBox();
       await box.put(newMember.id, newMember);
+
+      // 🧩 Trigger sync after add
+      await checkMemberUpdateAndSync(syncRepo , ref);
 
       return newMember;
     } else {
@@ -73,7 +87,7 @@ class MemberService {
     }
   }
 
-  /// ✅ Edit user (update cache)
+  /// ✅ Edit user (trigger manual sync)
   Future<MemberModel> editUser(Ref ref, int id, Map<String, dynamic> payload) async {
     final token = ref.read(authorizationHeaderProvider) ?? '';
     if (token.isEmpty) throw Exception('User not authenticated');
@@ -92,8 +106,11 @@ class MemberService {
       final data = jsonDecode(response.body);
       final updatedMember = MemberModel.fromJson(data);
 
-      final box = await Hive.openBox<MemberModel>(hiveBoxName);
+      final box = await _getMemberBox();
       await box.put(id, updatedMember);
+
+      // 🧩 Trigger sync after edit
+      await checkMemberUpdateAndSync(syncRepo , ref);
 
       return updatedMember;
     } else {
@@ -101,7 +118,7 @@ class MemberService {
     }
   }
 
-  /// ✅ Delete user (also remove from cache)
+  /// ✅ Delete user (trigger manual sync)
   Future<void> deleteUser(Ref ref, int id) async {
     final token = ref.read(authorizationHeaderProvider) ?? '';
     if (token.isEmpty) throw Exception('User not authenticated');
@@ -116,14 +133,16 @@ class MemberService {
     );
 
     if (response.statusCode == 200 || response.statusCode == 204) {
-      final box = await Hive.openBox<MemberModel>(hiveBoxName);
+      final box = await _getMemberBox();
       await box.delete(id);
+
+      // 🧩 Trigger sync after delete
+      await checkMemberUpdateAndSync(syncRepo , ref);
     } else {
       throw Exception('Failed to delete user ⚠️ ${response.statusCode} ${response.body}');
     }
   }
 }
-
 
 final memberServiceProvider = Provider<MemberService>((ref) => MemberService());
 

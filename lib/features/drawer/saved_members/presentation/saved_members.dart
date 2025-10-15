@@ -47,162 +47,170 @@ class SavedMembers extends ConsumerWidget {
       ),
       body: Padding(
         padding: EdgeInsets.all(18.w),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Saved Members",
-                style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w400,
-                    fontFamily: "Poppins"),
-              ),
-              SizedBox(height: 10.h),
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8.r),
-                  color: Colors.white,
+        child: RefreshIndicator(
+          backgroundColor: AppColors.navBarBackground,
+          color: AppColors.selected,
+          onRefresh: () async {
+            ref.invalidate(memberProvider);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Saved Members",
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w400,
+                      fontFamily: "Poppins"),
                 ),
-                padding: EdgeInsets.all(15.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Add/Edit information",
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    SizedBox(height: 25.h),
-                    GestureDetector(
-                      onTap: (){
-                        _showAddOrEditUserBottomSheet(context, ref);
-                      },
-                      child: Text(
-                        "+ Add person",
+                SizedBox(height: 10.h),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.r),
+                    color: Colors.white,
+                  ),
+                  padding: EdgeInsets.all(15.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Add/Edit information",
                         style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.selected,
+                          fontSize: 12.sp,
+                          color: Colors.grey,
                         ),
                       ),
-                    ),
-                    SizedBox(height: 15.h),
-                    memberAsync.when(
-                      data: (members) {
-                        if (members.isEmpty) {
-                          return const Text("No members saved");
-                        }
-                        return Column(
-                          children: members.map((member) {
-                            final attributes = member.attributes ?? [];
-                            final nakshatra = attributes.isNotEmpty
-                                ? attributes.first.nakshatramName ?? "N/A"
-                                : "N/A";
-                            return Padding(
-                              padding: EdgeInsets.symmetric(vertical: 8.h),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        member.name ?? "Unknown",
-                                        style: TextStyle(
-                                          fontSize: 14.sp,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4.h),
-                                      Text(
-                                        "Nakshatra: $nakshatra",
-                                        style: TextStyle(
-                                          fontSize: 12.sp,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: Image.asset(
-                                          "assets/icons/edit.png",
-                                          height: 22.h,
-                                          width: 22.w,
-                                        ),
-                                        onPressed: () {
-                                          _showAddOrEditUserBottomSheet(context, ref,member: member);
-                                        },
-                                      ),
-                                      IconButton(
-                                        icon: Image.asset(
-                                          "assets/icons/delete.png",
-                                          height: 22.h,
-                                          width: 22.w,
-                                        ),
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context, 
-                                            builder: (ctx) => AlertDialog(
-                                              backgroundColor: Colors.white,
-                                              title:const Text("സ്ഥിരീകരിക്കുക"),
-                                              content: const Text("ഈ അംഗത്തെ മായ്ക്കണോ?"),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: (){
-                                                    Navigator.of(ctx).pop();
-                                                  }, 
-                                                  child: const Text("റദ്ദാക്കുക",
-                                                  style: TextStyle(color: Colors.grey),),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () async {
-                                                    Navigator.of(ctx).pop();
-                                                    try{
-                                                      await ref.read(deleteMemberProvider(member.id!).future);
-                                                      ref.invalidate(memberProvider);
-
-                                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("അംഗം വിജയകരമായി മായ്ച്ചു")));
-                                                    }
-                                                    catch(e){
-                                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("മായ്ക്കൽ പരാജയപ്പെട്ടു: $e")));
-                                                    }
-                                                  }, 
-                                                  child: Text("മായ്ക്കുക", style: TextStyle(color: Colors.red),)
-                                                )
-                                              ],
-                                            )
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        );
-                      },
-                      loading: () => const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.selected,
+                      SizedBox(height: 25.h),
+                      GestureDetector(
+                        onTap: (){
+                          _showAddOrEditUserBottomSheet(context, ref);
+                        },
+                        child: Text(
+                          "+ Add person",
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.selected,
+                          ),
                         ),
                       ),
-                      error: (e, _) => Center(child: Text("Error: $e")),
-                    ),
-                  ],
+                      SizedBox(height: 15.h),
+                      memberAsync.when(
+                        data: (members) {
+                          if (members.isEmpty) {
+                            return const Text("No members saved");
+                          }
+                          return Column(
+                            children: members.map((member) {
+                              final attributes = member.attributes ?? [];
+                              final nakshatra = attributes.isNotEmpty
+                                  ? attributes.first.nakshatramName ?? "N/A"
+                                  : "N/A";
+                              return Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8.h),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          member.name ?? "Unknown",
+                                          style: TextStyle(
+                                            fontSize: 14.sp,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4.h),
+                                        Text(
+                                          "Nakshatra: $nakshatra",
+                                          style: TextStyle(
+                                            fontSize: 12.sp,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: Image.asset(
+                                            "assets/icons/edit.png",
+                                            height: 22.h,
+                                            width: 22.w,
+                                          ),
+                                          onPressed: () {
+                                            _showAddOrEditUserBottomSheet(context, ref,member: member);
+                                          },
+                                        ),
+                                        IconButton(
+                                          icon: Image.asset(
+                                            "assets/icons/delete.png",
+                                            height: 22.h,
+                                            width: 22.w,
+                                          ),
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context, 
+                                              builder: (ctx) => AlertDialog(
+                                                backgroundColor: Colors.white,
+                                                title:const Text("സ്ഥിരീകരിക്കുക"),
+                                                content: const Text("ഈ അംഗത്തെ മായ്ക്കണോ?"),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: (){
+                                                      Navigator.of(ctx).pop();
+                                                    }, 
+                                                    child: const Text("റദ്ദാക്കുക",
+                                                    style: TextStyle(color: Colors.grey),),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () async {
+                                                      Navigator.of(ctx).pop();
+                                                      try{
+                                                        await ref.read(deleteMemberProvider(member.id!).future);
+                                                        ref.invalidate(memberProvider);
+          
+                                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("അംഗം വിജയകരമായി മായ്ച്ചു")));
+                                                      }
+                                                      catch(e){
+                                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("മായ്ക്കൽ പരാജയപ്പെട്ടു: $e")));
+                                                      }
+                                                    }, 
+                                                    child: Text("മായ്ക്കുക", style: TextStyle(color: Colors.red),)
+                                                  )
+                                                ],
+                                              )
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
+                        loading: () => const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.selected,
+                          ),
+                        ),
+                        error: (e, _) => Center(child: Text("Error: $e")),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -24,6 +24,10 @@ class HiveSyncCache {
       final data = box.get(_lastUpdateKey);
       debugPrint('📦 [HiveSyncCache] Retrieved timestamp: $data');
       return data;
+
+      // const forcedTimestamp = '2025-10-14T20:00:00.000000+05:30';
+      // debugPrint('📦 [HiveSyncCache] Returning forced timestamp: $forcedTimestamp');
+      // return forcedTimestamp;
     } catch (e) {
       debugPrint('❌ [HiveSyncCache] Failed to get timestamp: $e');
       return null;

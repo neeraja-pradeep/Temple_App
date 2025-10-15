@@ -29,18 +29,20 @@ Future<void> _refreshHiveBox<T>(SyncRepository repo, String boxName) async {
   try {
     final box = await _ensureTypedBox<T>(repo, boxName);
     await box.clear();
-    debugPrint('Cleared Hive box: $boxName');
+    debugPrint('✅ Cleared Hive box: $boxName');
   } catch (e) {
-    debugPrint(' Error clearing $boxName: $e');
+    debugPrint('❌ Error clearing $boxName: $e');
   }
 }
 
 Future<Box<T>> _ensureTypedBox<T>(SyncRepository repo, String boxName) async {
   if (Hive.isBoxOpen(boxName)) {
-    return Hive.box<T>(boxName);
+    return Hive.box<T>(boxName); 
+  } else {
+    return Hive.openBox<T>(boxName);
   }
-  return Hive.openBox<T>(boxName);
 }
+
 
 Future<void> _clearBoxIfOpen<T>(SyncRepository repo, String boxName) async {
   if (!Hive.isBoxOpen(boxName)) {
@@ -230,5 +232,85 @@ Future<void> _clearSpecialPoojaHiveBoxes(SyncRepository repo) async {
     await _clearBoxIfOpen<SpecialPooja>(repo, 'specialPrayers');
   } catch (e) {
     debugPrint('❌ Error clearing special pooja boxes: $e');
+  }
+}
+
+Future<void> checkMemberUpdateAndSync(SyncRepository repo, Ref? ref) async {
+  if (ref == null) {
+    debugPrint("⚠️ Ref is null — skipping member sync");
+    return;
+  }
+
+  try {
+    debugPrint('🔎 Checking if Members were updated (manual check)...');
+    final response = await http.get(Uri.parse(ApiConstants.globalUpdateDetails));
+
+    if (response.statusCode != 200) {
+      debugPrint('⚠️ Failed to check global-update-details: ${response.statusCode}');
+      return;
+    }
+
+    final data = jsonDecode(response.body);
+    final List results = data['results'];
+
+    final hasMemberUpdate = results.any((item) {
+      final model = item['model_name']?.toString() ?? '';
+      return model == 'UserList';
+    });
+
+    if (hasMemberUpdate) {
+      debugPrint('✅ Member found in global-update-details → syncing...');
+      await _refreshHiveBox<MemberModel>(repo, 'memberBox');
+
+      _invalidateProviders(
+        ref!,
+        logMessage: '🔄 Invalidating Member provider to trigger refetch...',
+        providers: [memberProvider],
+      );
+
+      debugPrint('✅ Member Hive box cleared & provider invalidated');
+    } else {
+      debugPrint('✅ Members not changed → no sync needed.');
+    }
+  } catch (e, st) {
+    debugPrint('❌ Error during member update check: $e');
+    debugPrint(st.toString());
+  }
+}
+
+Future<void> checkAddressUpdateAndSync(SyncRepository repo, Ref? ref) async {
+  if (ref == null) {
+    debugPrint("⚠️ Ref is null — skipping address sync");
+    return;
+  }
+
+  try {
+    debugPrint('🔎 Checking if Address was updated (manual check)...');
+    final response = await http.get(Uri.parse(ApiConstants.globalUpdateDetails));
+
+    if (response.statusCode != 200) {
+      debugPrint('⚠️ Failed to check global-update-details: ${response.statusCode}');
+      return;
+    }
+
+    final data = jsonDecode(response.body);
+    final List results = data['results'];
+
+    final hasAddressUpdate = results.any((item) {
+      final model = item['model_name']?.toString() ?? '';
+      return model == 'Address';
+    });
+
+    if (hasAddressUpdate) {
+      debugPrint('✅ Address found in global-update-details → syncing...');
+      await _refreshHiveBox<AddressModel>(repo, 'addressBox');
+
+      debugPrint('✅ Address Hive box cleared & provider invalidated');
+    } else {
+      debugPrint('✅ Address not changed → no sync needed.');
+    }
+  } catch (e, st) {
+    debugPrint('❌ Error during address update check: $e');
+    debugPrint(st.toString());
   }
 }
