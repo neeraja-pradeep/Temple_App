@@ -82,9 +82,9 @@ class AddNewUserOption extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: false,
       backgroundColor: Colors.transparent,
       builder: (context) => AllUsersBottomSheet(userId: userId),
     );
   }
 }
-

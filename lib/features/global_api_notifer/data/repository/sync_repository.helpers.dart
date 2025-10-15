@@ -5,16 +5,18 @@ void _invalidateProviders(
   required String logMessage,
   required Iterable<ProviderOrFamily> providers,
 }) {
-  var disposed = false;
-  ref.onDispose(() => disposed = true);
-
-  SchedulerBinding.instance.addPostFrameCallback((_) {
-    if (disposed) return;
+  try {
     debugPrint(logMessage);
     for (final provider in providers) {
-      ref.invalidate(provider);
+      try {
+        ref.invalidate(provider);
+      } catch (_) {
+        // Ignore if container/ref is no longer active
+      }
     }
-  });
+  } catch (_) {
+    // No-op: best-effort invalidation
+  }
 }
 
 void _invalidateBookingProviders(Ref ref) {
@@ -37,12 +39,11 @@ Future<void> _refreshHiveBox<T>(SyncRepository repo, String boxName) async {
 
 Future<Box<T>> _ensureTypedBox<T>(SyncRepository repo, String boxName) async {
   if (Hive.isBoxOpen(boxName)) {
-    return Hive.box<T>(boxName); 
+    return Hive.box<T>(boxName);
   } else {
     return Hive.openBox<T>(boxName);
   }
 }
-
 
 Future<void> _clearBoxIfOpen<T>(SyncRepository repo, String boxName) async {
   if (!Hive.isBoxOpen(boxName)) {
@@ -227,6 +228,11 @@ Future<void> _refreshMusicOnly(SyncRepository repo, Ref ref) async {
     debugPrint('🔄 Clearing and refreshing Music only...');
     debugPrint('📋 This will trigger: GET /song/songs/');
 
+    // Clear songs Hive cache before invalidation
+    try {
+      await repo._musicRepo.clearSongsCache();
+    } catch (_) {}
+
     _invalidateProviders(
       ref,
       logMessage: '🔄 Invalidating music provider...',
@@ -272,10 +278,14 @@ Future<void> checkMemberUpdateAndSync(SyncRepository repo, Ref? ref) async {
 
   try {
     debugPrint('🔎 Checking if Members were updated (manual check)...');
-    final response = await http.get(Uri.parse(ApiConstants.globalUpdateDetails));
+    final response = await http.get(
+      Uri.parse(ApiConstants.globalUpdateDetails),
+    );
 
     if (response.statusCode != 200) {
-      debugPrint('⚠️ Failed to check global-update-details: ${response.statusCode}');
+      debugPrint(
+        '⚠️ Failed to check global-update-details: ${response.statusCode}',
+      );
       return;
     }
 
@@ -315,10 +325,14 @@ Future<void> checkAddressUpdateAndSync(SyncRepository repo, Ref? ref) async {
 
   try {
     debugPrint('🔎 Checking if Address was updated (manual check)...');
-    final response = await http.get(Uri.parse(ApiConstants.globalUpdateDetails));
+    final response = await http.get(
+      Uri.parse(ApiConstants.globalUpdateDetails),
+    );
 
     if (response.statusCode != 200) {
-      debugPrint('⚠️ Failed to check global-update-details: ${response.statusCode}');
+      debugPrint(
+        '⚠️ Failed to check global-update-details: ${response.statusCode}',
+      );
       return;
     }
 

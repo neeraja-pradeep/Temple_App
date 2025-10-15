@@ -59,21 +59,13 @@ Map<String, _ModelUpdateHandler> buildModelHandlers(SyncRepository repo) {
       '📂 Refreshing Special Prayer...',
       (ref) => _refreshSpecialPrayerOnly(repo, ref),
     ),
-    'Music': _wrapRef(
-      repo,
-      '📂 Refreshing Music...',
-      (ref) => _refreshMusicOnly(repo, ref),
-    ),
+   
     'Song': _wrapRef(
       repo,
       '📂 Refreshing Music...',
       (ref) => _refreshMusicOnly(repo, ref),
     ),
-    'MusicData': _wrapRef(
-      repo,
-      '📂 Refreshing Music...',
-      (ref) => _refreshMusicOnly(repo, ref),
-    ),
+    
     'Address': _wrapLogOnly(
       '📂 Address update detected - no automated cache refresh configured.',
     ),
