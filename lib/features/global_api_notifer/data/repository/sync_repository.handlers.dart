@@ -39,19 +39,15 @@ Map<String, _ModelUpdateHandler> buildModelHandlers(SyncRepository repo) {
     // ),
     'SpecialPoojaDate': _wrapRef(
       repo,
-      '📂 Refreshing SpecialPoojaDate...',
-      (ref) => _refreshSpecialPoojaDatesOnly(repo, ref),
+      '📂 Refreshing SpecialPoojaDate (banner, weekly, special)...',
+      (ref) => _refreshSpecialPoojaAll(repo, ref),
     ),
     'SpecialPooja': _wrapRef(
       repo,
       '📂 Refreshing Special Pooja Banner...',
       (ref) => _refreshSpecialPoojaBannerOnly(repo, ref),
     ),
-    'SpecialPoojaBanner': _wrapRef(
-      repo,
-      '📂 Refreshing Special Pooja Banner...',
-      (ref) => _refreshSpecialPoojaBannerOnly(repo, ref),
-    ),
+
     'WeeklyPooja': _wrapRef(
       repo,
       '📂 Refreshing Weekly Pooja...',
@@ -77,10 +73,21 @@ Map<String, _ModelUpdateHandler> buildModelHandlers(SyncRepository repo) {
       '📂 Refreshing Music...',
       (ref) => _refreshMusicOnly(repo, ref),
     ),
+    'Song': _wrapRef(
+      repo,
+      '📂 Refreshing Music...',
+      (ref) => _refreshMusicOnly(repo, ref),
+    ),
     'MusicData': _wrapRef(
       repo,
       '📂 Refreshing Music...',
       (ref) => _refreshMusicOnly(repo, ref),
+    ),
+    'Address': _wrapLogOnly(
+      '📂 Address update detected - no automated cache refresh configured.',
+    ),
+    'UserList': _wrapLogOnly(
+      '📂 UserList update detected - manual refresh required.',
     ),
     'PoojaOrder': _wrapLogOnly(
       '📂 PoojaOrder update detected - manual refresh required.',
