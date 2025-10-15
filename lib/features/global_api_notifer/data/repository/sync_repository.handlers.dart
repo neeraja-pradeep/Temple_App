@@ -102,18 +102,7 @@ Map<String, _ModelUpdateHandler> buildModelHandlers(SyncRepository repo) {
      '📂 Refreshing Profile...',
      (ref) async => await _refreshHiveBox(repo, 'profileBox'),
    ),
-   'Song': _wrapRef(
-      repo,
-      '🎵 Refreshing Songs...',
-      (ref) async => await _refreshHiveBox(repo, 'songBox'),
-    ),
-    // sync only during edit/delete/add
-    'UserList': _wrapLogOnly(
-      "Members update detected",
-    ),
-    'Address': _wrapLogOnly(
-        "Address update detected",
-     ),
+
     'Order': _wrapRef(
         repo,
         '🛒 Refreshing Orders...',
