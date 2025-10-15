@@ -366,19 +366,20 @@ class BookingPage extends ConsumerWidget {
       data: (users) {
         if (currentSelectedUsers.isEmpty || currentVisibleUsers.isEmpty) {
           try {
-            final mainUser = users.firstWhere((u) => u.id == userId);
-            // Set main user in both selected and visible lists
+            // Prefer the entry where personal == true
+            final personalUser = users.firstWhere(
+              (u) => u.personal,
+              orElse: () => users.firstWhere((u) => u.id == userId),
+            );
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ref.read(selectedUsersProvider(userId).notifier).state = [
-                mainUser,
+                personalUser,
               ];
               ref.read(visibleUsersProvider(userId).notifier).state = [
-                mainUser,
+                personalUser,
               ];
             });
-          } catch (_) {
-            // Main user not found, keep empty lists
-          }
+          } catch (_) {}
         }
       },
       loading: () {},

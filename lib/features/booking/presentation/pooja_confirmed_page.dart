@@ -60,26 +60,26 @@ class _PoojaConfirmedPageState extends ConsumerState<PoojaConfirmedPage> {
           leadingWidth: 64.w, // give extra space for left padding
           leading: Padding(
             padding: EdgeInsets.only(left: 16.w, top: 16.h), // Add top padding
-            child: Container(
-              width: 40.w,
-              height: 40.h,
-              decoration: BoxDecoration(
-                color: Color.fromRGBO(251, 239, 217, 1),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Center(
-                child: IconButton(
-                  icon: Image.asset(
-                    'assets/backIcon.png',
-                    width: 20.w,
-                    height: 20.h,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  padding: EdgeInsets.zero,
-                  constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
-                ),
-              ),
-            ),
+            // child: Container(
+            //   width: 40.w,
+            //   height: 40.h,
+            //   decoration: BoxDecoration(
+            //     color: Color.fromRGBO(251, 239, 217, 1),
+            //     borderRadius: BorderRadius.circular(8.r),
+            //   ),
+            //   child: Center(
+            //     child: IconButton(
+            //       icon: Image.asset(
+            //         'assets/backIcon.png',
+            //         width: 20.w,
+            //         height: 20.h,
+            //       ),
+            //       onPressed: () => Navigator.pop(context),
+            //       padding: EdgeInsets.zero,
+            //       constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
+            //     ),
+            //   ),
+            // ),
           ),
         ),
         body: Builder(
