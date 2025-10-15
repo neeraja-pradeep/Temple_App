@@ -194,17 +194,10 @@ class SyncRepository {
             await _refreshHiveBox('storeOrders', 'StoreOrder');
             break;
           
-          case 'UserList':
-            await _refreshHiveBox('memberBox', 'MemberModel');
-            break;
-          
           case 'Booking': // model_name not known
             await _refreshHiveBox('bookingBox', 'Booking');
             break;
 
-          case 'Address':
-            await _refreshHiveBox('addressBox', 'AddressModel');
-            break;
 
           default:
             debugPrint('❓ [SyncRepository] Unknown model: ${detail.modelName}');
@@ -477,4 +470,94 @@ class SyncRepository {
       debugPrint('❌ Error clearing special pooja boxes: $e');
     }
   }
+
+
+Future<void> checkAddressUpdateAndSync(Ref? ref) async {
+  if (ref == null) {
+      debugPrint("⚠️ Ref is null — skipping address sync");
+      return;
+    }
+  try {
+    debugPrint('🔎 Checking if Address was updated (manual check)...');
+    final response = await http.get(Uri.parse(ApiConstants.globalUpdateDetails));
+    debugPrint('📥 Response: ${response.body}');
+    if (response.statusCode != 200) {
+      debugPrint('⚠️ Failed to check global-update-details: ${response.statusCode}');
+      return;
+    }
+
+    final data = jsonDecode(response.body);
+    final List results = data['results'];
+
+    // Check if Address is in updated models
+    final hasAddressUpdate = results.any((item) {
+      final model = item['model_name']?.toString() ?? '';
+      return model == 'Address';
+    });
+
+    if (hasAddressUpdate) {
+      debugPrint('✅ Address found in global-update-details → syncing...');
+      await _refreshHiveBox('addressBox', 'AddressModel');
+      debugPrint('✅ Address Hive box cleared — provider will auto-fetch if needed');
+
+    } else {
+      debugPrint('✅ Address not changed → no sync needed.');
+    }
+  } catch (e, st) {
+    debugPrint('❌ Error during address update check: $e');
+    debugPrint(st.toString());
+  }
 }
+
+
+  Future<void> checkMemberUpdateAndSync(Ref? ref) async {
+    if (ref == null) {
+      debugPrint("⚠️ Ref is null — skipping member sync");
+      return;
+    }
+
+    try {
+      debugPrint('🔎 Checking if Members were updated (manual check)...');
+      final response = await http.get(Uri.parse(ApiConstants.globalUpdateDetails));
+
+      if (response.statusCode != 200) {
+        debugPrint('⚠️ Failed to check global-update-details: ${response.statusCode}');
+        return;
+      }
+
+      final data = jsonDecode(response.body);
+      final List results = data['results'];
+
+      final hasMemberUpdate = results.any((item) {
+        final model = item['model_name']?.toString() ?? '';
+        return model == 'UserList';
+      });
+
+      if (hasMemberUpdate) {
+        debugPrint('✅ Member found in global-update-details → syncing...');
+        try {
+          debugPrint('🔄 Syncing Members after add/edit/delete...');
+          await _refreshHiveBox('memberBox', 'MemberModel');
+          debugPrint('✅ Member Hive box cleared — provider will auto-fetch if needed');
+        } catch (e, st) {
+           debugPrint('❌ Member sync failed: $e');
+           debugPrint(st.toString());
+       }
+      } else {
+        debugPrint('✅ Members not changed → no sync needed.');
+      }
+    } catch (e, st) {
+      debugPrint('❌ Error during member update check: $e');
+      debugPrint(st.toString());
+    }
+  }
+
+
+
+
+}
+
+
+
+  
+

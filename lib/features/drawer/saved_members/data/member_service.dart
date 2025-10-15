@@ -4,10 +4,12 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:temple_app/core/providers/token_provider.dart';
 import 'package:temple_app/features/drawer/saved_members/data/member_model.dart';
+import 'package:temple_app/features/global_api_notifer/data/repository/sync_repository.dart';
 
 class MemberService {
   final String baseUrl = "http://templerun.click/api/user/user-lists/";
   final String hiveBoxName = 'memberBox';
+  final syncRepo = SyncRepository();
 
   /// ✅ Fetch all members (use cached data first)
   Future<List<MemberModel>> fetchUserLists(Ref ref) async {
@@ -66,6 +68,7 @@ class MemberService {
 
       final box = await Hive.openBox<MemberModel>(hiveBoxName);
       await box.put(newMember.id, newMember);
+      await syncRepo.checkMemberUpdateAndSync(ref);
 
       return newMember;
     } else {
@@ -94,6 +97,7 @@ class MemberService {
 
       final box = await Hive.openBox<MemberModel>(hiveBoxName);
       await box.put(id, updatedMember);
+      await syncRepo.checkMemberUpdateAndSync(ref);
 
       return updatedMember;
     } else {
@@ -118,6 +122,7 @@ class MemberService {
     if (response.statusCode == 200 || response.statusCode == 204) {
       final box = await Hive.openBox<MemberModel>(hiveBoxName);
       await box.delete(id);
+      await syncRepo.checkMemberUpdateAndSync(ref);
     } else {
       throw Exception('Failed to delete user ⚠️ ${response.statusCode} ${response.body}');
     }

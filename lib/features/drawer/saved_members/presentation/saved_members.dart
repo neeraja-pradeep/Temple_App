@@ -561,6 +561,7 @@ class SavedMembers extends ConsumerWidget {
                                 // Edit
                                 userData['id'] = member.id;
                                 newUser = await ref.read(editMemberProvider(userData).future);
+                                ref.invalidate(memberProvider);
                               }
 
                               Navigator.pop(context);

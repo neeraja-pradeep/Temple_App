@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:temple_app/core/constants/api_constants.dart';
+import 'package:temple_app/features/global_api_notifer/data/repository/sync_repository.dart';
 import 'package:temple_app/features/shop/delivery/data/model/address_model.dart';
 import '../../../../../core/services/complete_token_service.dart';
 
@@ -13,6 +14,8 @@ class AddressRepository {
   Future<Box<AddressModel>> _openBox() async {
     return await Hive.openBox<AddressModel>('addressBox');
   }
+
+  final syncRepo = SyncRepository();
 
   /// Fetch Addresses (API + Cache)
   Future<List<AddressModel>> fetchAddresses() async {

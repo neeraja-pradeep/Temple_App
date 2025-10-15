@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:temple_app/features/global_api_notifer/data/repository/sync_repository.dart';
 import 'package:temple_app/features/shop/delivery/data/model/address_model.dart';
 import 'package:temple_app/features/shop/delivery/data/repositories/delivery_repository.dart';
 import 'package:temple_app/features/shop/delivery/data/repositories/order_repository.dart';
@@ -12,13 +13,15 @@ final addressListProvider =
       ref,
     ) {
       final repo = ref.watch(addressRepositoryProvider);
-      return AddressNotifier(repo);
+      return AddressNotifier(ref,repo);
     });
 
 class AddressNotifier extends StateNotifier<AsyncValue<List<AddressModel>>> {
+  final Ref ref;
   final AddressRepository repository;
+  final _syncRepo = SyncRepository();
 
-  AddressNotifier(this.repository) : super(const AsyncValue.loading()) {
+  AddressNotifier(this.ref,this.repository) : super(const AsyncValue.loading()) {
     fetchAddresses();
   }
 
@@ -36,6 +39,12 @@ class AddressNotifier extends StateNotifier<AsyncValue<List<AddressModel>>> {
     try {
       await repository.updateAddress(address);
       await fetchAddresses();
+      try{
+        await _syncRepo.checkAddressUpdateAndSync(ref);
+      }
+      catch(e){
+        log("Error during address sync: $e");
+      }
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -45,6 +54,7 @@ class AddressNotifier extends StateNotifier<AsyncValue<List<AddressModel>>> {
     try {
       await repository.addAddress(address);
       fetchAddresses();
+      await _syncRepo.checkAddressUpdateAndSync(ref);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
@@ -64,6 +74,7 @@ class AddressNotifier extends StateNotifier<AsyncValue<List<AddressModel>>> {
     try {
       await repository.deleteAddress(id);
       fetchAddresses();
+      await _syncRepo.checkAddressUpdateAndSync(ref);
     } catch (e) {
       // Don't set state to error - let the UI handle the exception with dialog
       rethrow;
