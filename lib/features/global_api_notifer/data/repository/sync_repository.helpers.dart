@@ -5,16 +5,18 @@ void _invalidateProviders(
   required String logMessage,
   required Iterable<ProviderOrFamily> providers,
 }) {
-  var disposed = false;
-  ref.onDispose(() => disposed = true);
-
-  SchedulerBinding.instance.addPostFrameCallback((_) {
-    if (disposed) return;
+  try {
     debugPrint(logMessage);
     for (final provider in providers) {
-      ref.invalidate(provider);
+      try {
+        ref.invalidate(provider);
+      } catch (_) {
+        // Ignore if container/ref is no longer active
+      }
     }
-  });
+  } catch (_) {
+    // No-op: best-effort invalidation
+  }
 }
 
 void _invalidateBookingProviders(Ref ref) {

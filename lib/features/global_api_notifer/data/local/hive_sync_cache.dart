@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 class HiveSyncCache {
   static const String _syncBox = 'syncBox';
   static const String _lastUpdateKey = 'lastUpdated';
+  // Debug/testing: force a fixed timestamp to always trigger updates
+  static const String _forcedTimestamp = '2025-10-14T20:00:00.000000+05:30';
+  static bool forceFixedTimestamp = false; // set to true only for debugging
 
   static Future<void> saveLastUpdated(String timestamp) async {
     try {
@@ -20,14 +23,16 @@ class HiveSyncCache {
 
   static Future<String?> getLastUpdated() async {
     try {
+      if (forceFixedTimestamp) {
+        debugPrint(
+          '📦 [HiveSyncCache] Returning forced timestamp: $_forcedTimestamp',
+        );
+        return _forcedTimestamp;
+      }
       final box = await Hive.openBox(_syncBox);
       final data = box.get(_lastUpdateKey);
       debugPrint('📦 [HiveSyncCache] Retrieved timestamp: $data');
       return data;
-
-      // const forcedTimestamp = '2025-10-14T20:00:00.000000+05:30';
-      // debugPrint('📦 [HiveSyncCache] Returning forced timestamp: $forcedTimestamp');
-      // return forcedTimestamp;
     } catch (e) {
       debugPrint('❌ [HiveSyncCache] Failed to get timestamp: $e');
       return null;
