@@ -191,6 +191,35 @@ Future<void> _refreshSpecialPrayerOnly(SyncRepository repo, Ref ref) async {
   }
 }
 
+Future<void> _refreshSpecialPoojaAll(SyncRepository repo, Ref ref) async {
+  try {
+    debugPrint(
+      '🔄 Clearing and refreshing Special Pooja (banner, weekly, special) ...',
+    );
+
+    // Clear all related Hive boxes once
+    await _clearSpecialPoojaHiveBoxes(repo);
+
+    // Invalidate all related providers to trigger the 3 API calls
+    _invalidateProviders(
+      ref,
+      logMessage: '🔄 Invalidating special pooja related providers (all)...',
+      providers: [
+        specialPoojasProvider, // banner
+        weeklyPoojasProvider, // weekly
+        specialPrayersProvider, // special pooja
+      ],
+    );
+
+    _invalidateBookingProviders(ref);
+
+    debugPrint('✅ Special Pooja (all) refresh initiated');
+  } catch (e, stack) {
+    debugPrint('❌ [SyncRepository] Failed to refresh SpecialPooja (all): $e');
+    debugPrint(stack.toString());
+  }
+}
+
 Future<void> _refreshMusicOnly(SyncRepository repo, Ref ref) async {
   try {
     debugPrint('🔄 Clearing and refreshing Music only...');

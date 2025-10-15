@@ -39,19 +39,15 @@ Map<String, _ModelUpdateHandler> buildModelHandlers(SyncRepository repo) {
     // ),
     'SpecialPoojaDate': _wrapRef(
       repo,
-      '📂 Refreshing SpecialPoojaDate...',
-      (ref) => _refreshSpecialPoojaDatesOnly(repo, ref),
+      '📂 Refreshing SpecialPoojaDate (banner, weekly, special)...',
+      (ref) => _refreshSpecialPoojaAll(repo, ref),
     ),
     'SpecialPooja': _wrapRef(
       repo,
       '📂 Refreshing Special Pooja Banner...',
       (ref) => _refreshSpecialPoojaBannerOnly(repo, ref),
     ),
-    'SpecialPoojaBanner': _wrapRef(
-      repo,
-      '📂 Refreshing Special Pooja Banner...',
-      (ref) => _refreshSpecialPoojaBannerOnly(repo, ref),
-    ),
+     
     'WeeklyPooja': _wrapRef(
       repo,
       '📂 Refreshing Weekly Pooja...',
@@ -101,7 +97,6 @@ Map<String, _ModelUpdateHandler> buildModelHandlers(SyncRepository repo) {
       'Refreshing store orders...',
       (ref) => _refreshStoreOrders(repo, ref),
     ),
-    
   };
 }
 
