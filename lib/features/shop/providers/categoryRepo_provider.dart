@@ -49,12 +49,12 @@ final selectedCategoryNameProvider = Provider<String>((ref) {
   return categoriesAsync.when(
     data: (cats) {
       if (index == null || index < 0 || index >= cats.length) {
-        return "Common Pooja items"; // default for all
+        return "All Products";
       }
-      return 'Pooja items'; // category name
+      return cats[index].name;
     },
     loading: () => "Loading...",
-    error: (_, __) => "Common Pooja items",
+    error: (_, __) => "All Products",
   );
 });
 

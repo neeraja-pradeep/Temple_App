@@ -98,18 +98,31 @@ class CategoryProductRepository {
       );
 
       if (response.statusCode == 200) {
-        final body = jsonDecode(response.body);
-        if (body is List) {
-          final products = body
-              .map((e) => CategoryProductModel.fromJson(e))
-              .toList(growable: false);
+        final decoded = jsonDecode(response.body);
+        final List<dynamic> payload;
 
-          await _cacheProducts(categoryId, products);
-          log('Cached ${products.length} products for categoryId: $categoryId');
-          return products;
+        if (decoded is List) {
+          payload = decoded;
+        } else if (decoded is Map<String, dynamic>) {
+          final dynamic results = decoded['results'];
+          if (results is List) {
+            payload = results;
+          } else {
+            throw Exception(
+              'Invalid response format: expected a "results" list in map',
+            );
+          }
         } else {
-          throw Exception('Invalid response format: expected a List');
+          throw Exception('Invalid response format: expected List or Map');
         }
+
+        final products = payload
+            .map((e) => CategoryProductModel.fromJson(e))
+            .toList(growable: false);
+
+        await _cacheProducts(categoryId, products);
+        log('Cached ${products.length} products for categoryId: $categoryId');
+        return products;
       } else {
         throw Exception(
           'Failed to fetch products. Status Code: ${response.statusCode}',

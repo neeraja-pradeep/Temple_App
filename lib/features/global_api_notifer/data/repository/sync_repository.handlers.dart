@@ -27,16 +27,7 @@ Map<String, _ModelUpdateHandler> buildModelHandlers(SyncRepository repo) {
       '📂 Refreshing Products...',
       (ref) => _refreshStoreProducts(repo, ref),
     ),
-    // 'ProductVariant': _wrapRef(
-    //   repo,
-    //   '📂 Refreshing Product Variants...',
-    //   (ref) => _refreshStoreProducts(repo, ref),
-    // ),
-    // 'ProductType': _wrapRef(
-    //   repo,
-    //   '📂 Refreshing Product Types...',
-    //   (ref) => _refreshStoreProducts(repo, ref),
-    // ),
+
     'SpecialPoojaDate': _wrapRef(
       repo,
       '📂 Refreshing SpecialPoojaDate (banner, weekly, special)...',

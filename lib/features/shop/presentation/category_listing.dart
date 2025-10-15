@@ -62,16 +62,22 @@ class ShopCategorySection extends ConsumerWidget {
           final hasValidSelectedIndex =
               selectedIndex >= 0 && selectedIndex < data.length;
 
-          if (data.isNotEmpty &&
-              (currentCategoryIndex == null ||
-                  currentCategoryIndex < 0 ||
-                  currentCategoryIndex >= data.length)) {
+          final shouldResetCategoryIndex = data.isNotEmpty &&
+              currentCategoryIndex != null &&
+              (currentCategoryIndex < 0 ||
+                  currentCategoryIndex >= data.length);
+
+          if (shouldResetCategoryIndex) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ref.read(selectedCategoryIndexProvider.notifier).state = 0;
             });
           }
 
-          if (data.isNotEmpty && !hasValidSelectedIndex) {
+          final shouldResetSelectedIndex = data.isNotEmpty &&
+              selectedIndex >= 0 &&
+              selectedIndex >= data.length;
+
+          if (shouldResetSelectedIndex) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ref.read(selectedIndexCatProvider.notifier).state = 0;
             });

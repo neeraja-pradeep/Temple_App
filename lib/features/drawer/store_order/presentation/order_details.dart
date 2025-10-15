@@ -13,7 +13,7 @@ class OrderDetails extends ConsumerStatefulWidget {
 }
 
 class _OrderDetailsState extends ConsumerState<OrderDetails> {
-  String selectedFilter = "pending"; // default
+  String selectedFilter = "all"; // default shows every order
 
   @override
   void initState() {

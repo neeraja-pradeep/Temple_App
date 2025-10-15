@@ -53,18 +53,29 @@ class CategoryRepository {
       );
 
       if (response.statusCode == 200) {
-        final body = jsonDecode(response.body);
-        if (body is List) {
-          final categories = body
-              .map((e) => StoreCategory.fromJson(e))
-              .toList();
-          await box.clear();
-          await box.addAll(categories);
-          print("ðŸ’¾ Categories cached in Hive (${categories.length} items)");
-          return categories;
+        final decoded = jsonDecode(response.body);
+        final List<dynamic> payload;
+
+        if (decoded is List) {
+          payload = decoded;
+        } else if (decoded is Map<String, dynamic>) {
+          final dynamic results = decoded['results'];
+          if (results is List) {
+            payload = results;
+          } else {
+            throw Exception("Invalid response format: expected a 'results' list");
+          }
         } else {
           throw Exception("Invalid response format");
         }
+
+        final categories = payload
+            .map((e) => StoreCategory.fromJson(e))
+            .toList();
+        await box.clear();
+        await box.addAll(categories);
+        print("💾 Categories cached in Hive (${categories.length} items)");
+        return categories;
       } else {
         throw Exception("Failed to fetch categories (${response.statusCode})");
       }

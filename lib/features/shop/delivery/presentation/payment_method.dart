@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hive/hive.dart';
 import 'package:temple_app/core/constants/sized.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
+import 'package:temple_app/features/drawer/store_order/data/order_model.dart';
+import 'package:temple_app/features/drawer/store_order/data/order_service.dart';
 import 'package:temple_app/features/shop/cart/presentation/app_bar.dart';
 import 'package:temple_app/features/shop/cart/providers/addToCart_provider.dart';
 import 'package:temple_app/features/shop/cart/providers/cart_provider.dart';
@@ -303,6 +306,23 @@ class PaymentMethodScreen extends ConsumerWidget {
 
               if (orderId != null) {
                 await ref.read(cartProviders.notifier).clearCart();
+                final trackedBoxes = StoreOrderService.cacheBoxNames();
+                for (final boxName in trackedBoxes) {
+                  final box = await Hive.openBox<StoreOrder>(boxName);
+                  await box.clear();
+                }
+                const orderStatuses = ['all', 'pending', 'delivered', 'cancelled'];
+                for (final status in orderStatuses) {
+                  ref.invalidate(storeOrdersProvider(status));
+                }
+                for (final status in orderStatuses) {
+                  try {
+                    await ref.refresh(storeOrdersProvider(status).future);
+                  } catch (e, st) {
+                    log('Failed to prefetch orders for status $status: $e');
+                    log(st.toString());
+                  }
+                }
                 ref.watch(selectedPaymentProvider.notifier).state = -1;
                 if (!context.mounted) return;
                 Navigator.pushReplacement(
