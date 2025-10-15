@@ -6,8 +6,7 @@ import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/features/booking/presentation/pooja_confirmed_page.dart';
 import '../../booking/data/cart_model.dart';
 import '../../booking/providers/booking_provider.dart';
-import '../../booking/providers/user_list_provider.dart';
-import '../../booking/providers/booking_page_providers.dart';
+// Removed unused imports after stopping state clearing on back
 
 class PoojaSummaryPage extends ConsumerStatefulWidget {
   final int userId;
@@ -59,8 +58,6 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
                     height: 20.h,
                   ),
                   onPressed: () {
-                    // Clear all booking state before going back
-                    _clearAllBookingState();
                     Navigator.pop(context);
                   },
                   padding: EdgeInsets.zero,
@@ -239,7 +236,11 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 64.sp, color: primaryThemeColor),
+                    Icon(
+                      Icons.error_outline,
+                      size: 64.sp,
+                      color: primaryThemeColor,
+                    ),
                     SizedBox(height: 16.h),
                     Text(
                       'Failed to load cart',
@@ -634,27 +635,5 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
     }
   }
 
-  void _clearAllBookingState() {
-    // Clear all booking-related providers
-
-    // Reset family providers with userId
-    ref.read(selectedUsersProvider(widget.userId).notifier).state = [];
-    ref.read(visibleUsersProvider(widget.userId).notifier).state = [];
-
-    // Reset calendar-related state
-    ref.read(selectedCalendarDateProvider.notifier).state = null;
-    ref.read(showCalendarProvider.notifier).state = false;
-
-    // Reset participation and agent code state
-    ref.read(isParticipatingPhysicallyProvider.notifier).state = false;
-    ref.read(isAgentCodeProvider.notifier).state = false;
-    ref.read(agentCodeProvider.notifier).state = '';
-
-    // Invalidate providers that can be invalidated
-    ref.invalidate(cartProvider);
-    ref.invalidate(checkoutProvider);
-    ref.invalidate(userListsProvider);
-
-    print('🧹 Cleared all booking state and cache for user ${widget.userId}');
-  }
+  // (intentionally left blank) — we no longer clear booking state on back
 }

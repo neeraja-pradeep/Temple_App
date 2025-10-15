@@ -4,6 +4,7 @@ class UserList {
   final int user;
   final String dob;
   final String time;
+  final bool personal;
   final List<UserAttribute> attributes;
 
   UserList({
@@ -12,6 +13,7 @@ class UserList {
     required this.user,
     required this.dob,
     required this.time,
+    required this.personal,
     required this.attributes,
   });
 
@@ -22,6 +24,7 @@ class UserList {
       user: json['user'],
       dob: (json['DOB'] ?? '') as String,
       time: (json['time'] ?? '') as String,
+      personal: (json['personal'] ?? false) as bool,
       attributes: (json['attributes'] as List)
           .map((attr) => UserAttribute.fromJson(attr))
           .toList(),
@@ -35,6 +38,7 @@ class UserList {
       'user': user,
       'DOB': dob,
       'time': time,
+      'personal': personal,
       'attributes': attributes.map((attr) => attr.toJson()).toList(),
     };
   }

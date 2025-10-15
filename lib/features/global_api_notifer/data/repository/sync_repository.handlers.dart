@@ -47,7 +47,7 @@ Map<String, _ModelUpdateHandler> buildModelHandlers(SyncRepository repo) {
       '📂 Refreshing Special Pooja Banner...',
       (ref) => _refreshSpecialPoojaBannerOnly(repo, ref),
     ),
-     
+
     'WeeklyPooja': _wrapRef(
       repo,
       '📂 Refreshing Weekly Pooja...',
