@@ -59,6 +59,8 @@ class AdditionalOptions extends ConsumerWidget {
                   await showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
+                    useSafeArea: false,
+
                     backgroundColor: Colors.transparent,
                     builder: (context) =>
                         AgentCodeBottomSheet(currentAgentCode: agentCode),
@@ -121,4 +123,3 @@ class AdditionalOptions extends ConsumerWidget {
     );
   }
 }
-

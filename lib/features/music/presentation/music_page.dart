@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -98,6 +99,96 @@ class _MusicPageState extends ConsumerState<MusicPage> {
     }
   }
 
+  Future<bool> _isOnline() async {
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      return result.isNotEmpty && result.first.rawAddress.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _showOfflineDialog(BuildContext context) async {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          backgroundColor: Colors.white,
+          titlePadding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 0),
+          contentPadding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 8.h),
+          actionsPadding: EdgeInsets.fromLTRB(12.w, 0, 12.w, 12.h),
+          title: Row(
+            children: [
+              Container(
+                width: 36.w,
+                height: 36.w,
+                decoration: BoxDecoration(
+                  color: AppColors.selected.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.wifi_off,
+                  color: AppColors.selected,
+                  size: 20.sp,
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Text(
+                  'ഇന്റർനെറ്റ് ബന്ധം ഇല്ല',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                    fontFamily: 'NotoSansMalayalam',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'മ്യൂസിക് ഉപയോഗിക്കാൻ ഇന്‍റര്‍നെറ്റ് ഓണാക്കുക.',
+            style: TextStyle(
+              fontSize: 13.sp,
+              color: Colors.black87,
+              fontWeight: FontWeight.w400,
+              fontFamily: 'NotoSansMalayalam',
+            ),
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.selected,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 10.h),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'ശരി',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final songsAsync = ref.watch(songsProvider);
@@ -156,6 +247,12 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                     return _SongTile(
                       song: song,
                       onOpen: () async {
+                        // Check connectivity before opening player
+                        final online = await _isOnline();
+                        if (!online) {
+                          await _showOfflineDialog(context);
+                          return;
+                        }
                         // Open full player immediately on first tap
                         final songsList = ref.read(songsProvider).requireValue;
                         ref.read(queueProvider.notifier).state = songsList;
@@ -234,7 +331,12 @@ class _MusicPageState extends ConsumerState<MusicPage> {
               queueIndex < queue.length)
             _MiniPlayer(
               song: queue[queueIndex],
-              onTap: () {
+              onTap: () async {
+                final online = await _isOnline();
+                if (!online) {
+                  await _showOfflineDialog(context);
+                  return;
+                }
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const MusicPlayerPage()),
                 );
