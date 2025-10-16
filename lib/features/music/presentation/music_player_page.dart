@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:temple_app/core/app_colors.dart';
 import 'package:temple_app/core/navigation_provider.dart';
+import 'package:temple_app/core/utils/audio_controller.dart';
 import '../data/song_model.dart';
 import '../providers/music_providers.dart';
 
@@ -24,6 +25,10 @@ class _MusicPlayerPageState extends ConsumerState<MusicPlayerPage> {
   @override
   void initState() {
     super.initState();
+    final player = ref.read(audioPlayerProvider);
+
+     // Register this player to the coordinator
+     AudioController.instance.register(player);
     _setupAutoPlay();
   }
 
@@ -516,6 +521,7 @@ class _MusicPlayerPageState extends ConsumerState<MusicPlayerPage> {
         ),
       );
       await player.seek(Duration.zero);
+      await AudioController.instance.stopAllExcept(player);
       await player.play();
       ref.read(isPlayingProvider.notifier).state = true;
       debugPrint('=== AUDIO PLAY STARTED (player) ===');
@@ -529,6 +535,7 @@ class _MusicPlayerPageState extends ConsumerState<MusicPlayerPage> {
             : url;
         await player.setAudioSource(AudioSource.uri(Uri.parse(httpsUrl)));
         await player.seek(Duration.zero);
+        await AudioController.instance.stopAllExcept(player);
         await player.play();
         ref.read(isPlayingProvider.notifier).state = true;
         debugPrint('Retry succeeded (player)');

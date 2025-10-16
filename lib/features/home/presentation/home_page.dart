@@ -9,6 +9,7 @@ import 'package:temple_app/core/app_colors.dart';
 import 'package:temple_app/core/services/fcm_token_service.dart';
 import 'package:temple_app/core/services/logout_service.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
+import 'package:temple_app/core/utils/audio_controller.dart';
 import 'package:temple_app/features/drawer/contact_us/contact_us.dart';
 import 'package:temple_app/features/drawer/pooja_booking/presentation/booking_details.dart';
 import 'package:temple_app/features/drawer/saved_addresses/presentation/saved_address.dart';
@@ -367,6 +368,9 @@ class _HomePageState extends ConsumerState<HomePage>
     WidgetsBinding.instance.addObserver(this);
     player = ref.read(audioPlayerProvider);
 
+    // Register this player with AudioController
+    AudioController.instance.register(player);
+
     _playerSub = player.playerStateStream.listen(
       (state) {
         ref.read(isPlayingProvider.notifier).state = state.playing;
@@ -401,6 +405,7 @@ class _HomePageState extends ConsumerState<HomePage>
 
   @override
   void dispose() {
+    AudioController.instance.unregister(player);
     player.stop();
     WidgetsBinding.instance.removeObserver(this);
     _playerSub.cancel(); // cancel stream
@@ -515,6 +520,7 @@ class _HomePageState extends ConsumerState<HomePage>
                   return IconButton(
                     onPressed: () async {
                       try {
+                        await AudioController.instance.stopAllExcept(player); 
                         if (isPlaying) {
                           await player.pause();
                         } else {
@@ -531,6 +537,8 @@ class _HomePageState extends ConsumerState<HomePage>
                               );
                               print('🔄 Converted HTTP to HTTPS: $audioUrl');
                             }
+
+                            await AudioController.instance.stopAllExcept(player);
 
                             if (player.audioSource == null ||
                                 (player.audioSource is ProgressiveAudioSource &&

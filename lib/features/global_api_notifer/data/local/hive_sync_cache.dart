@@ -6,7 +6,7 @@ class HiveSyncCache {
   static const String _lastUpdateKey = 'lastUpdated';
   // Debug/testing: force a fixed timestamp to always trigger updates
   static const String _forcedTimestamp = '2025-10-14T20:00:00.000000+05:30';
-  static bool forceFixedTimestamp = false; // set to true only for debugging
+  static bool forceFixedTimestamp = true; // set to true only for debugging
 
   static Future<void> saveLastUpdated(String timestamp) async {
     try {

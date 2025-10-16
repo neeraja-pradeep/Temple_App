@@ -369,7 +369,9 @@ class BookingPage extends ConsumerWidget {
             // Prefer the entry where personal == true
             final personalUser = users.firstWhere(
               (u) => u.personal,
-              orElse: () => users.firstWhere((u) => u.id == userId),
+              orElse: () => users.firstWhere((u) => u.id == userId,
+              orElse: () => users.first   // if no personal, fallback to first id in the user-list
+              ),
             );
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ref.read(selectedUsersProvider(userId).notifier).state = [
@@ -386,6 +388,8 @@ class BookingPage extends ConsumerWidget {
       error: (_, __) {},
     );
   }
+
+  
 
   Future<void> _handleBooking(
     BuildContext context,

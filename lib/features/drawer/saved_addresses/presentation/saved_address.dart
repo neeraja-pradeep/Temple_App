@@ -16,176 +16,178 @@ class SavedAddress extends ConsumerWidget {
     Future<void> _refresh() async {
       await ref.read(addressListProvider.notifier).fetchAddresses();
     }
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        leading: Padding(
-          padding: EdgeInsets.only(left: 16.w, top: 16.h),
-          child: Container(
-            width: 40.w,
-            height: 40.h,
-            decoration: BoxDecoration(
-              color: AppColors.selectedBackground,
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: Center(
-              child: IconButton(
-                icon: Image.asset(
-                  'assets/backIcon.png',
-                  width: 20.w,
-                  height: 20.h,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          leading: Padding(
+            padding: EdgeInsets.only(left: 16.w, top: 16.h),
+            child: Container(
+              width: 40.w,
+              height: 40.h,
+              decoration: BoxDecoration(
+                color: AppColors.selectedBackground,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Center(
+                child: IconButton(
+                  icon: Image.asset(
+                    'assets/backIcon.png',
+                    width: 20.w,
+                    height: 20.h,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
                 ),
-                onPressed: () => Navigator.pop(context),
-                padding: EdgeInsets.zero,
-                constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
               ),
             ),
           ),
         ),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(15.w),
-        child: RefreshIndicator(
-          backgroundColor: AppColors.navBarBackground,
-          color: AppColors.selected,
-          onRefresh: _refresh,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Saved Address",
-                  style: TextStyle(
-                    fontFamily: "Poppins",
-                    fontSize: 16.sp,
-                  ),
-                ),
-                SizedBox(height: 10.h),
-                Container(
-                  width: 343.w,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8.r)
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(10.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Add/Edit information",
-                        style: TextStyle(
-                          color: Colors.grey
-                        ),),
-                        SizedBox(height: 30.h,),
-                    
-                        GestureDetector(
-                          onTap: (){
-                            showAddressSheet(context); 
-                          },
-                          child: Text("+ Add address",
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            color: AppColors.selected,
-                            fontWeight: FontWeight.w700
-                          ),),
-                        ),
-                        SizedBox(height: 20.h,),
-                    
-                        addressState.when(
-                          data: (addresses) {
-                            if (addresses.isEmpty) {
-                              return const Center(child: Text("No addresses saved"));
-                            }
-                            return ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: addresses.length,
-                              itemBuilder: (context, index) {
-                                final AddressModel address = addresses[index];
-                                return Container(
-                                  margin: EdgeInsets.only(bottom: 12.h),
-                                  decoration: BoxDecoration(
-                                    color: Colors.transparent,
-                                    borderRadius: BorderRadius.circular(8.r),
-                                  ),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(12.w),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(address.name,
-                                                  style: TextStyle(
-                                                    overflow: TextOverflow.ellipsis,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 14.sp,
-                                                  )),
-                                              SizedBox(height: 4.h),
-                                              Text(
-                                                "${address.street}, ${address.city}",
-                                                style: TextStyle(
-                                                   overflow: TextOverflow.ellipsis,
-                                                    fontSize: 12.sp,),
-                                              ),
-                                              Text(
-                                                "${address.state} - ${address.pincode}",
-                                                style: TextStyle(
-                                                   overflow: TextOverflow.ellipsis,
-                                                    fontSize: 12.sp,),
-                                              ),
-                                              Text(
-                                                address.country,
-                                                style: TextStyle(
-                                                   overflow: TextOverflow.ellipsis,
-                                                    fontSize: 12.sp,),
-                                              ),
-                                              Text(
-                                                "Phone : ${address.phonenumber}",
-                                                style: TextStyle(
-                                                    fontSize: 12.sp,
-                                                    fontWeight: FontWeight.w500),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Row(
-                                          children: [
-                                            IconButton(
-                                              icon: Image.asset("assets/icons/edit.png",height: 20.h,width: 20.w,),
-                                              onPressed: () {
-                                                showAddressSheet(context,
-                                                    address: address);
-                                              },
-                                            ),
-                                            IconButton(
-                                             icon: Image.asset("assets/icons/delete.png",height: 20.h,width: 20.w,),
-                                              onPressed: () {
-                                                _confirmDelete(context, ref, address.id);
-                                              },
-                                            ),
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                          loading: () => const Center(
-                            child: CircularProgressIndicator(color: AppColors.selected),
-                          ),
-                          error: (e, _) => Center(child: Text("Error: $e")),
-                        ),
-                      ],
+        body: Padding(
+          padding: EdgeInsets.all(15.w),
+          child: RefreshIndicator(
+            backgroundColor: AppColors.navBarBackground,
+            color: AppColors.selected,
+            onRefresh: _refresh,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Saved Address",
+                    style: TextStyle(
+                      fontFamily: "Poppins",
+                      fontSize: 16.sp,
                     ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 10.h),
+                  Container(
+                    width: 343.w,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8.r)
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(10.w),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Add/Edit information",
+                          style: TextStyle(
+                            color: Colors.grey
+                          ),),
+                          SizedBox(height: 30.h,),
+                      
+                          GestureDetector(
+                            onTap: (){
+                              showAddressSheet(context); 
+                            },
+                            child: Text("+ Add address",
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              color: AppColors.selected,
+                              fontWeight: FontWeight.w700
+                            ),),
+                          ),
+                          SizedBox(height: 20.h,),
+                      
+                          addressState.when(
+                            data: (addresses) {
+                              if (addresses.isEmpty) {
+                                return const Center(child: Text("No addresses saved"));
+                              }
+                              return ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: addresses.length,
+                                itemBuilder: (context, index) {
+                                  final AddressModel address = addresses[index];
+                                  return Container(
+                                    margin: EdgeInsets.only(bottom: 12.h),
+                                    decoration: BoxDecoration(
+                                      color: Colors.transparent,
+                                      borderRadius: BorderRadius.circular(8.r),
+                                    ),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(12.w),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(address.name,
+                                                    style: TextStyle(
+                                                      overflow: TextOverflow.ellipsis,
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 14.sp,
+                                                    )),
+                                                SizedBox(height: 4.h),
+                                                Text(
+                                                  "${address.street}, ${address.city}",
+                                                  style: TextStyle(
+                                                     overflow: TextOverflow.ellipsis,
+                                                      fontSize: 12.sp,),
+                                                ),
+                                                Text(
+                                                  "${address.state} - ${address.pincode}",
+                                                  style: TextStyle(
+                                                     overflow: TextOverflow.ellipsis,
+                                                      fontSize: 12.sp,),
+                                                ),
+                                                Text(
+                                                  address.country,
+                                                  style: TextStyle(
+                                                     overflow: TextOverflow.ellipsis,
+                                                      fontSize: 12.sp,),
+                                                ),
+                                                Text(
+                                                  "Phone : ${address.phonenumber}",
+                                                  style: TextStyle(
+                                                      fontSize: 12.sp,
+                                                      fontWeight: FontWeight.w500),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Row(
+                                            children: [
+                                              IconButton(
+                                                icon: Image.asset("assets/icons/edit.png",height: 20.h,width: 20.w,),
+                                                onPressed: () {
+                                                  showAddressSheet(context,
+                                                      address: address);
+                                                },
+                                              ),
+                                              IconButton(
+                                               icon: Image.asset("assets/icons/delete.png",height: 20.h,width: 20.w,),
+                                                onPressed: () {
+                                                  _confirmDelete(context, ref, address.id);
+                                                },
+                                              ),
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                            loading: () => const Center(
+                              child: CircularProgressIndicator(color: AppColors.selected),
+                            ),
+                            error: (e, _) => Center(child: Text("Error: $e")),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -20,6 +20,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:temple_app/core/services/token_auto_refresh_service.dart';
 import 'package:temple_app/core/services/token_storage_service.dart';
 import 'package:temple_app/core/storage/hive_initializer.dart';
+import 'package:temple_app/core/utils/audio_controller.dart';
 import 'package:temple_app/features/global_api_notifer/provider/sync_provider.dart';
 import 'package:temple_app/features/shop/cart/data/repositories/cart_repository.dart';
 
@@ -60,6 +61,9 @@ Future<void> main() async {
 
   // 🔄 Start automatic token refresh monitoring
   TokenAutoRefreshService.startTokenMonitoring();
+
+  // Initializes the app’s audio session ( control audio focus and pause external apps )
+  await AudioController.instance.init();
 
   runApp(const ProviderScope(child: MyApp()));
 }

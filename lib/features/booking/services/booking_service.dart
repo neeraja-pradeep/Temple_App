@@ -238,7 +238,8 @@ class BookingService {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PoojaSummaryPage(userId: userId),
+            builder: (context) => PoojaSummaryPage(
+              userId: userId,),
           ),
         );
       } else {

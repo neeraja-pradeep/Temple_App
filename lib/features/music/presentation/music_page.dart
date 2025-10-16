@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:temple_app/core/app_colors.dart';
+import 'package:temple_app/core/utils/audio_controller.dart';
 import 'package:temple_app/features/music/providers/music_providers.dart';
 import 'package:temple_app/features/music/data/song_model.dart';
 import 'package:temple_app/features/music/presentation/music_player_page.dart';
@@ -19,6 +20,11 @@ class _MusicPageState extends ConsumerState<MusicPage> {
   @override
   void initState() {
     super.initState();
+    final player = ref.read(audioPlayerProvider);
+
+    // Register this player to the coordinator
+    AudioController.instance.register(player);
+
     _setupAutoPlay();
   }
 
@@ -74,6 +80,7 @@ class _MusicPageState extends ConsumerState<MusicPage> {
         ),
       );
       await player.seek(Duration.zero);
+      await AudioController.instance.stopAllExcept(player);
       await player.play();
       ref.read(isPlayingProvider.notifier).state = true;
       debugPrint('=== AUDIO PLAY STARTED ===');
@@ -88,6 +95,7 @@ class _MusicPageState extends ConsumerState<MusicPage> {
             : url;
         await player.setAudioSource(AudioSource.uri(Uri.parse(httpsUrl)));
         await player.seek(Duration.zero);
+        await AudioController.instance.stopAllExcept(player);
         await player.play();
         ref.read(isPlayingProvider.notifier).state = true;
         debugPrint('Retry succeeded');
@@ -290,6 +298,7 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                               ),
                             );
                             await player.seek(Duration.zero);
+                            await AudioController.instance.stopAllExcept(player);
                             await player.play();
                             ref.read(isPlayingProvider.notifier).state = true;
                           } catch (e, st) {
@@ -307,6 +316,7 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                                 AudioSource.uri(Uri.parse(httpsUrl)),
                               );
                               await player.seek(Duration.zero);
+                              await AudioController.instance.stopAllExcept(player);
                               await player.play();
                               ref.read(isPlayingProvider.notifier).state = true;
                             } catch (e2, st2) {
@@ -537,6 +547,7 @@ class _MiniPlayer extends ConsumerWidget {
                     await player.pause();
                     ref.read(isPlayingProvider.notifier).state = false;
                   } else {
+                    await AudioController.instance.stopAllExcept(player);
                     await player.play();
                     ref.read(isPlayingProvider.notifier).state = true;
                   }

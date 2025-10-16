@@ -70,7 +70,8 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
     });
 
     // ✅ Watch selectedDateProvider
-    final selectedDate = ref.watch(selectedDateProvider);
+    final today = DateTime.now();
+    final selectedDate = ref.watch(selectedDateProvider) ?? today.toIso8601String();
 
     // ✅ Auto-scroll when button becomes visible
     if (selectedDate != null && _scrollController.hasClients) {
@@ -82,7 +83,6 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
         );
       });
     }
-
     return Stack(
       children: [
         RefreshIndicator(
@@ -162,7 +162,7 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                     width: 342.w,
                     child: AppDropdown(
                       value: selectedPoojaId,
-                      hintText: "Value",
+                      hintText: "Select a pooja",
                       items: selectedCategoryId == null
                           ? [
                               DropdownMenuItem<int>(
@@ -259,7 +259,8 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: 16.h, left: 16.w, right: 16.w),
-                  child: MalayalamCalendar(),
+                  child: MalayalamCalendar(
+                  ),
                 ),
               ],
             ),
@@ -269,10 +270,6 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
         // ✅ Book button fixed at bottom
         Consumer(
           builder: (context, ref, _) {
-            final selectedDate = ref.watch(selectedDateProvider);
-
-            if (selectedDate == null) return const SizedBox.shrink();
-
             return Positioned(
               left: 14.w,
               bottom: 10.h,

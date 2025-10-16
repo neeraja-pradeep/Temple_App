@@ -28,90 +28,92 @@ class _BookingDetailsState extends ConsumerState<BookingDetails> {
   Widget build(BuildContext context) {
     final ordersAsync = ref.watch(bookingOrdersProvider(selectedFilter));
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        toolbarHeight: 60.h,
-        leadingWidth: 64.w,
-        leading: Padding(
-          padding: EdgeInsets.only(left: 16.w, top: 16.h),
-          child: Container(
-            width: 40.w,
-            height: 40.h,
-            decoration: BoxDecoration(
-              color:AppColors.selectedBackground,
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: Center(
-              child: IconButton(
-                icon: Image.asset(
-                  'assets/backIcon.png',
-                  width: 20.w,
-                  height: 20.h,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          toolbarHeight: 60.h,
+          leadingWidth: 64.w,
+          leading: Padding(
+            padding: EdgeInsets.only(left: 16.w, top: 16.h),
+            child: Container(
+              width: 40.w,
+              height: 40.h,
+              decoration: BoxDecoration(
+                color:AppColors.selectedBackground,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Center(
+                child: IconButton(
+                  icon: Image.asset(
+                    'assets/backIcon.png',
+                    width: 20.w,
+                    height: 20.h,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
                 ),
-                onPressed: () => Navigator.pop(context),
-                padding: EdgeInsets.zero,
-                constraints: BoxConstraints(minWidth: 40.w, minHeight: 40.h),
               ),
             ),
           ),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Pooja Booking Details",
-              style: TextStyle(fontFamily: "Poppins", fontSize: 16.sp),
-            ),
-            SizedBox(height: 10.h),
-            // Filter buttons
-            Container(
-              width: double.infinity,
-              height: 50,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: Colors.white,
+        body: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Pooja Booking Details",
+                style: TextStyle(fontFamily: "Poppins", fontSize: 16.sp),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(child: _buildFilterButton("Upcoming")),
-                  SizedBox(width: 8.w),
-                  Expanded(child: _buildFilterButton("completed")),
-                  SizedBox(width: 8.w),
-                  Expanded(child: _buildFilterButton("cancelled")),
-                ],
+              SizedBox(height: 10.h),
+              // Filter buttons
+              Container(
+                width: double.infinity,
+                height: 50,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.white,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: _buildFilterButton("Upcoming")),
+                    SizedBox(width: 8.w),
+                    Expanded(child: _buildFilterButton("completed")),
+                    SizedBox(width: 8.w),
+                    Expanded(child: _buildFilterButton("cancelled")),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            // Booking list
-            Expanded(
-              child: ordersAsync.when(
-                data: (orders) {
-                  if (orders.isEmpty) {
-                    return const Center(child: Text("No orders found"));
-                  }
-                  return ListView.builder(
-                    itemCount: orders.length,
-                    itemBuilder: (context, index) {
-                      final booking = orders[index];
-                      return BookingCard(
-                        booking: booking,
-                      ); // use the expandable card
-                    },
-                  );
-                },
-                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.selected,)),
-                error: (err, _) => Center(child: Text("Error: $err")),
+              const SizedBox(height: 10),
+              // Booking list
+              Expanded(
+                child: ordersAsync.when(
+                  data: (orders) {
+                    if (orders.isEmpty) {
+                      return const Center(child: Text("No orders found"));
+                    }
+                    return ListView.builder(
+                      itemCount: orders.length,
+                      itemBuilder: (context, index) {
+                        final booking = orders[index];
+                        return BookingCard(
+                          booking: booking,
+                        ); // use the expandable card
+                      },
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.selected,)),
+                  error: (err, _) => Center(child: Text("Error: $err")),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

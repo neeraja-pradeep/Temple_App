@@ -157,6 +157,7 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
                   asyncSpecialPrayers,
                   cachedSpecialPrayers,
                 ),
+                SizedBox(height: 50.h), // Space for the fixed button
               ],
             ),
           ),
