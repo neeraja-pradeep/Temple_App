@@ -117,7 +117,7 @@ class RegisterPage extends ConsumerWidget {
                           ),
                           child: isLoading
                               ? const CircularProgressIndicator(
-                                  color: Colors.white,
+                                  color: AppColors.selected,
                                 )
                               : Text(
                                   'Sign up',

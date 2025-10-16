@@ -87,32 +87,29 @@ class BookingRepository {
     int? specialPoojaDateId,
   }) async {
     try {
-      final Map<String, dynamic> requestBody = {
+      // Build request body as per latest API contract
+      final Map<String, dynamic> requestBody = <String, dynamic>{
         'pooja_id': poojaId,
         'user_list_ids': userListIds,
         'status': status,
       };
 
-      // Add agent code if provided
+      // Add agent code if provided (available for both normal and special pooja)
       if (agentCode != null && agentCode.isNotEmpty) {
         requestBody['agent_code'] = agentCode;
       }
 
-      // Add date field based on pooja type
+      // Add date field based on pooja type (singular keys only)
       if (specialPoojaDateId != null) {
-        // Special pooja - send special_pooja_date_ids (API expects an array)
-        requestBody['special_pooja_date_ids'] = [specialPoojaDateId];
-        // Maintain legacy key for backward compatibility if the backend still accepts it
+        // Special pooja
         requestBody['special_pooja_date_id'] = specialPoojaDateId.toString();
         print(
-          '🎯 Special Pooja detected - using special_pooja_date_ids: $specialPoojaDateId',
+          '🎯 Special Pooja detected - special_pooja_date_id: $specialPoojaDateId',
         );
       } else if (selectedDate != null) {
-        // Regular pooja - send selected_dates (API expects an array)
-        requestBody['selected_dates'] = [selectedDate];
-        // Maintain legacy key for backward compatibility if the backend still accepts it
+        // Normal pooja
         requestBody['selected_date'] = selectedDate;
-        print('📅 Regular Pooja detected - using selected_dates: $selectedDate');
+        print('📅 Regular Pooja detected - selected_date: $selectedDate');
       } else {
         throw Exception(
           'Either selected_date or special_pooja_date_id must be provided',

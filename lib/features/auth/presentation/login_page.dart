@@ -30,11 +30,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final formKey = ref.watch(loginFormKeyProvider);
     final phoneController = ref.watch(loginPhoneControllerProvider);
     final otpController = ref.watch(loginOtpControllerProvider);
     final isLoading = ref.watch(authLoadingProvider);
     final otpSent = ref.watch(otpSentProvider);
+
+    // Use a local form key to avoid GlobalKey conflicts if multiple LoginPages exist briefly
+    final formKey = GlobalKey<FormState>();
 
     return Scaffold(
       body: Stack(
@@ -127,22 +129,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                       ),
                     ],
-                    if (!otpSent)
-                      // Align(
-                      //   alignment: Alignment.centerRight,
-                      //   child: TextButton(
-                      //     onPressed: () {},
-                      //     child: Text(
-                      //       'Forgot your password?',
-                      //       style: TextStyle(
-                      //         color: AppColors.selected,
-                      //         fontSize: 14.sp,
-                      //         fontWeight: FontWeight.w600,
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
-                      SizedBox(height: 20.h),
+                    if (!otpSent) SizedBox(height: 20.h),
                     Align(
                       alignment: Alignment.center,
                       child: SizedBox(
@@ -151,15 +138,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         child: ElevatedButton(
                           onPressed: isLoading
                               ? null
-                              : () {
+                              : () async {
                                   // Validate form before proceeding
                                   if (formKey.currentState?.validate() ??
                                       false) {
                                     if (otpSent) {
-                                      // Verify OTP
-                                      ref
+                                      // Verify OTP directly to avoid relying on provider form key
+                                      await ref
                                           .read(authControllerProvider.notifier)
-                                          .login(context);
+                                          .verifyOTP(
+                                            context,
+                                            otpController.text.trim(),
+                                          );
                                     } else {
                                       // Send OTP - format phone number with +91 country code
                                       String cleanPhoneNumber = phoneController
@@ -170,7 +160,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       // Add +91 prefix for Firebase
                                       String formattedPhoneNumber =
                                           '+91$cleanPhoneNumber';
-                                      ref
+                                      await ref
                                           .read(authControllerProvider.notifier)
                                           .sendOTP(
                                             context,
@@ -189,7 +179,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                           child: isLoading
                               ? const CircularProgressIndicator(
-                                  color: Colors.white,
+                                  color: AppColors.selected,
                                 )
                               : Text(
                                   otpSent ? 'Verify OTP' : 'Send OTP',
@@ -203,22 +193,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                     ),
                     SizedBox(height: 30.h),
-                    // Center(
-                    //   child: TextButton(
-                    //     onPressed: () => Navigator.pushReplacementNamed(
-                    //       context,
-                    //       '/register',
-                    //     ),
-                    //     child: Text(
-                    //       'Create new account',
-                    //       style: TextStyle(
-                    //         color: Colors.black87,
-                    //         fontSize: 12.sp,
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-                    // SizedBox(height: 30.h),
                     SizedBox(height: 30.h),
                     Padding(
                       padding: const EdgeInsets.only(top: 50.0),

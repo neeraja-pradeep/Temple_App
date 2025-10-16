@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../booking/data/checkout_model.dart';
+import 'package:temple_app/core/app_colors.dart';
 import '../../booking/data/cart_model.dart';
 import '../../booking/providers/booking_provider.dart';
 import '../../booking/providers/user_list_provider.dart';
@@ -12,6 +13,8 @@ class PoojaConfirmedPage extends ConsumerStatefulWidget {
   final int userId;
   final CartItem? cartItem;
   final int totalParticipants;
+  final bool? statusOverride;
+  final String? agentCodeOverride;
 
   const PoojaConfirmedPage({
     super.key,
@@ -19,6 +22,8 @@ class PoojaConfirmedPage extends ConsumerStatefulWidget {
     required this.userId,
     this.cartItem,
     this.totalParticipants = 1,
+    this.statusOverride,
+    this.agentCodeOverride,
   });
 
   @override
@@ -82,15 +87,210 @@ class _PoojaConfirmedPageState extends ConsumerState<PoojaConfirmedPage> {
             // ),
           ),
         ),
-        body: Builder(
-          builder: (context) {
-            // Use passed cart data if available, otherwise show loading
-            if (widget.cartItem == null) {
-              return Center(
+        body: Consumer(
+          builder: (context, ref, _) {
+            final cartAsync = ref.watch(cartProvider);
+            return cartAsync.when(
+              data: (cartResponse) {
+                // Prefer latest data from server; fallback to passed cartItem
+                final hasServerCart = cartResponse.cart.isNotEmpty;
+                final cartItem = hasServerCart
+                    ? cartResponse.cart.last
+                    : (widget.cartItem);
+
+                if (cartItem == null) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(color: AppColors.selected),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'Loading booking details...',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                final totalParticipants = hasServerCart
+                    ? cartResponse.cart.length
+                    : widget.totalParticipants;
+
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Background Image
+                    Image.asset(
+                      'assets/background.jpg',
+                      fit: BoxFit.cover,
+                      height: double.infinity,
+                      width: double.infinity,
+                      alignment: Alignment.topCenter,
+                    ),
+
+                    // Content
+                    SingleChildScrollView(
+                      padding: EdgeInsets.all(16.w),
+                      child: Column(
+                        children: [
+                          SizedBox(height: 64.h), // Add top spacing for app bar
+                          // Main white card
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16.r),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8.r,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(20.w),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Title
+                                  Center(
+                                    child: Text(
+                                      'പൂജാ വിശദാംശങ്ങൾ',
+                                      style: TextStyle(
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: 24.h),
+
+                                  // Booking Number
+                                  _buildInfoRow(
+                                    'ബുക്കിംഗ് നമ്പർ:',
+                                    widget
+                                            .checkoutResponse
+                                            .razorpayOrderId
+                                            .isNotEmpty
+                                        ? '#${widget.checkoutResponse.razorpayOrderId}'
+                                        : '#${widget.checkoutResponse.orderId}',
+                                    12,
+                                  ),
+                                  SizedBox(height: 51.h),
+
+                                  // Pooja Name (prominent display without label)
+                                  Text(
+                                    cartItem.poojaDetails.name,
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.h),
+
+                                  // Date (without label)
+                                  Text(
+                                    _getDateDisplay(cartItem),
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.h),
+
+                                  // Number of Persons (without label)
+                                  Text(
+                                    '$totalParticipants persons',
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  SizedBox(height: 44.h),
+
+                                  // Total Amount
+                                  _buildInfoRow(
+                                    'ആകെതുക :',
+                                    '₹${_calculateTotalAmount(cartItem, totalParticipants)}',
+                                    20,
+                                  ),
+                                  SizedBox(height: 24.h),
+
+                                  // Payment Instructions
+                                  _buildPaymentInstructions(
+                                    statusOverride: widget.statusOverride,
+                                    agentCodeOverride: widget.agentCodeOverride,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // Add bottom padding to prevent content from being hidden behind the fixed button
+                          SizedBox(height: 100.h),
+                        ],
+                      ),
+                    ),
+
+                    // Fixed Return to Home Button at bottom
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        padding: EdgeInsets.all(16.w),
+                        decoration: BoxDecoration(color: Colors.transparent),
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 40.h,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // Clear all booking state before navigating to home
+                              _clearAllBookingState();
+
+                              // Navigate to home screen
+                              Navigator.of(
+                                context,
+                              ).popUntil((route) => route.isFirst);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(
+                                0xFF8C001A,
+                              ), // Dark red
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: Text(
+                              'ഹോം സ്ക്രീൻലേക്ക് മടങ്ങുക',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+              loading: () => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const CircularProgressIndicator(),
+                    CircularProgressIndicator(color: AppColors.selected),
                     SizedBox(height: 16.h),
                     Text(
                       'Loading booking details...',
@@ -102,169 +302,13 @@ class _PoojaConfirmedPageState extends ConsumerState<PoojaConfirmedPage> {
                     ),
                   ],
                 ),
-              );
-            }
-
-            final cartItem = widget.cartItem!;
-            final totalParticipants = widget.totalParticipants;
-
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                // Background Image
-                Image.asset(
-                  'assets/background.jpg',
-                  fit: BoxFit.cover,
-                  height: double.infinity,
-                  width: double.infinity,
-                  alignment: Alignment.topCenter,
+              ),
+              error: (error, _) => Center(
+                child: Text(
+                  'Failed to load booking details',
+                  style: TextStyle(fontSize: 14.sp),
                 ),
-
-                // Content
-                SingleChildScrollView(
-                  padding: EdgeInsets.all(16.w),
-                  child: Column(
-                    children: [
-                      SizedBox(height: 64.h), // Add top spacing for app bar
-                      // Main white card
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16.r),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8.r,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.all(20.w),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Title
-                              Center(
-                                child: Text(
-                                  'പൂജാ വിശദാംശങ്ങൾ',
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.w400,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 24.h),
-
-                              // Booking Number
-                              _buildInfoRow(
-                                'ബുക്കിംഗ് നമ്പർ:',
-                                widget
-                                        .checkoutResponse
-                                        .razorpayOrderId
-                                        .isNotEmpty
-                                    ? '#${widget.checkoutResponse.razorpayOrderId}'
-                                    : '#${widget.checkoutResponse.orderId}',
-                                12,
-                              ),
-                              SizedBox(height: 51.h),
-
-                              // Pooja Name (prominent display without label)
-                              Text(
-                                cartItem.poojaDetails.name,
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              SizedBox(height: 8.h),
-
-                              // Date (without label)
-                              Text(
-                                _getDateDisplay(cartItem),
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              SizedBox(height: 8.h),
-
-                              // Number of Persons (without label)
-                              Text(
-                                '$totalParticipants persons',
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              SizedBox(height: 44.h),
-
-                              // Total Amount
-                              _buildInfoRow(
-                                'ആകെതുക :',
-                                '₹${_calculateTotalAmount(cartItem, totalParticipants)}',
-                                20,
-                              ),
-                              SizedBox(height: 24.h),
-
-                              // Payment Instructions
-                              _buildPaymentInstructions(),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // Add bottom padding to prevent content from being hidden behind the fixed button
-                      SizedBox(height: 100.h),
-                    ],
-                  ),
-                ),
-
-                // Fixed Return to Home Button at bottom
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    padding: EdgeInsets.all(16.w),
-                    decoration: BoxDecoration(color: Colors.transparent),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 40.h,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Clear all booking state before navigating to home
-                          _clearAllBookingState();
-
-                          // Navigate to home screen
-                          Navigator.of(
-                            context,
-                          ).popUntil((route) => route.isFirst);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF8C001A), // Dark red
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: Text(
-                          'ഹോം സ്ക്രീൻലേക്ക് മടങ്ങുക',
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             );
           },
         ),
@@ -343,7 +387,10 @@ class _PoojaConfirmedPageState extends ConsumerState<PoojaConfirmedPage> {
     return totalPrice.toStringAsFixed(2);
   }
 
-  Widget _buildPaymentInstructions() {
+  Widget _buildPaymentInstructions({
+    bool? statusOverride,
+    String? agentCodeOverride,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -356,7 +403,9 @@ class _PoojaConfirmedPageState extends ConsumerState<PoojaConfirmedPage> {
           ),
         ),
         Text(
-          'ഏജന്റ് കോഡ് ഉപയോഗിച്ച് കൗണ്ടറിൽ പണമടയ്ക്കണം',
+          (agentCodeOverride != null && agentCodeOverride.isNotEmpty)
+              ? 'Agent code ഉപയോഗിച്ചതിനാൽ, ഓൺലൈനായി പണമടയ്ക്കേണ്ടതില്ല.'
+              : 'ഓൺലൈനായി പണമടയ്ക്കണം.',
           style: TextStyle(
             fontSize: 12.sp,
             fontWeight: FontWeight.w400,

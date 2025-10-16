@@ -135,6 +135,20 @@ class BookingService {
       return false;
     }
 
+    // Ensure each selected user has required attributes (e.g., nakshathram)
+    final usersMissingAttributes = selectedUsers.where(
+      (u) => u.attributes.isNotEmpty,
+    );
+    if (usersMissingAttributes.isEmpty) {
+      final errorMsg =
+          'Please add Nakshathram details for the selected person(s) before booking.';
+      print('❌ Validation Error: Missing user attributes');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMsg), backgroundColor: primaryThemeColor),
+      );
+      return false;
+    }
+
     return true;
   }
 
@@ -184,7 +198,9 @@ class BookingService {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: AppColors.selected),
+        ),
       );
 
       // Prepare API parameters
@@ -235,10 +251,22 @@ class BookingService {
         print('   Data: ${response.data}');
 
         // Navigate to pooja summary page
+        // Capture current UI state to pass forward so UI reflects latest toggles
+        final bool currentParticipating = ref.read(
+          isParticipatingPhysicallyProvider,
+        );
+        final String currentAgentCode = ref.read(agentCodeProvider);
+
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PoojaSummaryPage(userId: userId),
+            builder: (context) => PoojaSummaryPage(
+              userId: userId,
+              statusOverride: currentParticipating,
+              agentCodeOverride: currentAgentCode.isNotEmpty
+                  ? currentAgentCode
+                  : null,
+            ),
           ),
         );
       } else {
@@ -252,6 +280,12 @@ class BookingService {
             response.message.toLowerCase().contains('agent code')) {
           errorMsg =
               'Invalid or inactive agent code. Please check your agent code and try again.';
+        } else if (response.message.toLowerCase().contains('no attribute') ||
+            response.message.toLowerCase().contains(
+              'no attribute found for user list',
+            )) {
+          errorMsg =
+              'Missing details: Please add Nakshathram for the selected person(s) and try again.';
         }
 
         print('❌ API Response Error: $errorMsg');
@@ -278,6 +312,12 @@ class BookingService {
           e.toString().toLowerCase().contains('agent code')) {
         errorMsg =
             'Invalid or inactive agent code. Please check your agent code and try again.';
+      } else if (e.toString().toLowerCase().contains('no attribute') ||
+          e.toString().toLowerCase().contains(
+            'no attribute found for user list',
+          )) {
+        errorMsg =
+            'Missing details: Please add Nakshathram for the selected person(s) and try again.';
       }
 
       print('❌ Exception Error: $errorMsg');

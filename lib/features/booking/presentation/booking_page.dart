@@ -43,7 +43,9 @@ class BookingPage extends ConsumerWidget {
           appBar: _buildAppBar(context, ref),
           body: bookingPoojaAsync.when(
             data: (pooja) => _buildBookingContent(context, pooja),
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => Center(
+              child: CircularProgressIndicator(color: AppColors.selected),
+            ),
             error: (error, stackTrace) => _buildErrorWidget(error),
           ),
         ),
@@ -364,6 +366,28 @@ class BookingPage extends ConsumerWidget {
     // Check if we need to set the main user and user list is available
     userListsAsync.when(
       data: (users) {
+        // If selection exists but references a user not in the current account's list,
+        // replace it with the personal user (or the first user of this account)
+        if (currentSelectedUsers.isNotEmpty) {
+          final selectedStillValid = currentSelectedUsers.every(
+            (u) => users.any((nu) => nu.id == u.id),
+          );
+          if (!selectedStillValid) {
+            final fallbackUser = users.firstWhere(
+              (u) => u.personal,
+              orElse: () => users.first,
+            );
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ref.read(selectedUsersProvider(userId).notifier).state = [
+                fallbackUser,
+              ];
+              ref.read(visibleUsersProvider(userId).notifier).state = [
+                fallbackUser,
+              ];
+            });
+            return; // done
+          }
+        }
         if (currentSelectedUsers.isEmpty || currentVisibleUsers.isEmpty) {
           try {
             // Prefer the entry where personal == true

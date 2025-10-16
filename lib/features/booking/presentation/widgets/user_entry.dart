@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:temple_app/core/app_colors.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/features/booking/data/user_list_model.dart';
-import 'package:temple_app/features/booking/providers/booking_page_providers.dart';
 import 'package:temple_app/features/booking/presentation/bottom_sheets/edit_user_bottom_sheet.dart';
 import 'package:temple_app/features/booking/providers/user_list_provider.dart';
 
@@ -24,7 +23,7 @@ class UserEntry extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final nakshatramName = user.attributes.isNotEmpty
         ? user.attributes.first.nakshatramName
-        : '';
+        : 'Please select a nakshatram';
 
     return Row(
       children: [
@@ -92,7 +91,9 @@ class UserEntry extends ConsumerWidget {
                   nakshatramName,
                   style: TextStyle(
                     fontSize: 12.sp,
-                    color: Colors.grey[600],
+                    color: user.attributes.isNotEmpty
+                        ? Colors.grey[600]
+                        : Colors.red[700],
                     fontWeight: FontWeight.w400,
                   ),
                 ),

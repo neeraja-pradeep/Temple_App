@@ -87,7 +87,9 @@ class AllUsersBottomSheet extends ConsumerWidget {
           final usersAsync = ref.watch(userListsProvider);
 
           return usersAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.selected),
+            ),
             error: (e, _) => Center(child: Text('Failed to load users')),
             data: (liveUsers) {
               return ListView.builder(
@@ -100,7 +102,7 @@ class AllUsersBottomSheet extends ConsumerWidget {
                   );
                   final nakshatramName = user.attributes.isNotEmpty
                       ? user.attributes.first.nakshatramName
-                      : '';
+                      : 'Please select a nakshatram';
 
                   return Padding(
                     padding: EdgeInsets.only(
@@ -164,7 +166,9 @@ class AllUsersBottomSheet extends ConsumerWidget {
                                   nakshatramName,
                                   style: TextStyle(
                                     fontSize: 12.sp,
-                                    color: Colors.grey[600],
+                                    color: user.attributes.isNotEmpty
+                                        ? Colors.grey[600]
+                                        : Colors.red[700],
                                     fontWeight: FontWeight.w400,
                                   ),
                                 ),

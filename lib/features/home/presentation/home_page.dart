@@ -158,18 +158,12 @@ class HomePage extends ConsumerStatefulWidget {
                       const Spacer(),
 
                       // Bottom menu items at the very bottom
-                      _buildMenuItem(
-                        "Contact Us",
-                        () {
-                          Navigator.push(
+                      _buildMenuItem("Contact Us", () {
+                        Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => ContactUs(),
-                          ),
+                          MaterialPageRoute(builder: (context) => ContactUs()),
                         );
-                        },
-                        fontWeight: FontWeight.w400,
-                      ),
+                      }, fontWeight: FontWeight.w400),
                       SizedBox(height: 12.h),
                       _buildMenuItem("Log out", () {
                         _handleLogout(context, ref);

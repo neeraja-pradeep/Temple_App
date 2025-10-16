@@ -9,6 +9,8 @@ import 'package:temple_app/features/auth/providers/auth_providers.dart';
 import 'package:temple_app/features/auth/providers/auth_state_provider.dart';
 import 'package:temple_app/features/home/providers/home_providers.dart';
 import 'package:temple_app/features/shop/cart/providers/cart_provider.dart';
+import 'package:temple_app/features/booking/providers/user_list_provider.dart';
+import 'package:temple_app/features/booking/providers/booking_page_providers.dart';
 
 /// Service to handle user logout operations
 class LogoutService {
@@ -200,6 +202,24 @@ class LogoutService {
       container.invalidate(tp.userRoleProvider);
       container.invalidate(tp.authorizationHeaderProvider);
 
+      // Reset booking-related UI state and caches to avoid stale selections
+      try {
+        container.invalidate(userListsProvider);
+      } catch (_) {}
+      try {
+        // Invalidate entire families (selected/visible users)
+        container.invalidate(selectedUsersProvider);
+      } catch (_) {}
+      try {
+        container.invalidate(visibleUsersProvider);
+      } catch (_) {}
+      try {
+        container.invalidate(selectedCalendarDateProvider);
+      } catch (_) {}
+      try {
+        container.invalidate(showCalendarProvider);
+      } catch (_) {}
+
       print('✅ Auth state providers reset successfully');
       print('📋 Reset providers:');
       print('   - otpSentProvider: false');
@@ -212,7 +232,7 @@ class LogoutService {
         '   - Profile and cached data invalidated for fresh fetch on next login',
       );
     } catch (e) {
-      print('❌ Failed to reset auth state providers: $e');
+      print('❌ Error resetting auth state providers: $e');
     }
   }
 }

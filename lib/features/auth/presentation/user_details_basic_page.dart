@@ -29,7 +29,9 @@ class UserDetailsBasicPage extends ConsumerWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: AppColors.selected),
+      ),
     );
 
     try {
@@ -275,7 +277,9 @@ class UserDetailsBasicPage extends ConsumerWidget {
                                           );
                                         },
                                         loading: () =>
-                                            const CircularProgressIndicator(),
+                                            const CircularProgressIndicator(
+                                              color: AppColors.selected,
+                                            ),
                                         error: (e, _) => Text(
                                           'Failed to load Nakshatras: $e',
                                         ),

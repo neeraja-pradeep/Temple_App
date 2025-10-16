@@ -10,8 +10,15 @@ import '../../booking/providers/booking_provider.dart';
 
 class PoojaSummaryPage extends ConsumerStatefulWidget {
   final int userId;
+  final bool? statusOverride;
+  final String? agentCodeOverride;
 
-  const PoojaSummaryPage({super.key, required this.userId});
+  const PoojaSummaryPage({
+    super.key,
+    required this.userId,
+    this.statusOverride,
+    this.agentCodeOverride,
+  });
 
   @override
   ConsumerState<PoojaSummaryPage> createState() => _PoojaSummaryPageState();
@@ -93,7 +100,10 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
                   return const Center(child: Text('No items in cart'));
                 }
 
-                final cartItem = cartResponse.cart.first;
+                // Use the most recent item (highest id) to reflect latest selection
+                final cartItem = cartResponse.cart.reduce(
+                  (a, b) => a.id >= b.id ? a : b,
+                );
                 final totalParticipants = cartResponse.cart.length;
                 return Stack(
                   fit: StackFit.expand,
@@ -161,7 +171,12 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
                                   SizedBox(height: 32.h),
 
                                   // Options/Status
-                                  _buildOptionsStatus(context, cartItem),
+                                  _buildOptionsStatus(
+                                    context,
+                                    cartItem,
+                                    statusOverride: widget.statusOverride,
+                                    agentCodeOverride: widget.agentCodeOverride,
+                                  ),
                                   SizedBox(height: 32.h),
 
                                   // Total Amount
@@ -231,7 +246,9 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
                   ],
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => Center(
+                child: CircularProgressIndicator(color: AppColors.selected),
+              ),
               error: (error, stackTrace) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -375,7 +392,12 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
     );
   }
 
-  Widget _buildOptionsStatus(BuildContext context, CartItem cartItem) {
+  Widget _buildOptionsStatus(
+    BuildContext context,
+    CartItem cartItem, {
+    bool? statusOverride,
+    String? agentCodeOverride,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -396,13 +418,13 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
               width: 20.w,
               height: 20.w,
               decoration: BoxDecoration(
-                color: cartItem.status
+                color: (statusOverride ?? cartItem.status)
                     ? const Color(0xFF8C001A)
                     : Colors.transparent,
                 border: Border.all(color: Colors.grey[400]!),
                 borderRadius: BorderRadius.circular(4.r),
               ),
-              child: cartItem.status
+              child: (statusOverride ?? cartItem.status)
                   ? const Icon(Icons.check, color: Colors.white, size: 14)
                   : null,
             ),
@@ -438,7 +460,8 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
             ),
             SizedBox(width: 12.w),
             Text(
-              cartItem.agent != null
+              (agentCodeOverride != null && agentCodeOverride.isNotEmpty) ||
+                      cartItem.agent != null
                   ? (cartItem.agentDetails != null &&
                             cartItem.agentDetails is Map<String, dynamic> &&
                             (cartItem.agentDetails
@@ -574,7 +597,9 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.selected),
+          );
         },
       );
 
@@ -596,7 +621,10 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
 
       // Get cart data to pass to confirmed page
       final cartData = await ref.read(cartProvider.future);
-      final cartItem = cartData.cart.isNotEmpty ? cartData.cart.first : null;
+      // Pass the most recent cart item forward
+      final cartItem = cartData.cart.isNotEmpty
+          ? cartData.cart.reduce((a, b) => a.id >= b.id ? a : b)
+          : null;
       final totalParticipants = cartData.cart.length;
 
       // Navigate to pooja confirmed page with checkout response and cart data
@@ -607,6 +635,8 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
             userId: widget.userId,
             cartItem: cartItem,
             totalParticipants: totalParticipants,
+            statusOverride: widget.statusOverride,
+            agentCodeOverride: widget.agentCodeOverride,
           ),
         ),
       );

@@ -12,31 +12,27 @@ final userListsProvider = FutureProvider<List<UserList>>((ref) async {
   return await repository.getUserLists();
 });
 
-final selectedUsersProvider = StateProvider.family<List<UserList>, int>((
-  ref,
-  userId,
-) {
-  // Get the current user as default
-  final currentUserAsync = ref.watch(currentUserProvider(userId));
-  return currentUserAsync.when(
-    data: (currentUser) => [currentUser],
-    loading: () => [],
-    error: (_, __) => [],
-  );
-});
+final selectedUsersProvider = StateProvider.autoDispose
+    .family<List<UserList>, int>((ref, userId) {
+      // Get the current user as default
+      final currentUserAsync = ref.watch(currentUserProvider(userId));
+      return currentUserAsync.when(
+        data: (currentUser) => [currentUser],
+        loading: () => [],
+        error: (_, __) => [],
+      );
+    });
 
-final visibleUsersProvider = StateProvider.family<List<UserList>, int>((
-  ref,
-  userId,
-) {
-  // Get the current user as default
-  final currentUserAsync = ref.watch(currentUserProvider(userId));
-  return currentUserAsync.when(
-    data: (currentUser) => [currentUser],
-    loading: () => [],
-    error: (_, __) => [],
-  );
-});
+final visibleUsersProvider = StateProvider.autoDispose
+    .family<List<UserList>, int>((ref, userId) {
+      // Get the current user as default
+      final currentUserAsync = ref.watch(currentUserProvider(userId));
+      return currentUserAsync.when(
+        data: (currentUser) => [currentUser],
+        loading: () => [],
+        error: (_, __) => [],
+      );
+    });
 
 final currentUserProvider = FutureProvider.family<UserList, int>((
   ref,

@@ -157,6 +157,7 @@ class _SpecialPageState extends ConsumerState<SpecialPage> {
                   asyncSpecialPrayers,
                   cachedSpecialPrayers,
                 ),
+                if (selectedCard != null) SizedBox(height: 50.h),
               ],
             ),
           ),

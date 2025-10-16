@@ -7,7 +7,6 @@ import 'package:temple_app/core/constants/format.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/features/booking/data/nakshatram_model.dart';
 import 'package:temple_app/features/booking/data/user_list_model.dart';
-import 'package:temple_app/features/booking/providers/booking_page_providers.dart';
 import 'package:temple_app/features/booking/providers/user_list_provider.dart';
 
 class EditUserBottomSheet extends ConsumerStatefulWidget {
@@ -54,9 +53,10 @@ class _EditUserBottomSheetState extends ConsumerState<EditUserBottomSheet> {
     dobController = TextEditingController(text: widget.user.dob);
     timeController = TextEditingController(text: widget.user.time);
 
+    // If user has no nakshatram set, leave selection null so the dropdown shows the placeholder
     selectedNakshatram = widget.user.attributes.isNotEmpty
         ? widget.user.attributes.first.nakshatram
-        : 1;
+        : null;
     selectedNakshatramName = widget.user.attributes.isNotEmpty
         ? widget.user.attributes.first.nakshatramName
         : null;
@@ -66,7 +66,8 @@ class _EditUserBottomSheetState extends ConsumerState<EditUserBottomSheet> {
     originalName = widget.user.name;
     originalDob = widget.user.dob;
     originalTime = widget.user.time;
-    originalNakshatram = selectedNakshatram ?? 1;
+    // Use -1 to represent "no original nakshatram"
+    originalNakshatram = selectedNakshatram ?? -1;
   }
 
   @override
@@ -238,7 +239,8 @@ class _EditUserBottomSheetState extends ConsumerState<EditUserBottomSheet> {
                       ? 'Loading...'
                       : (nakshError != null
                             ? 'Failed to load'
-                            : (selectedNakshatramName ?? 'select any')),
+                            : (selectedNakshatramName ??
+                                  'Please select a nakshatram')),
                 ),
                 onChanged: nakshLoading || nakshError != null
                     ? null
@@ -252,7 +254,7 @@ class _EditUserBottomSheetState extends ConsumerState<EditUserBottomSheet> {
                           selectedNakshatramName = name;
                         });
                       },
-                decoration: _buildInputDecoration('select any'),
+                decoration: _buildInputDecoration('Please select a nakshatram'),
               ),
             );
           },
