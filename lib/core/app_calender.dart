@@ -144,6 +144,10 @@ class _MalayalamCalendarState extends ConsumerState<MalayalamCalendar> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AppColors.selected),
                 ),
+                holidayDecoration:BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.circular(8),
+                ), 
                 defaultDecoration: BoxDecoration(
                   shape: BoxShape.rectangle,
                   borderRadius: BorderRadius.circular(8),
