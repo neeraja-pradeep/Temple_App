@@ -244,7 +244,17 @@ class BookingService {
         );
       } else {
         // Show error message
-        final errorMsg = 'Booking failed: ${response.message}';
+        String errorMsg = 'Booking failed: ${response.message}';
+
+        // Check if it's an agent code error and show a cleaner message
+        if (response.message.toLowerCase().contains(
+              'invalid or inactive agent code',
+            ) ||
+            response.message.toLowerCase().contains('agent code')) {
+          errorMsg =
+              'Invalid or inactive agent code. Please check your agent code and try again.';
+        }
+
         print('❌ API Response Error: $errorMsg');
         print('   Status Code: ${response.statusCode}');
         print('   Success Field: ${response.success}');
@@ -260,7 +270,17 @@ class BookingService {
       Navigator.pop(context);
 
       // Show error message
-      final errorMsg = 'Booking failed: ${e.toString()}';
+      String errorMsg = 'Booking failed: ${e.toString()}';
+
+      // Check if it's an agent code error and show a cleaner message
+      if (e.toString().toLowerCase().contains(
+            'invalid or inactive agent code',
+          ) ||
+          e.toString().toLowerCase().contains('agent code')) {
+        errorMsg =
+            'Invalid or inactive agent code. Please check your agent code and try again.';
+      }
+
       print('❌ Exception Error: $errorMsg');
       print('   Error type: ${e.runtimeType}');
       print('   Error details: $e');
