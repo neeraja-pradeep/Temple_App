@@ -502,7 +502,11 @@ class _EditUserBottomSheetState extends ConsumerState<EditUserBottomSheet> {
     } catch (e) {
       print('❌ API Error - Failed to update user');
       print('🚨 Error Message: $e');
-      _showSnackBar('❌ Failed to update user: ${e.toString()}');
+      final cleaned = e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
+      final message = cleaned.contains('could not be found on the server')
+          ? 'The member no longer exists on the server. Please refresh your saved members and try again.'
+          : 'Failed to update user: $cleaned';
+      _showSnackBar('❌ $message');
     }
   }
 

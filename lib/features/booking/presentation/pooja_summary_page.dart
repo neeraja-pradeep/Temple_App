@@ -5,6 +5,7 @@ import 'package:temple_app/core/app_colors.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/features/booking/presentation/pooja_confirmed_page.dart';
 import '../../booking/data/cart_model.dart';
+
 import '../../booking/providers/booking_provider.dart';
 // Removed unused imports after stopping state clearing on back
 
@@ -542,7 +543,47 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
     }
   }
 
+  bool _cartHasRequiredNakshatram(CartResponse cartResponse) {
+    for (final item in cartResponse.cart) {
+      final attributes = item.userListDetails.attributes;
+      if (attributes.isEmpty) {
+        return false;
+      }
+
+      final hasNakshatram = attributes.any(
+        (attr) =>
+            attr.nakshatram != 0 || attr.nakshatramName.trim().isNotEmpty,
+      );
+
+      if (!hasNakshatram) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Future<void> _showMissingNakshatramDialog(BuildContext context) {
+    return showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: const Text('Details Needed'),
+          content: const Text(
+            'Please add the participant\'s nakshatram details under Saved Members before completing checkout.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _handleCheckout(BuildContext context, WidgetRef ref) async {
+    var loadingDialogVisible = false;
     try {
       // Check if cart has items
       final cartResponse = await ref.read(cartProvider.future);
@@ -569,6 +610,11 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
         return;
       }
 
+      if (!_cartHasRequiredNakshatram(cartResponse)) {
+        await _showMissingNakshatramDialog(context);
+        return;
+      }
+
       // Show loading indicator
       showDialog(
         context: context,
@@ -577,6 +623,7 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
           return const Center(child: CircularProgressIndicator());
         },
       );
+      loadingDialogVisible = true;
 
       // Call checkout API
       final checkoutResponse = await ref.read(checkoutProvider.future);
@@ -592,7 +639,10 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
       print('   Key: ${checkoutResponse.key}');
 
       // Hide loading indicator
-      Navigator.of(context).pop();
+      if (loadingDialogVisible) {
+        Navigator.of(context).pop();
+        loadingDialogVisible = false;
+      }
 
       // Get cart data to pass to confirmed page
       final cartData = await ref.read(cartProvider.future);
@@ -612,15 +662,23 @@ class _PoojaSummaryPageState extends ConsumerState<PoojaSummaryPage> {
       );
     } catch (e) {
       // Hide loading indicator
-      Navigator.of(context).pop();
+      if (loadingDialogVisible) {
+        Navigator.of(context).pop();
+      }
 
       // Show error dialog
       showDialog(
         context: context,
         builder: (BuildContext context) {
+          final errorString = e.toString();
+          final friendlyMessage = errorString.contains('500') &&
+                  errorString.contains('unexpected error')
+              ? 'Checkout failed because required participant details are missing. Please update nakshatram information for the selected member and try again.'
+              : 'Failed to checkout: $errorString';
+
           return AlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to checkout: ${e.toString()}'),
+            title: const Text('Message'),
+            content: Text(friendlyMessage),
             actions: [
               TextButton(
                 onPressed: () {

@@ -93,14 +93,19 @@ class MemberService {
     if (token.isEmpty) throw Exception('User not authenticated');
 
     final uri = Uri.parse('$baseUrl$id/');
-    final response = await http.patch(
-      uri,
-      headers: {
-        'Authorization': token,
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(payload),
-    );
+    http.Response response;
+    try {
+      response = await http.patch(
+        uri,
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(payload),
+      );
+    } catch (e) {
+      throw Exception('Failed to edit user ⚠️ network error: $e');
+    }
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -108,16 +113,24 @@ class MemberService {
 
       final box = await _getMemberBox();
       await box.put(id, updatedMember);
+      ref.invalidate(memberProvider);
 
-      // 🧩 Trigger sync after edit
+      // 🪩 Trigger sync after edit
       await checkMemberUpdateAndSync(syncRepo , ref);
 
       return updatedMember;
+    } else if (response.statusCode == 404) {
+      final box = await _getMemberBox();
+      await box.delete(id);
+      ref.invalidate(memberProvider);
+      throw Exception(
+        'The selected member could not be found on the server. '
+        'It may have been removed elsewhere—please refresh the list or add it again.',
+      );
     } else {
       throw Exception('Failed to edit user ⚠️ ${response.statusCode} ${response.body}');
     }
   }
-
   /// ✅ Delete user (trigger manual sync)
   Future<void> deleteUser(Ref ref, int id) async {
     final token = ref.read(authorizationHeaderProvider) ?? '';

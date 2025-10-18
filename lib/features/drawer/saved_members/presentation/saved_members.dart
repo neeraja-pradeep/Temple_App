@@ -571,20 +571,25 @@ class SavedMembers extends ConsumerWidget {
                               if (member == null) {
                                 // Add
                                 newUser = await ref.read(addMemberProvider(userData).future);
-                                ref.invalidate(memberProvider);
                               } else {
                                 // Edit
                                 userData['id'] = member.id;
                                 newUser = await ref.read(editMemberProvider(userData).future);
                               }
 
+                              ref.invalidate(memberProvider);
+
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('✅ User saved successfully!')),
                               );
                             } catch (e) {
+                              final rawMessage = e.toString().replaceFirst(RegExp(r'^Exception:\\s*'), '');
+                              final friendlyMessage = rawMessage.contains('could not be found on the server')
+                                  ? 'The member no longer exists on the server. Please refresh the list or add them again.'
+                                  : 'Failed to save member: $rawMessage';
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('❌ Failed: $e')),
+                                SnackBar(content: Text('❌ $friendlyMessage')),
                               );
                             }
                           },
