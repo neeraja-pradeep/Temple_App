@@ -259,8 +259,7 @@ class _PoojaPageState extends ConsumerState<PoojaPage> {
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: 16.h, left: 16.w, right: 16.w),
-                  child: MalayalamCalendar(
-                  ),
+                  child: MalayalamCalendar(),
                 ),
               ],
             ),

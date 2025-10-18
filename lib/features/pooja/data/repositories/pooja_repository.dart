@@ -69,7 +69,7 @@ class PoojaRepository {
     }
 
     // 2️⃣ If cache empty, fetch from API
-    final url = Uri.parse('$baseUrl/booking/poojas/?pooja_category_id=$categoryId');
+    final url = Uri.parse('$baseUrl/booking/poojas/?category=$categoryId&specialpooja=false');
     final authHeader = await CompleteTokenService.getAuthorizationHeader();
     if (authHeader == null) throw Exception('No valid auth token found');
 

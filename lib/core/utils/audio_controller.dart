@@ -50,4 +50,24 @@ class AudioController {
       await _session!.setActive(false);
     }
   }
+
+  /// Dispose all players and release session (call on logout/app close)
+  Future<void> dispose() async {
+    for (var player in _players) {
+      try {
+        await player.stop();
+        await player.dispose();
+      } catch (e) {
+        print('❌ Error disposing player: $e');
+      }
+    }
+    _players.clear();
+
+    if (_session != null) {
+      await _session!.setActive(false);
+      _session = null;
+    }
+
+    print('✅ AudioController disposed');
+  }
 }

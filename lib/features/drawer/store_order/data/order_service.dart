@@ -11,10 +11,16 @@ class StoreOrderService {
   static const _boxPrefix = 'store_orders';
   static const _allStatusKey = 'all';
   static const String baseBoxName = 'store_orders_all';
-  static const List<String> _knownStatuses = ['pending', 'delivered', 'cancelled'];
+  static const List<String> _knownStatuses = [
+    'pending',
+    'delivered',
+    'cancelled',
+    'completed',
+    'upcoming'
+  ];
   static final Set<String> _trackedBoxes = {baseBoxName};
 
-  /// Returns the list of cache box names currently in use.
+  /// Returns all cache box names currently tracked.
   static List<String> cacheBoxNames() {
     final names = <String>{baseBoxName, ..._trackedBoxes};
     for (final status in _knownStatuses) {
@@ -25,24 +31,20 @@ class StoreOrderService {
 
   static String? _normalizeStatus(String? status) {
     final trimmed = status?.trim();
-    if (trimmed == null || trimmed.isEmpty) {
-      return null;
-    }
-
+    if (trimmed == null || trimmed.isEmpty) return null;
     final normalized = trimmed.toLowerCase();
     return normalized == _allStatusKey ? null : normalized;
   }
 
   static String _boxName(String? normalizedStatus) {
-    if (normalizedStatus == null) {
-      return baseBoxName;
-    }
+    if (normalizedStatus == null) return baseBoxName;
     return '${_boxPrefix}_$normalizedStatus';
   }
 
-  Future<StoreOrderResponse> fetchOrders(
+  Future<StoreOrderResponse> fetchOrdersPage(
     Ref ref, {
     String? status,
+    String? pageUrl,
   }) async {
     final normalizedStatus = _normalizeStatus(status);
     final boxName = _boxName(normalizedStatus);
@@ -50,12 +52,10 @@ class StoreOrderService {
 
     final box = await Hive.openBox<StoreOrder>(boxName);
 
+    // Cached data
     StoreOrderResponse? cachedResponse;
-    if (box.isNotEmpty) {
-      debugPrint(
-        '[StoreOrderService] Serving cached results for $boxName '
-        '(${box.values.length} items)',
-      );
+    if (box.isNotEmpty && pageUrl == null) {
+      debugPrint('[StoreOrderService] Using cached results for $boxName');
       cachedResponse = StoreOrderResponse(
         count: box.values.length,
         results: box.values.toList(),
@@ -65,85 +65,73 @@ class StoreOrderService {
     }
 
     final token = ref.read(authorizationHeaderProvider) ?? '';
-    if (token.isEmpty) {
-      throw Exception('User not authenticated');
+    if (token.isEmpty) throw Exception('User not authenticated');
+
+    // 🔗 Build the URL
+    late Uri uri;
+    if (pageUrl != null) {
+      uri = Uri.parse(pageUrl);
+    } else {
+      // filter-based API
+      final baseUri = Uri.parse(ApiConstants.orders);
+      uri = normalizedStatus == null
+          ? baseUri
+          : baseUri.replace(queryParameters: {'filter': normalizedStatus});
     }
 
-    final baseUri = Uri.parse(ApiConstants.orders);
-    final initialUri = normalizedStatus == null
-        ? baseUri
-        : baseUri.replace(queryParameters: {'status': normalizedStatus});
+    final response = await http.get(
+      uri,
+      headers: {
+        'Authorization': token,
+        'Content-Type': 'application/json',
+      },
+    );
 
-    final aggregatedResults = <StoreOrder>[];
-    String? nextUrl = initialUri.toString();
-    String? previous;
-    int? totalCount;
-    bool fetchFailed = false;
-
-    while (nextUrl != null) {
-      final response = await http.get(
-        Uri.parse(nextUrl),
-        headers: {
-          'Authorization': token,
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode != 200) {
-        fetchFailed = true;
-        debugPrint(
-          '[StoreOrderService] Failed fetching $nextUrl '
-          '(HTTP ${response.statusCode})',
-        );
-        break;
+    if (response.statusCode != 200) {
+      debugPrint('[StoreOrderService] ❌ HTTP ${response.statusCode} for $uri');
+      if (cachedResponse != null) {
+        debugPrint('⚠️ Serving cached data for $boxName');
+        return cachedResponse;
       }
-
-      final data = jsonDecode(response.body);
-      final page = StoreOrderResponse.fromJson(data);
-
-      totalCount = page.count;
-      previous ??= page.previous;
-      aggregatedResults.addAll(page.results);
-
-      nextUrl = page.next;
+      throw Exception('Failed to fetch store orders');
     }
 
-    if (!fetchFailed) {
-      final sortedResults = List<StoreOrder>.from(aggregatedResults)
-        ..sort(
-          (a, b) => DateTime.parse(b.createdAt)
-              .compareTo(DateTime.parse(a.createdAt)),
-        );
+    // 🔍 Parse
+    final data = jsonDecode(response.body);
+    final page = StoreOrderResponse.fromJson(data);
 
+    // Sort latest first
+    final sortedResults = List<StoreOrder>.from(page.results)
+      ..sort((a, b) =>
+          DateTime.parse(b.createdAt).compareTo(DateTime.parse(a.createdAt)));
+
+    // Cache only the first page per filter
+    if (pageUrl == null) {
       await box.clear();
       for (final order in sortedResults) {
         await box.put(order.id, order);
       }
-
-      return StoreOrderResponse(
-        count: totalCount ?? sortedResults.length,
-        next: null,
-        previous: previous,
-        results: sortedResults,
-      );
     }
 
-    if (cachedResponse != null) {
-      debugPrint(
-        '⚠️ Failed to fetch remote orders; serving cached data for $boxName.',
-      );
-      return cachedResponse;
-    }
-
-    throw Exception('Failed to fetch store orders');
+    // Return with next/prev
+    return StoreOrderResponse(
+      count: page.count,
+      next: page.next,
+      previous: page.previous,
+      results: sortedResults,
+    );
   }
 }
 
-// Providers
-final storeOrderServiceProvider = Provider<StoreOrderService>((ref) => StoreOrderService());
+// 🪣 Provider
+final storeOrderServiceProvider =
+    Provider<StoreOrderService>((ref) => StoreOrderService());
 
-final storeOrdersProvider =
-    FutureProvider.autoDispose.family<StoreOrderResponse, String>((ref, status) async {
-  final service = ref.read(storeOrderServiceProvider);
-  return service.fetchOrders(ref, status: status);
-});
+final storeOrdersPageProvider = FutureProvider.autoDispose
+    .family<StoreOrderResponse, (String status, String? pageUrl)>(
+  (ref, params) async {
+    final (status, pageUrl) = params;
+    final service = ref.read(storeOrderServiceProvider);
+    return service.fetchOrdersPage(ref, status: status, pageUrl: pageUrl);
+  },
+);

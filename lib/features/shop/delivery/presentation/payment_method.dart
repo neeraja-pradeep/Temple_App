@@ -313,11 +313,11 @@ class PaymentMethodScreen extends ConsumerWidget {
                 }
                 const orderStatuses = ['all', 'pending', 'delivered', 'cancelled'];
                 for (final status in orderStatuses) {
-                  ref.invalidate(storeOrdersProvider(status));
+                  ref.invalidate(storeOrdersPageProvider((status,null)));
                 }
                 for (final status in orderStatuses) {
                   try {
-                    await ref.refresh(storeOrdersProvider(status).future);
+                    await ref.refresh(storeOrdersPageProvider((status,null)).future);
                   } catch (e, st) {
                     log('Failed to prefetch orders for status $status: $e');
                     log(st.toString());
