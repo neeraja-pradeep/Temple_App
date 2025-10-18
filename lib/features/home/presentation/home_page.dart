@@ -301,6 +301,8 @@ static Future<void> _cleanupBeforeLogout(WidgetRef ref) async {
             ),
           );
         }
+        // to dispose old GlobalKeys to avoid 'Multiple widgets used the same GlobalKey' error
+        Future.microtask(() {
         // Explicitly navigate to login and clear back stack
         if (context.mounted) {
           // Invalidate providers that may hold user-scoped caches
@@ -311,6 +313,7 @@ static Future<void> _cleanupBeforeLogout(WidgetRef ref) async {
             context,
           ).pushNamedAndRemoveUntil('/login', (route) => false);
         }
+        });
       } else {
         // Show error message
         if (context.mounted) {
