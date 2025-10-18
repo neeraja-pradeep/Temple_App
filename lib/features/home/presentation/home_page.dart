@@ -8,13 +8,17 @@ import 'package:shimmer/shimmer.dart';
 import 'package:temple_app/core/app_colors.dart';
 import 'package:temple_app/core/services/fcm_token_service.dart';
 import 'package:temple_app/core/services/logout_service.dart';
+import 'package:temple_app/core/services/notification_service.dart';
+import 'package:temple_app/core/services/token_auto_refresh_service.dart';
 import 'package:temple_app/core/theme/color/colors.dart';
 import 'package:temple_app/core/utils/audio_controller.dart';
+import 'package:temple_app/features/auth/providers/auth_providers.dart';
 import 'package:temple_app/features/drawer/contact_us/contact_us.dart';
 import 'package:temple_app/features/drawer/pooja_booking/presentation/booking_details.dart';
 import 'package:temple_app/features/drawer/saved_addresses/presentation/saved_address.dart';
 import 'package:temple_app/features/drawer/saved_members/presentation/saved_members.dart';
 import 'package:temple_app/features/drawer/store_order/presentation/order_details.dart';
+import 'package:temple_app/features/global_api_notifer/provider/sync_provider.dart';
 import 'package:temple_app/features/home/providers/home_providers.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -222,6 +226,39 @@ class HomePage extends ConsumerStatefulWidget {
     );
   }
 
+  /// Clean up all global services and background tasks
+static Future<void> _cleanupBeforeLogout(WidgetRef ref) async {
+  try {
+    // Stop all audio and release focus
+    await AudioController.instance.dispose();
+
+    // Stop background token auto-refresh
+    TokenAutoRefreshService.stopTokenMonitoring();
+
+    // Clear notifications (optional but clean)
+    await NotificationService.instance.dispose();
+
+    // Invalidate all important providers
+    ref.invalidate(godCategoriesProvider);
+    ref.invalidate(profileProvider);
+    ref.invalidate(songProvider);
+    ref.invalidate(manualSyncProvider);
+    ref.invalidate(syncTimerProvider);
+
+    // reset all form key providers to avoid "Multiple widgets used the same GlobalKey" errors
+    // each form gets a new key after logout
+    ref.invalidate(loginFormKeyProvider);
+    ref.invalidate(registerFormKeyProvider);
+    ref.invalidate(userBasicFormKeyProvider);
+    ref.invalidate(userAddressFormKeyProvider);
+
+    print('✅ All global services and form keys are  cleaned up');
+  } catch (e) {
+    print('⚠️ Cleanup before logout failed: $e');
+  }
+}
+
+
   /// Handle user logout
   static Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
     try {
@@ -254,6 +291,8 @@ class HomePage extends ConsumerStatefulWidget {
 
       if (success) {
         // Show success message
+         await _cleanupBeforeLogout(ref);
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -262,16 +301,19 @@ class HomePage extends ConsumerStatefulWidget {
             ),
           );
         }
+        // to dispose old GlobalKeys to avoid 'Multiple widgets used the same GlobalKey' error
+        Future.microtask(() {
         // Explicitly navigate to login and clear back stack
         if (context.mounted) {
           // Invalidate providers that may hold user-scoped caches
-          ref.invalidate(godCategoriesProvider);
-          ref.invalidate(profileProvider);
-          ref.invalidate(songProvider);
+          // ref.invalidate(godCategoriesProvider);
+          // ref.invalidate(profileProvider);
+          // ref.invalidate(songProvider);
           Navigator.of(
             context,
           ).pushNamedAndRemoveUntil('/login', (route) => false);
         }
+        });
       } else {
         // Show error message
         if (context.mounted) {
@@ -310,6 +352,7 @@ class HomePage extends ConsumerStatefulWidget {
       }
     }
   }
+
 
   /// Show logout confirmation dialog
   static Future<bool> _showLogoutConfirmationDialog(

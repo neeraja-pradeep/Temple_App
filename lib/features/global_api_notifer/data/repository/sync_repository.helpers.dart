@@ -86,7 +86,7 @@ Future<void> _refreshStoreOrders(SyncRepository repo, Ref ref) async {
     _invalidateProviders(
       ref,
       logMessage: 'Invalidating store orders provider...',
-      providers: [storeOrdersProvider],
+      providers: [storeOrdersPageProvider],
     );
 
     debugPrint('Store Orders refresh initiated');

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -13,6 +14,9 @@ class NotificationService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _local =
       FlutterLocalNotificationsPlugin();
+
+  // Keep token refresh subscription reference for cleanup
+  StreamSubscription<String>? _tokenRefreshSub;
 
   // Android notification channel
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
@@ -51,7 +55,7 @@ class NotificationService {
     }
 
     // Listen for token refresh and persist
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+    _tokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
       debugPrint('🔁 FCM Token refreshed: $newToken');
       await TokenStorageService.saveFcmToken(newToken);
     });
@@ -111,6 +115,14 @@ class NotificationService {
       payload: message.data.toString(),
     );
   }
+
+  //  dispose function
+  Future<void> dispose() async {
+    await _tokenRefreshSub?.cancel();
+    _tokenRefreshSub = null;
+    debugPrint('🧹 NotificationService disposed');
+  }
+
 }
 
 // Top-level background handler
@@ -119,3 +131,5 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Keep minimal work here. You can log or pre-process.
   debugPrint('📨 BG message: ${message.messageId}');
 }
+
+

@@ -16,16 +16,39 @@ class MusicPage extends ConsumerStatefulWidget {
   ConsumerState<MusicPage> createState() => _MusicPageState();
 }
 
-class _MusicPageState extends ConsumerState<MusicPage> {
+class _MusicPageState extends ConsumerState<MusicPage> with WidgetsBindingObserver{
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final player = ref.read(audioPlayerProvider);
 
     // Register this player to the coordinator
     AudioController.instance.register(player);
 
     _setupAutoPlay();
+  }
+
+  @override
+  void dispose() {
+  WidgetsBinding.instance.removeObserver(this);
+  final player = ref.read(audioPlayerProvider);
+  // Stop playback
+  player.stop();
+
+  // Unregister from AudioController so it won't interfere with other players
+  AudioController.instance.unregister(player);
+  super.dispose();
+}
+  // didChangeAppLifecycleState listens to app background/foreground events
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final player = ref.read(audioPlayerProvider);
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      player.pause();
+      ref.read(isPlayingProvider.notifier).state = false;
+    }
   }
 
   void _setupAutoPlay() {
@@ -196,6 +219,7 @@ class _MusicPageState extends ConsumerState<MusicPage> {
       },
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
